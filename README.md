@@ -50,7 +50,7 @@ me to it?
 5) Extend to the muliple-in multiple-out case (this would be really interesting but could be difficult).
 
 6) Extend to adaptive filters where the poles are automatically moved to reject interferers while the exact
-design of the passbands are preserved; I don't think this would be too difficutl for say one or two poles,
+design of the passbands are preserved; I don't think this would be too difficult for say one or two poles,
 and could be real useful for wireless front ends. Basically having the filter approximations routines running
 in the background during actual system operation could take advantage of cheap (Beaglebone Black?) computers.
 This type of approach (and others like it) strikes me as a whole new methodology that was not previously available

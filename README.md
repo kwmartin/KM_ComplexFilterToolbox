@@ -22,7 +22,7 @@ and then either run the file design_examples.m, or run any of the individual exm
 The programs in ./lib are intended for designing transfer functions for complex filters, both analog and digital.
 The filters can have a single passband, and upper and lower stopbands that need not be symetrical.
 The programs are highly based on the approach of Martin Snelgrove (see his unpublished paper in ./doc).
-The programs and approach are described in greater detail in my 14 year old paper also in ./doc (unfortunately,
+The programs and approach are described in greater detail in my 12 year old paper also in ./doc (unfortunately,
 not well proofed; this is on my to-do list).
 The programs were written in 2004, with a couple of bug fixes recently (mostly a fix for Matlab not
 well supporting complex models and an extension to handle two fixed adjacent poles). It appears to me

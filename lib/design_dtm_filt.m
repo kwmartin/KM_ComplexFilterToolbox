@@ -1,32 +1,34 @@
+function H = design_dtm_filt(p,px,ni,wp,ws,as,ap,type)
+% H = design_dtm_filt(p,px,ni,wp,ws,as,ap,type) design discrete-time transfer function
+% This is a routine for designing discrete-time complex transfer functions
+% This has been replaced at 11/2018 by approach that does desing between +-1
+% p: initial guess at finite MOVEABLE loss poles, px is fixed poles
+% ni: number of loss poles at infinity, wp is pass-band, ws is stop-band
+% as is a vector specifying db loss at stop-band freqs, ap is pass-band ripple in dB
+% type is 'monotonic' for a maximally flat pass-band and 'elliptic' for
+% an equi-ripple pass-band
+% ONE_STP = 1 to treat the entire stop-band both above and below the
+% pass-band as a single pass-band. This can be preferable when there are
+% no poles at infinity (0.5 for digital filters). This choice allows poles
+% to move between pass-bands. When ni is not equal to zero, then ONE_STP =
+% 0 may be preferable. Try experimenting.
+%
 %   Toolbox for the Design of Complex Filters
-%   Copyright (C) 2016  Kenneth Martin
-
+%   Copyright (C) 2018  Kenneth Martin
+%
 %   This program is free software: you can redistribute it and/or modify
 %   it under the terms of the GNU General Public License as published by
 %   the Free Software Foundation, either version 3 of the License, or
 %   (at your option) any later version.
-
+%
 %   This program is distributed in the hope that it will be useful,
 %   but WITHOUT ANY WARRANTY; without even the implied warranty of
 %   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %   GNU General Public License for more details.
-
+%
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-function H = design_dtm_flt(p,px,ni,wp,ws,as,ap,type)
-% This is a routine for designing discrete-time complex filters
-
-% p: initial guess at finite MOVEABLE loss poles
-% ni: number of loss poles at infinity
-% type is 'monotonic' for a maximally flat pass-band and 'elliptic' for
-% an equi-ripple pass-band
-
-% ONE_STP = 1 to treat the entire stop-band both above and below the
-% pass-band as a single pass-band. This can be preferrable when there are
-% no poles at infinity (0.5 for digital filters). This choice allows poles
-% to move between pass-bands. When ni is not equal to zero, then ONE_STP =
-% 0 may be preferrable. Try experimenting.
+%
 
 warning off all % The control toolbox is giving too many warnings with complex variables
 Ap = ap; % desired passband ripple
@@ -78,7 +80,7 @@ if length(p) >=1 % We have moveable poles
 	% This is what should be used Kz = place_poles2(p,px,ni,[w1,w2,w3,w4],e_,type); % Place poles
 	Kz = place_poles(p,px,ni,wp,ws,as,e_,type); % Place poles
 else % Only fixed poles
-    Kz = make_init2Kz(p,ni,wp,type); % No placement required
+    Kz = make_init2Kz(p,px,ni,wp,type); % No placement required
 end
 
 [margin, smin] = disp_margin(Kz,ws,as,wp,e_,'discrete');
@@ -99,7 +101,11 @@ switch type
     case 'elliptic'
 		Hc = elliptic_bp(ps,wp,ni,e_);
     case 'monotonic'
-		Hc = monotonic_bp(ps,wp,ni,e_);
+        Fltr = monotonic_bp(ps,wp,ni,e_);
+        Hc = Fltr.H;
+        E = Fltr.E;
+        F = Fltr.F;
+        P = Fltr.P;
     otherwise
         error('The fifth argument must be either elliptic or monotonic');
 end
@@ -112,10 +118,8 @@ H2 = inv(Hc);
 % The bilinear function in the Control toolbox does not work with complex
 % systems; however, the bilinear function in the signal processing toolbox
 % does
-[z p k] = zpkdata(H2);
-Z = z{1};
-P = p{1};
+[z p k] = zpkdata(H2, 'v');
 % Transform to discrete-time system using bilinear transform
-[zd pd kd] = bilinear(Z,P,k,1);
+[zd pd kd] = bilinear(z,p,k,1);
 H = zpk(zd,pd,kd,1); % Make zero, pole system
 warning on all

@@ -7,7 +7,6 @@ ws = [-0.49 -0.45 -0.05 0.01 0.49]; % upper and lower stopband frequencies
 as = [0 60 60 20 20];
 
 Ap = 0.1; % the passband ripple in dB
-fig = figure('Position',[500 200 500 600]); % This places and sizes plot figure
 H = design_dtm_filt(p,px,ni,wp,ws,as,Ap,'monotonic'); %This is a discrete-time design with a fixed loss-pole at dc.
 plot_drsps(H,wp,ws,'r',[-0.5 0.5 -120 1]); % Plot the response (with specified axis scaling)
 

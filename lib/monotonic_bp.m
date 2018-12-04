@@ -1,25 +1,26 @@
-%   Toolbox for the Design of Complex Filters
-%   Copyright (C) 2016  Kenneth Martin
-
-%   This program is free software: you can redistribute it and/or modify
-%   it under the terms of the GNU General Public License as published by
-%   the Free Software Foundation, either version 3 of the License, or
-%   (at your option) any later version.
-
-%   This program is distributed in the hope that it will be useful,
-%   but WITHOUT ANY WARRANTY; without even the implied warranty of
-%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%   GNU General Public License for more details.
-
-%   You should have received a copy of the GNU General Public License
-%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-function H = monotonic_bp(ps,wp,ni,e_)
+function Fltr = monotonic_bp(ps,wp,ni,e_)
 % ni: number of loss poles at infinity
 % ps: finite jw loss poles
 % w1: lower passband edge
 % w2: upper passband edge
 % e_: passband ripple = sqrt(1 + e_^2)
+%
+%   Toolbox for the Design of Complex Filters
+%   Copyright (C) 2018  Kenneth Martin
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
 
 np=length(ps); % number of finite loss poles (including zero)
 
@@ -77,3 +78,7 @@ end
 H = zpk(we,ps,1);
 g = sqrt(1.0 + e_^2)/abs(freqresp(H,wp(1)));
 H = g*H;
+E = we;
+F = wf.';
+P = ps;
+Fltr = struct('H', H, 'E', E, 'F', F, 'P', P);

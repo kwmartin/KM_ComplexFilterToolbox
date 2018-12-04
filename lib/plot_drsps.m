@@ -1,24 +1,25 @@
+function [ax1, ax2] = plot_drsps(H,wp,ws,colour,lim)
+%   PLOT_DRSPS(H) is used to plot the stopband and passband magnitude response
+%   of a discrete tranfer function H. wp is the passband freqs. in rad. ws is the
+%   stop-band specificatios, colour specifies the colour of the plot. lim specifies
+%   plot axis [x1 x2 y1 y2].
+%
 %   Toolbox for the Design of Complex Filters
-%   Copyright (C) 2016  Kenneth Martin
-
+%   Copyright (C) 2018  Kenneth Martin
+%
 %   This program is free software: you can redistribute it and/or modify
 %   it under the terms of the GNU General Public License as published by
 %   the Free Software Foundation, either version 3 of the License, or
 %   (at your option) any later version.
-
+%
 %   This program is distributed in the hope that it will be useful,
-%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   but WITHOUT ANY WARRANTY; without1 even the implied warranty of
 %   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %   GNU General Public License for more details.
-
+%
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-function plot_drsps(H,wp,ws,colour,lim)
-% PLOT_DRSPS(H) is used to plot the stopband and passband magnitude response
-% of a discrete tranfer function H. w is a vector containing in order: lower
-% passband frequency, upper passband frequency, lower stopband frequency,
-% and upper stopband frequency.
+%
 
 [zd pd kd] = zpkdata(H);
 b = poly(zd{1});
@@ -27,9 +28,10 @@ A = db(kd.*freqz(b,a,2*pi*[wp ws]));
 w = -0.5:1e-4: 0.5;
 s = 2*pi*w;
 h=kd.*freqz(b,a,s);
-subplot(2,1,1)
-plot(s./(2*pi),db(h),colour)
-
+dbH = db(h);
+fig = figure('Position',[800 100 600 600]);
+ax1 = subplot(2,1,1);
+plot(s./(2*pi),dbH,colour)
 
 if nargin == 5
     if length(lim) ~= 4
@@ -42,22 +44,28 @@ if nargin == 5
 else
 	x1 = -0.5;
 	x2 = 0.5;
-	y1 = 1.2*min(A);
-	y2 = 1;
+	y1 = 1.8*min(A);
+	y2 = 2;
 end
+
+N = length(s);
+n1 = int16(N*(wp(1) - x1)/(x2 - x1));
+n2 = int16(N*(wp(2) - x1)/(x2 - x1));
+pbMin = min(dbH(n1:n2));
 
 axis([x1 x2 y1 y2])
 title('Magnitude Gain')
 ylabel('dB')
 xlabel('Frequency')
-subplot(2,1,2)
-plot(s./(2*pi),db(h),colour)
+ax2 = subplot(2,1,2);
+plot(s./(2*pi),dbH,colour)
 
 wdiff = wp(2) - wp(1);
 x1 = wp(1) - 0.05*wdiff;
 x2 = wp(2) + 0.05*wdiff;
-y1 = max(A) + 5*A(1);
-y2 = max(A) - 1.5*A(1);
+mxH = db(max(h));
+y1 =  + pbMin - 0.1;
+y2 = max(dbH) + 0.1;
 
 axis([x1 x2 y1 y2])
 title('Passband')

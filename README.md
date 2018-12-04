@@ -14,6 +14,12 @@
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+UPDATE: Dec./2018 This toolbox has undergone a major revision which is on-going. Many many bugs
+in the filter approximation routines have been fixed and at the time of up-load almost all of
+the examples in ./examples are working. Numerical conditioning has been significantly improved
+(this is ongoing). A large number of filter realization functions have been added to ./lib. Again, the update is ongoing and not yet finished. For example, many of the library routines have been deprecated and should be deleted and/or renamed. The intention is this will occur in the next few months. Also, much of the code requires a lot of cleaning, refractoring, more documentation, etc. Again, it is hoped this will occur, and given that currently work on the toolbox is only being done by myself, part-time, it might take a bit of time. The following of this README has not been changed since 2016, but will be updated soon. Good luck, and I hope you enjoy doing complex filter design; it is an area I personally find fascinating even though it doesn't seem to be currently popular. I'm hoping that after finishing the update, I can change directions to looking into using the toolbox in some applications; one area I'm very interested in is maximally decimated filter-banks using IIR digital filters. I've played around in this previously using FIR filters, but I don't think much has been done wrt to IIR filters, and I'm hoping the toolox might be of some use for this application.
+-Ken
+
 To see some examples of designing filters, start Matlab (Copyright, 1984-2016, The Mathworks Inc.),
 change directory into ./examples, add ../lib to your path using
 >>path('../lib',path)

@@ -1,37 +1,47 @@
+function Kz_ = place_poles(p,px,ni,wp,ws,as,e_,type)
+%   Kz_ = place_poles2(p,ni,w,e_,type,px)
+%   This is a program for placing loss poles to equalize stop-band
+%   minima. The specifications need not be constant or symmetric
+%   This version can handle finite unmoveable poles
+%   specified in px.
+%
+%   p: Initial guess at finite loss poles
+%   px: fixed poles
+%   ni: number of poles at infinity
+%
+%   e_ = 0.25; % passband magnitude squared ripple = 1 + e_^2
+%
+%   type is 'monotonic' for a maximally flat pass-band and 'elliptic' for
+%   an equiripple pass-band
+%
+%   For detailed explanation see:
+%   K. Martin, “Approximation of complex iir bandpass filters without arith-
+%   metic symmetry,” IEEE Trans. Circuits and Systems I, vol. 52, pp. 794–
+%   803, April 2005.
+%
 %   Toolbox for the Design of Complex Filters
-%   Copyright (C) 2016  Kenneth Martin
-
+%   Copyright (C) 2018  Kenneth Martin
+%
 %   This program is free software: you can redistribute it and/or modify
 %   it under the terms of the GNU General Public License as published by
 %   the Free Software Foundation, either version 3 of the License, or
 %   (at your option) any later version.
-
+%
 %   This program is distributed in the hope that it will be useful,
 %   but WITHOUT ANY WARRANTY; without even the implied warranty of
 %   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %   GNU General Public License for more details.
-
+%
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
 
-function Kz_ = place_poles(p,px,ni,wp,ws,as,e_,type)
-% Kz_ = place_poles2(p,ni,w,e_,type,px)
-% This is a program for placing loss poles.
-% This version can handle finite unmoveable poles
-% specified in px.
-
-% p: Initial guess at finite loss poles
-% px: fixed poles
-% ni: number of poles at infinity
-
-% e_ = 0.25; % passband ripple = 1 + e_^2
-
-% type is 'monotonic' for a maximally flat pass-band and 'elliptic' for
-% and equi-ripple pass-band
 
 Kz_ = make_init2Kz(p,px,ni,wp,type); % Calculate the initial characteristic eq.
 
-% find the frequencies of the stop-band edges
+% find the stop-band specification frequencies in the z domain
+% note: wsz = sqrt((wp(2) - ws./( wp(1) - ws)) these are returned sorted
+% along with the sorted attenuations at each specification frequency
 [wsz As] = trnsfrm_spec(ws,as,wp);
 ns = length(ws);
 
@@ -40,7 +50,7 @@ ns = length(ws);
 
 nx=length(px); % number of finite loss poles (including zero)
 
-% check that the fixed poles are different than the moveable poles
+% check that the fixed poles are different than the movable poles
 for i=1:nx
     if any(p == px(i))
         error('One of the fixed poles has been specified at the same frequency as a moveable pole');
@@ -53,9 +63,10 @@ if nx == 0
 else
     px_ = s2z(j*px,wp);
 end
-% add poles at 1, if ni ~= 0
+% add poles at 1 (a pole at infinity transforms to 1 in z domain), if ni ~= 0
 if ni ~= 0
     px_ = sort([px_ ones(1,ni)]);
+    nx = nx + ni;
 else
     px_ = sort(px_);
 end
@@ -121,11 +132,14 @@ for i = 1:nrngs
     end
 end
 
+% For exmpl9.m, this worked once I commented out the next line, KM
+% if length(s2) == 2 s2 = [s2; -1]; end % special case, KM: 7/3/2018 I don't understand this way after the fact
+
 % Set the initial values for the X vector
 X = [p.'; ones(nrngs,1)];
 
 % Adapt the pole positions to equalize the stop-band loss minima
-for i = 1:1000 % repeat enough times to guarantee success 
+for i = 1:2000 % repeat enough times to guarantee success 
     zmin = find_minima(Kz_,ws,as,wp); % find the minima of the stop-band loss
     zmino = prune_zmin(p, px_, zmin); % get rid of mins between fixed poles
     zmin = zmino;
@@ -153,9 +167,9 @@ for i = 1:1000 % repeat enough times to guarantee success
     Y = -find_margin(Kz_,ws,as,wp,e_,zmin);
    
     S = [dlogKK_dp(Kz_,px_,zmin) s2]; % Calculate the sensitivity matrix
-    % Pmin = 0.01.*diag(ones(1,length(X)));
-    % X = (S + Pmin)\(Y); % Calculate the changes in the pole frequencies
-    X = (S)\(Y); % Calculate the changes in the pole frequencies
+    Pmin = 1e-6.*diag(ones(1,length(X)));
+    X = (S + Pmin)\(Y); % Calculate the changes in the pole frequencies
+    % X = (S)\(Y); % Calculate the changes in the pole frequencies
     p = p + 1.0.*X(1:np).'; % Calculate the new pole positions
     % p = sort(p)
 
@@ -171,9 +185,9 @@ for i = 1:1000 % repeat enough times to guarantee success
             p(k) = 0.999*wsz(ns);
         end
     end
-    if max(abs(X(1:np))) < 1e-8
-        disp('Minima Iteration Terminated')
-        i
+    if max(abs(X(1:np))) < 1e-7
+        fprintf('Minima Iteration Terminated in %d iters, error: %d\n', ...
+            i, max(abs(X(1:np))));
         break
     end
     

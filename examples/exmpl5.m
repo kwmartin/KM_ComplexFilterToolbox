@@ -14,12 +14,11 @@ wp = []; ws = [];
 wp(1) = 1; % lower passband edge
 wp(2) = 4; % upper passband edge
 ws = [-5.5 -4 -1 0.5 4.5];
-as = [20 60 60 20 20];
+as = [20 20 40 40 20];
 Ap = 0.1; % the passband ripple in dB
 px = [];
-ONE_STP = 1; % Assume we have two stop-bands with un-equal loss
+ONE_STP = 1; % Assume we have two stop-bands with unequal loss
 % A positive-pass continuous-time filter with a monotonic pass-band
 H = design_ctm_filt(p,px,ni,wp,ws,as,Ap,'monotonic');
-hndl(2) = figure('Position',[200 200 500 600]);
-plot_crsps(H,wp,ws,'b',[-10 10 -120 0.5]);
+plot_crsps(H,wp,ws,'b',[-10 10 -50 0.5]);
 

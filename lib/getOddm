@@ -1,0 +1,13 @@
+function Ev = getOdd(poly)
+n = length(poly);
+poly = reshape(poly, [1, n]);
+if (rem(n,2) == 0)
+  poly(2:2:end) = 0;
+else
+  poly(1:2:end) = 0;
+end
+if (poly(1) == 0)
+  Ev = poly(2:end);
+else
+  Ev = poly;
+end

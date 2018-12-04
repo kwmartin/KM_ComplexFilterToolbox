@@ -1,0 +1,44 @@
+Note1: most examples can be either monotonic or elliptic
+
+exmpl.m: currently deprecated (runs but needs fixing). 8 movable loss poles, monotonic
+fltr_3_8_1.m: asymmetric, 5 lower loss poles, 3 upper loss poles, 1 fixed pole at dc, elliptic (currently) or monotonic;
+    has double LC removals, does removals from Zin, loss around dc is -138dB; good example of large
+    stop-band attenuation
+fltr_1_6_1.m: digital filter: 5 movable loss poles in lower stop-band and one fixed loss-pole at dc
+    passband extends through most of positive frequencies, a good example of
+    positive-pass filter (Hilbert transform); just approximation, no realization
+fltr_3_6_0.m: symmetric low-pass with 6 movable loss poles, and 2 loss-poles at
+    infinity; the stop-band attenuation increases drastically at frequencies
+    more removed from passband (-1 to 1); just approximation, no realization
+dfltr_1_7_1.m: quarter-band digital filter with 5 movable loss-poles at negative
+    frequencies, 1 fixed loss-pole at dc, 2 movable loss-poles above
+    pass-band and 1 loss-pole at infinity; just approximation, no realization
+fltr_0_5_0.m: relatively simple approximation with 3 movable loss-poles in lower
+    stop-band, 2 movable loss-pole in upper stop-band, no loss poles at
+    infinity, or fixed loss poles; larger stop-band loss around dc
+dfltr_2_6_2.m: discrete-time filter that is a positive-pass filter
+    over most of the positive frequencies and has stop-band attenuation
+    specifications chosen to give significant attenuation at the
+    corresponding negative image frequencies.
+fltr_2_7_1: continuous-time filter with additional attenuation
+    specified at negative image frequencies, 6 movable loss-poles (4 at negative
+    freqquencies) two loss-poles at infinity, and a fixed loss-pole at dc,
+    which allows for ac coupling
+fltr_1_5_0.m: 5 movable loss-poles and and 1 pole and infinity; example illustrates how
+    scaled design improves numerical accuracy; ladder realization is C's and
+    complex reactances only
+dfltr_1_7_0.m: 5 movable loss-poles in lower stop and 2 movable loss poles in upper
+	stop-band; cascade filter is then designed and simulated using Monte
+	Carlo analysis
+fltr_2_2_2.m: 2 movable loss-poles, 2 fixed loss poles, 2 loss-poles at infinite; no
+	normalization used in design; just approximation, no realization
+fltr_5_2_0.m: 5 movable loss poles, 3 in lower stop-band, 2 in upper stop-band, 2
+	loss-poles at infinity; extremely low pass-band ripple of 1e-4 dB
+
+
+
+
+
+
+
+

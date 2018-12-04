@@ -1,0 +1,16 @@
+Ts=1;
+T=(0:511)';
+data=zeros(size(T));
+dat = data.';
+data = complex(data);
+data0 = data;
+data(1)=1+realmin*j;
+dat(1) = 1;
+U=timeseries(data,T);
+U0=timeseries(data0,T);
+klp=0.1;
+k1=0.1;
+k2=0.1;
+kf=0.1;
+deltW = exp(j*2*pi*0.2);
+tf1 = tf([k1],[1 kf]);

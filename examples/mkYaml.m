@@ -1,0 +1,15 @@
+addpath(genpath('/home/martin/Dropbox/Matlab/lib/yamlmatlab'));
+yaml_file = '/home/martin/Dropbox/programming/Python/DigitalFilters/BandPass_8thc.yaml';
+yaml_file = 'test.yaml';
+YamlStruct = yaml.ReadYaml(yaml_file);
+tstStrct(1).COMPONENTS = cell(1,4);
+tstStrct.COMPONENTS{1} = struct('TYPE', 'SHC', 'C', 2.236803, 'YR', 0, 'YQ', -2.236803);
+tstStrct.COMPONENTS{2} = struct('TYPE', 'SRC', 'C', 1.104601, 'YR', 0, 'YQ', -0.001025615);
+tstStrct.COMPONENTS{3} = struct('TYPE', 'SRC', 'C', 1.104601, 'YR', 0, 'YQ', -2.208177);
+tstStrct.COMPONENTS{4} = struct('TYPE', 'SHC', 'C', 2.236803, 'YR', 0, 'YQ', -2.236803);
+tstStrct.TITLE='Third-Order Complex Bandpass Filter';
+tstStrct.RIN=1.0;
+tstStrct.ROUT=1.0;
+tstStrct.NMB_BRANCHES = 4;
+out_file='test.yaml';
+yaml.WriteYaml(out_file,tstStrct);

@@ -36,7 +36,7 @@ function xout = simBiquad(A_, B_, C_, D_, xin, delta_f)
 
     for i = 1:npts
       xout(i) = c*X + d*xin(i);
-      X1 = a*X + b*xin(i);
+      X1 = a*X + b.*xin(i);
       X = X1*eshft;
     end
     xin = xout;

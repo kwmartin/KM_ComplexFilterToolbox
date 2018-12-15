@@ -1,3 +1,6 @@
+% One of the early examples used in developing normalized design
+% Includes the first SFG ladder simulation
+
 p = [-0.25 0.25]; % initial guess at moveable finite loss poles
 px = []; % fixed pole
 ni=1; % number of loss poles at infinity

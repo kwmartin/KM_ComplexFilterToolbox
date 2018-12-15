@@ -1,4 +1,4 @@
-p = [-0.25  0.25]; % initial guess at moveable finite loss poles
+p = [-0.25 0.25]; % initial guess at moveable finite loss poles
 px = []; % fixed poles, this poles will be at dc after frequency shift of specs and poles
 ni=1; % number of loss poles at infinity
 wp(1) = -0.0125; % lower passband edge

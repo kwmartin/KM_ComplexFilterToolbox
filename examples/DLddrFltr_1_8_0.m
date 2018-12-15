@@ -82,7 +82,7 @@ xout = simLddr(lddr2, xin,  0);
 [ax1 ax2, f, ym] = plotRspns(xout, wp_, 'b', [-140, 2]);
 
 tic
-out = simLddrMC(lddr2, xin, wp_, 0, 5e-5, 100, [-150, 2]);
+outLddr = simLddrMC(lddr2, xin, wp_, 0, 5e-5, 2, [-150, 2]);
 toc
 
 drawnow;
@@ -95,7 +95,7 @@ H4 = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
 cscdFltr1 = mkCscdFltrD(H4, wp_);
 %cscdFltr1.plotGn(wp_, ws_, -160, 2);
 tic
-runMcCscd(cscdFltr1, wp_, 5e-5, 0, 100, [-150, 2]);
+outCscd = runMcCscd(cscdFltr1, wp_, 5e-5, 0, 2, [-150, 2]);
 toc
 
 drawnow;

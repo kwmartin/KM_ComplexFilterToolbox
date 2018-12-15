@@ -1,10 +1,11 @@
-% The first two filters are analog (continuous-time) filters.
-
-% A symetric filter that should be real
+% 6 movable poles, 1 pole at infinity, 1 fixed pole,
+% wp = -0.025 to 0.075, 0.05dB elliptic passband
+% 100 Monte-Carlo runs; takes a bit of time to run and plot
+% lower stop-band loss is around 160dB
 
 %w_shift = pi*j;
 w_shift = 0.0j;
-p = [-0.25 -0.1 -0.08 -0.06 0.08 0.25]; % initial guess at finite loss poles
+p = [-0.35 -0.25 -0.1 -0.08 -0.06 0.08 0.25 0.35]; % initial guess at finite loss poles
 ni=1; % number of loss poles at infinity
 wp = []; ws = [];
 wp(1) = -0.025; % lower passband edge
@@ -20,11 +21,11 @@ svSpecs = {p, px, wp, ws};
 
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.05);
 H4 = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
-[ax1, ax2] = plot_drsps(H4, wp_, ws_, 'b', [-0.5 0.5 -160 1]);
+[ax1, ax2] = plot_drsps(H4, wp_, ws_, 'b', [-0.5 0.5 -200 1]);
 cscdFltr1 = mkCscdFltrD(H4, wp_);
 cscdFltr1.plotGn(wp_, ws_, -160, 2);
 tic
-runMcCscd(cscdFltr1, wp_, 2e-5, 0, 100, [-150, 2]);
+runMcCscd(cscdFltr1, wp_, 2e-6, 0, 100, [-200, 2]);
 toc
 drawnow;
 cscdHndl = gcf;

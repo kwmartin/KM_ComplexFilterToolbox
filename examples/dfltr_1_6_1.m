@@ -1,4 +1,4 @@
-% 5 moveable loss poles in lower stop-band and one fixed loss-pole at dc
+% 6 moveable loss poles in lower stop-band and one fixed loss-pole at dc
 % passband extends through most of positive frequencies, a good example of
 % a positive-pass filter (Hilbert transform)
 

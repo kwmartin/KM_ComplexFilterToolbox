@@ -1,4 +1,6 @@
-% csc_fltr_1_2_1: a cascade file with 1 pole at infinity, 2 moveable poles, and 1 fixed pole
+% 2 movable poles, 1 pole at infinity, 1 fixed poles,
+% wp = -0.0125 to 0.01375, 0.1dB elliptic passband
+% includes Monte-Carlo run of 100 samples
 
 p = [-0.25  0.25]; % initial values of moveable transmission zeros
 px = [-0.025]; % fixed transmission zero

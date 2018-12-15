@@ -1,3 +1,6 @@
+% 2 movable poles, 1 pole at infinity, 0 fixed poles,
+% wp = -0.0125 to 0.01375, 0.1dB elliptic passband
+
 p = [-0.25  0.25]; % initial guess at moveable finite loss poles
 px = [-0.025]; % fixed poles, this poles will be at dc after frequency shift of specs and poles
 ni=1; % number of loss poles at infinity

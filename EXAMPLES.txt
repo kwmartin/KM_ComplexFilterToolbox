@@ -1,0 +1,23 @@
+Before running any examples, make sure the directory ../lib is in Matlab's path
+
+Note: the current state of the toolbox is in flux and slowly is being cleaned up over time
+
+Overview: we have not yet pruned or rationalized the examples, although we have attempted to ensure the majority of the examples are working. Most examples will pop up a plot after running. Unless there are a lot of Monte-Carlo runs, most examples should complete in less than a minute (but not all).
+
+To work through examples, consider adding a hot-key for Run-To-Cursor (the author uses F4 added using Home-Settings - not difficult), and memorize hot-keys: F5 - Run, F10 - Step Over, F11 - Step In, Shift-F11 - Step-Out. Also, conditional break points are simple to set and can be set at any time and any place. Just open a file by selecting it (Current Folder in left tab), and hitting enter. Then left click next to file number for the breakpoint. A right click will then give the option of making the break-point conditional; it can then be disabled (yellow); re-enabled (red), etc.
+
+In general, using a cascade filter is probably simplest for digital filters unless the application requires more; a good first example to run might be csc_fltr_1_2_1.m (1 loss poles at infinity, 2 moveable loss poles, 1 fixed loss pole that ends up at dc, non-symmetric stop-bands)
+
+The oldest examples start with exmpl_ ...; these will mostly be renamed and/or deleted in the future.
+
+The newest filter examples start with DLddrFltr ...; these examples usually included both a digital ladder simulation filter, a cascade digital filter, and Monte-Carlo simulations for both. The number of Monte-Carlo simulation runs is usually small so the examples won't take much time to run; increase the number of runs for a better comparison.
+
+An example such as fltr_2_6_1.m is usually a continuous-time analog filter; the first number is the number of loss poles at infinity, the second number is the number of movable loss-poles, and the last number is the number of fixed loss-poles
+
+Examples such as dfltr_1_8_o.m are earlier digital approximation filters; no realizations. dfltr_1_6_1.m is a good example of a digital realization of a Hilbert Transform Filter (i.e. passes postive frequencies only)
+
+Examples such as csc_fltr_1_8_0.m are more recent digital cascade filter realizations; csc_fltr_1_8_0b.m and csc_fltr_1_10_0.m are good examples of positive-pass only filters; the latter has 88 dB stop-band loss at negative frequencies, and a pass-band between 0.025 and 0.475 with 0.05dB nominal pass-band ripple
+
+The examples such as FltrBnk_1_10_0.m is a 64 channel filter bank based on cascade filters. This is work in progress, and is intended for applications such ECG, MIMO, multi-band data, etc. Each band over-laps with its adjacent bands, but has excellent containment for bands not adjacent. The columns of Out matrix contains the impulse responses of each channel; the actual filter is implemented in ../lib/simFltrBnk.m and makes use of vector operations (could be further improved) to make simulation faster; on an older desktop (in 2018); simulating 8192 time samples, for 64 channels, with each channel being a 10-th order symmetric complex filter takes around 0.25s; the plotting takes over twice as long. The plots need to be zoomed in to make sense of them. We expect a c-language realization or a DSP realization would be considerably faster, but 0.25s should be adequate for off-line analyses of ECG signals.
+
+The development of the toolbox has been iterative; many changes have just been commented out, and should be deleted, but have been retained for now to give a little history of what has been attempted.

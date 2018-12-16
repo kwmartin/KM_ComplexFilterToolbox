@@ -1,6 +1,6 @@
-% The first two filters are analog (continuous-time) filters.
-
-% A symetric filter that should be real
+% A continuous-time ladder design example, somewhat old
+% passband is 0.25 to 2.25 rad, stop-band loss is -66dB
+% and decreasing, passband ripple is small at 0.02dB
 
 %w_shift = 1.5j;
 %w_shift = 0.0j;

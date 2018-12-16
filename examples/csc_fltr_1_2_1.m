@@ -18,6 +18,8 @@ ONE_STP = 0; % treat both stop-bands as a single stop-band
 % from 0.0125 to 0.0375
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.025); 
 
+% the following process is how we used to run the design
+% it's now been replaced by dsgnCascadeFltr()
 % top level function for designed digital filter based on bilinear-z transform
 H = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
 % plot resulting transfer function

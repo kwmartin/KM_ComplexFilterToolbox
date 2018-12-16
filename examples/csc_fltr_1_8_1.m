@@ -1,7 +1,9 @@
 % 8 movable poles, 1 pole at infinity, 1 fixed pole,
 % wp = -0.025 to 0.075, 0.05dB elliptic passband
 % 100 Monte-Carlo runs; takes a bit of time to run and plot
-% lower stop-band loss is around 160dB
+% lower stop-band loss is around 158dB
+% This examples takes about 1.5 minutes to run (mostly for Monte-Carlo sims)
+% This filter is about the limit of the toolboxes capabilities
 
 %w_shift = pi*j;
 w_shift = 0.0j;
@@ -17,19 +19,24 @@ px = [-0.05];
 ONE_STP = 0;
 % A positive-pass continuous-time filter with a elliptic pass-band
 
-svSpecs = {p, px, wp, ws};
-
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.05);
-H4 = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
-[ax1, ax2] = plot_drsps(H4, wp_, ws_, 'b', [-0.5 0.5 -200 1]);
-cscdFltr1 = mkCscdFltrD(H4, wp_);
-cscdFltr1.plotGn(wp_, ws_, -160, 2);
+% The next few commented lines shows how to do design and return H
+% H = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
+% [ax1, ax2] = plot_drsps(H, wp_, ws_, 'b', [-0.5 0.5 -200 1]);
+% cscdFltr1 = mkCscdFltrD(H, wp_);
+% This functionality has now been encapsulated in dsgnCascadeFltr()
 tic
-runMcCscd(cscdFltr1, wp_, 2e-6, 0, 100, [-200, 2]);
+cscdFltr1 = dsgnCascadeFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
+H = cscdFltr1.getSystem();
+% if internal object update not needed just use H = cscdFltr1.sys
+toc
+cscdFltr1.plotGn(wp_, ws_, -200, 2);
+tic
+runMcCscd(cscdFltr1, wp_, 5e-6, 0, 100, [-200, 2]);
 toc
 drawnow;
 cscdHndl = gcf;
-% print('../examples/Figures/csc_fltr_1_8_0','-dpdf');
-print('../examples/Figures/csc_fltr_1_8_0','-dpng');
+% print('../examples/Figures/csc_fltr_1_8_1','-dpdf');
+print('../examples/Figures/csc_fltr_1_8_1','-dpng');
 
 a=1;

@@ -1,44 +1,154 @@
 Note1: most examples can be either monotonic or elliptic
 
 exmpl.m: currently deprecated (runs but needs fixing). 8 movable loss poles, monotonic
-fltr_3_8_1.m: asymmetric, 5 lower loss poles, 3 upper loss poles, 1 fixed pole at dc, elliptic (currently) or monotonic;
-    has double LC removals, does removals from Zin, loss around dc is -138dB; good example of large
-    stop-band attenuation
-fltr_1_6_1.m: digital filter: 5 movable loss poles in lower stop-band and one fixed loss-pole at dc
+
+csc_fltr_1_2_0.m: 2 movable poles, 1 pole at infinity, 0 fixed poles,
+    wp = 0.0125 to 0.0375, 0.05dB elliptic passband
+    100 Monte-Carlo runs
+csc_fltr_1_2_1.m: 2 movable poles, 1 pole at infinity, 1 fixed poles,
+    wp = -0.0125 to 0.01375, 0.1dB elliptic passband
+    includes Monte-Carlo run of 100 samples
+csc_fltr_1_6_0.m: 6 movable poles, 1 pole at infinity, 0 fixed poles,
+    wp = 0.025 to 0.075, 0.05dB elliptic passband
+    100 Monte-Carlo runs; takes a bit of time to run and plot
+    lower stop-band loss is around 101dB
+csc_fltr_1_6_1.m: 6 movable poles, 1 pole at infinity, 1 fixed pole,
+    wp = -0.025 to 0.075, 0.05dB elliptic passband
+    100 Monte-Carlo runs; takes a bit of time to run and plot
+    lower stop-band loss is around 125dB
+csc_fltr_1_7_0.m: 7 movable loss-poles, 1 loss pole at infinity, 0 fixed poles
+    wp = 0.025 to 0.125, 0.05dB elliptic passband
+    100 Monte-Carlo runs; takes about a minute to run and plot
+    lower stop-band loss is around 105dB
+csc_fltr_1_8_0.m: 8 movable poles, 1 pole at infinity, 0 fixed poles,
+    wp = 0.025 to 0.475, 0.05dB elliptic passband
+    100 Monte-Carlo runs; takes a bit of time to run and plot
+    lower stop-band loss is around 66dB
+    this is an example of a pretty good filter for passing
+    almost all positive frequencies and no negative frequencies
+csc_fltr_1_8_1.m: 6 movable poles, 1 pole at infinity, 1 fixed pole,
+    wp = -0.025 to 0.075, 0.05dB elliptic passband
+    100 Monte-Carlo runs; takes a bit of time to run and plot
+    lower stop-band loss is around 158dB
+    This examples takes about 1.5 minutes to run (mostly for Monte-Carlo sims)
+    This filter is about the limit of the toolboxes capabilities
+csc_fltr_1_10_0.m: 10 movable poles, 1 pole at infinity, 0 fixed poles,
+    wp = 0.025 to 0.475, 0.05dB elliptic passband
+    100 Monte-Carlo runs; takes a bit of time to run and plot
+    lower stop-band loss is around 88dB
+    this filter is an example of a good filter for passing
+    positive frequencies only (i.e. a Hilbert Transformer)
+cscFltr_1_2_0.m: This example was an early attempt at designing SS ladder filters; it works
+    but has high sensitivities; the cascade filter is fine
+    the ladder approach, although very sensitive, does illustrate some SFG approaches
+    for low sensitivity digita ladder filters, see DLddrFltr_x_x_x.m series
+dfltr_1_2.m: One of the early examples used in developing normalized design
+    Includes the first SFG ladder simulation
+dfltr_1_6_1.m: 6 moveable loss poles in lower stop-band and one fixed loss-pole at dc
     passband extends through most of positive frequencies, a good example of
-    positive-pass filter (Hilbert transform); just approximation, no realization
-fltr_3_6_0.m: symmetric low-pass with 6 movable loss poles, and 2 loss-poles at
-    infinity; the stop-band attenuation increases drastically at frequencies
-    more removed from passband (-1 to 1); just approximation, no realization
+    a positive-pass filter (Hilbert transform)
+dfltr_1_7_0.m: 5 movable loss-poles in lower stop and 2 movable loss poles in upper
 dfltr_1_7_1.m: quarter-band digital filter with 5 movable loss-poles at negative
     frequencies, 1 fixed loss-pole at dc, 2 movable loss-poles above
     pass-band and 1 loss-pole at infinity; just approximation, no realization
-fltr_0_5_0.m: relatively simple approximation with 3 movable loss-poles in lower
-    stop-band, 2 movable loss-pole in upper stop-band, no loss poles at
-    infinity, or fixed loss poles; larger stop-band loss around dc
+dfltr_1_8_0.m: This example, has been deprecated by csc_fltr_1_8_0.m and
+    DLddrFltr_1_8_0.m. This particular approach has way too much stop-band
+    sensitivity; a superior approach has been found; still this approach is
+    interesting and could lead to alternative algorithms in the future
+dfltr_1_8_0b.m: An early example, now deprecated
 dfltr_2_6_2.m: discrete-time filter that is a positive-pass filter
     over most of the positive frequencies and has stop-band attenuation
     specifications chosen to give significant attenuation at the
     corresponding negative image frequencies.
+
+The examples of the series exmplx.m have been mostly deprecated
+exmpl.m: A continuous-time ladder design example, somewhat old
+    passband is 0.25 to 2.25 rad, stop-band loss is -66dB
+    and decreasing, passband ripple is small at 0.02dB
+exmpl0.m: no finite loss-poles, three loss poles at infinity, 
+    passband is -0.62 rad to 0.62 rad.
+    just an example to show real low-pass filters can be designed
+exmpl1.m: A continuous-time ladder filter design
+    7 movable poles, 1 fixed pole, 0.1dB pass-band
+    from 1 to 4 rad., shows LC removals
+exmpl2.m: monotonic pass-band positive-pass filter approximation; relatively simple
+    6 movable loss poles, 1 fixed loss pole at dc, doesn't use normalized
+    design techniques
+exmpl3.m: real monotonic filter showing decreasing stop-band,
+    6 movable loss poles, 2 loss-poles at infinity,
+    approximation only
+exmpl4.m: quarter band digital filter approximation, doesn't use normalized
+    design techniques, 6 movable loss-poles, 1 fixed loss-pole at dc, 1
+    loss-pole at infinity, 0.1 dB pass-band from 0.05 to 0.25
+exmpl5.m: an example showing a very non-equal stop-band approximation
+    only practical for very specific applications
+    6 movable loss-poles, no fixed loss-poles and no loss-poles at infinity
+exmpl6.m: The next example is a discrete-time filter that is a positive-pass filter
+    over most of the positive frequencies and has stop-band attenuation
+    specifications chosen to give significant attenuation at the
+    corresponding negative image frequencies. This design did not use
+    normalized design techniques, look at csc_fltr_1_8_0.m for an alternative
+    approach
+exmpl7.m: a continuous-time monotonic filter with additional attenuation
+    specified at negative image frequencies, two loss-poles at infinity, and
+    a fixed loss-pole at dc, which allows for ac coupling
+exmpl8.m: a narrow band ladder filter design demonstrating normalized design
+    techniques, 5 movable poles, 1 loss-pole at infinity, no fixed poles,
+    0.1dB pass-band from 1 to 1.2 rad
+exmpl9.m: equivalent to csc_fltr_1_7_0.m which uses newer top level function
+exmpl10.m: deprecated monotonic example
+exmpl11.m: 3 loss-poles in lower stop-band, two loss-poles in upper stop-band, 2
+    loss-poles at infinity; single ended (termination at load) LC ladder realization
+exmpl12.m: ladder design example, 0.02dB passband goes from 0.5 rad. to 1.5 rad., 95
+    dB loss in lower stop-band, 61 dB in upper stop-band
+exmpl_1_1_0.m: very simple example with one movable loss pole and 1 loss pole at
+    infinity (no fixed loss poles)
+exmpl_1_5_0.m: an elliptic ladder filter with a very small pass-band ripple of 1e-4 dB
+    5 movable loss-poles, 1 loss-poles at infinity, no fixed loss-poles
+exmpl_1_5_0b.m: an elliptic ladder filter with a pass-band ripple of 0.05 dB
+    5 movable loss-poles, 1 loss-poles at infinity, no fixed loss-poles,
+    a single-ended realization
+exmpl_1_5_1.m: 5 movable loss poles, 3 in lower stop-band, 2 in upper stop-band,
+    1 fixed loss-pole at dc, 1 loss-pole at infinity; 0.02dB pass-band
+    ripple, lower stop-band loss of -95dB
+exmpl_2_5_0.m: monotonic ladder filter, 5 movable loss-poles, 2 loss-poles at infinity,
+    no fixed loss-poles, pass-band ripple very small 0.0001dB, double LC
+    removals, doubly terminated
+exmpl_r1.m: 5 movable loss poles, 2 loss-poles at infinity, no fixed loss-poles,
+    example of stop-band loss significantly increasing further away from
+    pass-band, LC ladder realization, 0.001dB pass-band from 0.5 to 2.5 rad.
+exmpl_r1b.m: This example is currently not working; to be fixed
+fltr1.m: a simple ladder filter from section 5.3 of Snelgrove, Sedra,
+    Lang, Brackett, "Complex Analog Filters"
+fltr2.m: a simple ladder filter from example 9 of
+    Snelgrove, Sedra, Lang Brackett, "Complex Analog Filters"
+fltr_0_5_0.m: relatively simple approximation with 3 movable loss-poles in lower
+    stop-band, 2 movable loss-pole in upper stop-band, no loss poles at
+    infinity, or fixed loss poles; larger stop-band loss around dc
+fltr_1_5_0.m: 5 movable loss-poles and and 1 pole and infinity; example illustrates how
+    scaled design improves numerical accuracy; ladder realization is C's and
+    complex reactances only
+    stop-band; cascade filter is then designed and simulated using Monte
+    Carlo analysis
+fltr_1_6_1.m: digital filter: 5 movable loss poles in lower stop-band and one fixed loss-pole at dc
+    passband extends through most of positive frequencies, a good example of
+    positive-pass filter (Hilbert transform); just approximation, no realization
 fltr_2_7_1: continuous-time filter with additional attenuation
     specified at negative image frequencies, 6 movable loss-poles (4 at negative
     freqquencies) two loss-poles at infinity, and a fixed loss-pole at dc,
     which allows for ac coupling
-fltr_1_5_0.m: 5 movable loss-poles and and 1 pole and infinity; example illustrates how
-    scaled design improves numerical accuracy; ladder realization is C's and
-    complex reactances only
-dfltr_1_7_0.m: 5 movable loss-poles in lower stop and 2 movable loss poles in upper
-	stop-band; cascade filter is then designed and simulated using Monte
-	Carlo analysis
 fltr_2_2_2.m: 2 movable loss-poles, 2 fixed loss poles, 2 loss-poles at infinite; no
 	normalization used in design; just approximation, no realization
+fltr_3_6_0.m: symmetric low-pass with 6 movable loss poles, and 2 loss-poles at
+    infinity; the stop-band attenuation increases drastically at frequencies
+    more removed from passband (-1 to 1); just approximation, no realization
+fltr_3_8_1.m: asymmetric, 5 lower loss poles, 3 upper loss poles, 1 fixed pole at dc,
+    elliptic (currently)monotonic; has double LC removals, does removals from Zin, loss
+    around dc is -138dB; good example of large stop-band attenuation
 fltr_5_2_0.m: 5 movable loss poles, 3 in lower stop-band, 2 in upper stop-band, 2
-	loss-poles at infinity; extremely low pass-band ripple of 1e-4 dB
-
-
-
-
-
-
-
+    loss-poles at infinity; extremely low pass-band ripple of 1e-4 dB
+FltrBnk_1_4_0.m: a 256 channel filter-bank simulation based on monotonic filters having 4
+    movable loss-poles
+FltrBnk_1_8_0.m: a 32 channel filter-bank simulation based on monotonic filters having 8
+    movable loss-poles; next to adjacent containment better than -110dB
 

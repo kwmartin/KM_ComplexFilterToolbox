@@ -1,4 +1,4 @@
-% The next filter is a continuous-time filter with additional attenuation
+% a continuous-time filter with additional attenuation
 % specified at negative image frequencies, two loss-poles at infinity, and
 % a fixed loss-pole at dc, which allows for ac coupling
 

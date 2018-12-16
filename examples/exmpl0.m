@@ -1,10 +1,7 @@
-% The first two filtersare analog (continuous-time) filters. The first of
-% these has an equiripple passband, whereas the second one has a monotonic
-% passband.
+% no finite loss-poles, three loss poles at infinity, 
+% passband is -0.62 rad to 0.62 rad.
+% just an example to show real low-pass filters can be designed
 
-% A symetric filter that should be real
-
-%p = [-5 -3 -2 2 3 5]; % initial guess at finite loss poles
 p = []; % initial guess at finite loss poles
 ni=3; % number of loss poles at infinity
 wp = []; ws = [];

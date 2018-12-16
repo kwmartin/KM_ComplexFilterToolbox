@@ -1,3 +1,6 @@
+% real monotonic filter showing decreasing stop-band,
+% 6 movable loss poles, 2 loss-poles at infinity,
+% approximation only
 
 p = [-5 -3 -2 2 3 5]; % initial guess at finite loss poles; note pole at zero
 ni=2; % number of loss poles at infinity

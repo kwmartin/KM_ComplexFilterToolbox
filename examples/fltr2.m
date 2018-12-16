@@ -1,4 +1,5 @@
-% A simple ladder filter from example 9 of Snelgrove, Sedra, Lang Brackett, "Complex Analog Filters"
+% A simple ladder filter from example 9 of
+% Snelgrove, Sedra, Lang Brackett, "Complex Analog Filters"
 
 wp = [-1, 1];
 ws = [-2, 2];

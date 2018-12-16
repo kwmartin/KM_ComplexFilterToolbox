@@ -1,3 +1,5 @@
+% deprecated monotonic example
+
 p = [-0.05, 0.35]; % initial guess at finite loss poles
 px = [0.0 0.3];
 ni=2; % number of loss poles at infinity

@@ -1,6 +1,5 @@
-% The first two filters are analog (continuous-time) filters.
-
-% A symetric filter that should be real
+% very simple example with one movable loss pole and 1 loss pole at
+% infinity (no fixed loss poles)
 
 %w_shift = 1.5j;
 w_shift = 0.0j;

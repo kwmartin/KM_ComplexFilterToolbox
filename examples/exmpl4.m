@@ -1,3 +1,7 @@
+% quarter band digital filter approximation, doesn't use normalized
+% design techniques, 6 movable loss-poles, 1 fixed loss-pole at dc, 1
+% loss-pole at infinity, 0.1 dB pass-band from 0.05 to 0.25
+
 p = [ -.4 -.3 -.25 -0.05  .35 .48]; % initial guess at moveable finite loss poles
 px = [0]; % fixed pole
 ni=1; % number of loss poles at infinity

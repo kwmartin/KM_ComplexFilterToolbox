@@ -1,3 +1,7 @@
+% monotonic pass-band positive-pass filter approximation; relatively simple
+% 6 movable loss poles, 1 fixed loss pole at dc, doesn't use normalized
+% design techniques
+
 p = [ -.35 -.4 -.3 -.25 -0.05  -0.018 ]; % initial guess at moveable finite loss poles
 px = [0]; % fixed pole
 ni=1; % number of loss poles at infinity

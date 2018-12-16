@@ -1,7 +1,7 @@
 % 6 movable poles, 1 pole at infinity, 1 fixed pole,
 % wp = -0.025 to 0.075, 0.05dB elliptic passband
 % 100 Monte-Carlo runs; takes a bit of time to run and plot
-% lower stop-band loss is around 160dB
+% lower stop-band loss is around 125dB
 
 %w_shift = pi*j;
 w_shift = 0.0j;

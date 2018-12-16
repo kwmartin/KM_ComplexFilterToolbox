@@ -1,3 +1,4 @@
+% This example is currently not working; to be fixed
 
 p = [-5 -3 -2 2 3 5]; % initial guess at finite loss poles; note pole at zero
 ni=1; % number of loss poles at infinity

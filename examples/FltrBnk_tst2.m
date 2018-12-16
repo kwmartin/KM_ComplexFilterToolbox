@@ -1,7 +1,7 @@
 % a 256 channel filter-bank simulation based on monotonic filters having 4
 % movable loss-poles
 
-N = 512;
+N = 256;
 delta_f = 1/N;
 %w_shift = pi*j;
 w_shift = 0.0j;
@@ -10,19 +10,19 @@ ni=1; % number of loss poles at infinity
 wp = []; ws = [];
 wp(1) = -delta_f/2; % lower passband edge
 wp(2) = delta_f/2; % upper passband edge
-ws = [-0.49 -1.0*delta_f 1.0*delta_f 0.49];
-as = [50 50 50 50];
-Ap = 1.55; % the passband ripple in dB
+ws = [-0.49 -delta_f delta_f 0.49];
+as = [70 50 50 70];
+Ap = 1.05; % the passband ripple in dB
 px = [];
 ONE_STP = 0;
 
-H1 = dsgnDigitalFltr(p, px, ni, wp, ws, as, Ap, 'monotonic');
-plot_drsps(H1, wp, ws, 'b', [-0.5 0.5 -60 1]);
+H1 = dsgnDigitalFltr(p, px, ni, wp, ws, as, Ap, 'elliptic');
+plot_drsps(H1, wp, ws, 'b', [-0.5 0.5 -180 1]);
 cscdFltr1 = mkCscdFltrD(H1, wp);
 %cscdFltr1.plotGn(wp, ws, -100, 2);
 xin = zeros(8192,1);
 xin(1) = 1;
-ylim = [-60 2];
+ylim = [-180 2];
 
 tic
 Out = simCscdFltrBnk(cscdFltr1, xin, delta_f);

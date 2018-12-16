@@ -1,3 +1,6 @@
+% an elliptic ladder filter with a very small pass-band ripple of 1e-4 dB
+% 5 movable loss-poles, 1 loss-poles at infinity, no fixed loss-poles
+
 p = [-5, -3, -1, 2, 5]; % initial guess at finite loss poles
 %px = [0.0 3.0];
 px=[];
@@ -7,7 +10,7 @@ wp(2) = 1.5; % upper passband edge
 ws = [0.05 1.75];
 as = [20 20];
 
-Ap = 0.05; % the passband ripple in dB
+Ap = 0.0001; % the passband ripple in dB
 ONE_STP = 1; % Assume we have two stop-bands with un-equal loss
 
 % A continuous-time filter with an equi-ripple pass-band
@@ -31,20 +34,16 @@ Z1 = (Etf - Ftf)/(Etf + Ftf);
 if abs(min(Ks)) < 1e-5
     disp('Filter Design is Ill-Conditioned')
 end
-shuntFirst = true;
-%[z11 z12] = mkXsSnglEnd(H, shuntFirst);
 termRight = true;
 [z11] = mkXsSnglEnd(H, termRight);
 
 lddr = ladderClass();
 %[X1, elem1] = rmvSCmplx(z11, lddr);
-[X1, elem1, elem2, elem3] = rmv2XPoles(z11, P(3), P(4), lddr);
-[X2, elem4, elem5, elem6] = rmv2XPoles(X1, P(2), P(5), lddr);
-%[X1, elem1, elem2] = rmvUsingS2(Z1, P(4), lddr);
-%[X2, elem3, elem4] = rmvUsingS2(X1, P(3), lddr);
-%[X3, elem5, elem6] = rmvUsingS2(X2, P(5), lddr);
-%[X4, elem7, elem8] = rmvUsingS2(X3, P(2), lddr);
-[X5, elem9, elem10] = rmvUsingS2(X2, P(1), lddr);
+[X1, elem1, elem2] = rmvUsingS2(Z1, P(4), lddr);
+[X2, elem3, elem4] = rmvUsingS2(X1, P(3), lddr);
+[X3, elem5, elem6] = rmvUsingS2(X2, P(5), lddr);
+[X4, elem7, elem8] = rmvUsingS2(X3, P(2), lddr);
+[X5, elem9, elem10] = rmvUsingS2(X4, P(1), lddr);
 [X6, elem11] = rmvSCmplx(X5, lddr);
 
 %[X1, elem1, elem2] = rmv2PolesS(Z1, P(1), P(5), lddr);
@@ -82,9 +81,7 @@ disp('');
 dispLddr(lddr2);
 
 lim = [-10 10 -120 2];
-lddr2 = ladderClass(lddr);
-lddr2.makeSingleTerm();
-[gn, db] = plot_lddr(H, lddr2,wp,ws,'b',lim);
+[gn, db] = plot_lddr(H, lddr,wp,ws,'b',lim);
 
 a=1;
 

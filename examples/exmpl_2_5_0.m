@@ -1,7 +1,11 @@
+% monotonic ladder filter, 5 movable loss-poles, 2 loss-poles at infinity,
+% no fixed loss-poles, pass-band ripple very small 0.0001dB, double LC
+% removals, doubly terminated
+
 p = [-5, -3, -1, 2, 5]; % initial guess at finite loss poles
 %px = [0.0 3.0];
 px=[];
-ni=1; % number of loss poles at infinity
+ni=2; % number of loss poles at infinity
 wp(1) = 0.5; % lower passband edge
 wp(2) = 1.5; % upper passband edge
 ws = [0.05 1.75];
@@ -15,6 +19,7 @@ ONE_STP = 1; % Assume we have two stop-bands with un-equal loss
 %plot_drsps(H3,wp,ws,'r');
 plot_crsps(H,wp,ws,'b',[-10 10 -120 2]);
 [X1o, X1s, X2o, X2s, maxOrdr, indic] = mkXsCmplx2(H, F, length(P), true);
+[X1o2, X1s2, X2o2, X2s2, maxOrdr, indic] = mkXsCmplx(H, F, length(P), true);
 if indic == 1
   X0 = X1o;
 elseif indic == 2
@@ -31,23 +36,16 @@ Z1 = (Etf - Ftf)/(Etf + Ftf);
 if abs(min(Ks)) < 1e-5
     disp('Filter Design is Ill-Conditioned')
 end
-termRight = true;
-[z11] = mkXsSnglEnd(H, termRight);
+shuntFirst = true;
+[z11] = mkXsSnglEnd(H, shuntFirst);
 
 lddr = ladderClass();
 %[X1, elem1] = rmvSCmplx(z11, lddr);
-[X1, elem1, elem2] = rmvUsingS2(Z1, P(4), lddr);
-[X2, elem3, elem4] = rmvUsingS2(X1, P(3), lddr);
-[X3, elem5, elem6] = rmvUsingS2(X2, P(5), lddr);
-[X4, elem7, elem8] = rmvUsingS2(X3, P(2), lddr);
-[X5, elem9, elem10] = rmvUsingS2(X4, P(1), lddr);
-[X6, elem11] = rmvSCmplx(X5, lddr);
-
-%[X1, elem1, elem2] = rmv2PolesS(Z1, P(1), P(5), lddr);
-%[X2, elem3, elem4] = rmv2PolesS(X1, P(3), P(4), lddr);
-%[X3, elem5, elem6] = rmvUsingS2(X2, P(2), lddr);
-%[X4, elem7] = rmvSCmplx(X3, lddr);
-%[X5, elem8] = rmvSCmplx(X4, lddr);
+[X1, elem1, elem2] = rmv2PolesS(X0, P(1), P(5), lddr);
+[X2, elem3, elem4] = rmv2PolesS(X1, P(3), P(4), lddr);
+[X3, elem5, elem6] = rmvUsingS2(X2, P(2), lddr);
+[X4, elem7] = rmvSCmplx(X3, lddr);
+[X5, elem8] = rmvSCmplx(X4, lddr);
 %[X5, elem7] = rmvSCmplx(X4, lddr);
 %[X6, elem8] = rmvSCmplx(X5, lddr);
 %[X3, elem4, elem5] = rmv2PolesS(X2, P(2), P(6), lddr);
@@ -63,9 +61,9 @@ lddr2 = ladderClass();
 %X2oP = evalfr(X2o, p);
 %lstCmp = p*elem6.L + elem6.X;
 %k1 = X2oP/lstCmp;
-%[X6, elem10] = rmvSCmplx(X2o, lddr2);
-[X7, elem11, elem12] = rmvUsingS2(X2o, P(2), lddr2);
-%lddr.R2 = elem11.C/elem7.C;
+[X6, elem10] = rmvSCmplx(X2o, lddr2);
+[X7, elem11, elem12] = rmvUsingS2(X6, P(2), lddr2);
+lddr.R2 = elem8.L/elem10.L;
 %[X5, elem20, elem21] = rmvUsingS2(X2o, P(2), lddr2);
 %[X6, elem10, elem11] = rmv2PolesS(X5, P(1), P(3), lddr2);
 %[X7, elem22] = rmvSCmplx(X6, lddr2);
@@ -73,7 +71,7 @@ lddr2 = ladderClass();
 %[X7, elem10] = rmvSCmplx(X6, lddr);
 %[X8, elem11] = rmvSCmplx(X7, lddr);
 %[X10, elem13] = rmvSCmplx(X2o, lddr);
-lddr.R2 = X6.K;
+%lddr.R2 = X6.K;
 disp('');
 dispLddr(lddr2);
 

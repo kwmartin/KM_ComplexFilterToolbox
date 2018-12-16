@@ -1,7 +1,9 @@
-% 6 movable poles, 1 pole at infinity, 1 fixed pole,
-% wp = -0.025 to 0.075, 0.05dB elliptic passband
+% 10 movable poles, 1 pole at infinity, 0 fixed poles,
+% wp = 0.025 to 0.475, 0.05dB elliptic passband
 % 100 Monte-Carlo runs; takes a bit of time to run and plot
-% lower stop-band loss is around 160dB
+% lower stop-band loss is around 88dB
+% this filter is an example of a good filter for passing
+% positive frequencies only (i.e. a Hilbert Transformer)
 
 p = [-0.45 -0.40 -0.35 -0.30 -0.27 0.27 0.3 0.35 0.4 0.45]; % initial guess at finite loss poles
 ni=1; % number of loss poles at infinity
@@ -15,12 +17,8 @@ px = [];
 ONE_STP = 0;
 % A positive-pass continuous-time filter with a elliptic pass-band
 
-svSpecs = {p, px, wp, ws};
-
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.25);
-H4 = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
-[ax1, ax2] = plot_drsps(H4, wp_, ws_, 'b', [-0.5 0.5 -200 1]);
-cscdFltr1 = mkCscdFltrD(H4, wp_);
+cscdFltr1 = dsgnCascadeFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 cscdFltr1.plotGn(wp_, ws_, -160, 2);
 tic
 runMcCscd(cscdFltr1, wp_, 2e-5, 0, 10, [-200, 2]);

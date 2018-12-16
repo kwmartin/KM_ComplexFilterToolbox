@@ -1,12 +1,6 @@
-% The first two filtersare analog (continuous-time) filters. The first of
-% these has an equiripple passband, whereas the second one has a monotonic
-% passband.
-
-% The third and fourth filters are digital (discrete-time) filters again
-% with equiripple and monotonic passbands.
-
-% In all cases, the filters are complex with asymmetric (in frequency)
-% responses.
+% an example showing a very non-equal stop-band approximation
+% only practical for very specific applications
+% 6 movable loss-poles, no fixed loss-poles and no loss-poles at infinity
 
 p = [-10 -1 0 0.25 5 20]; % initial guess at finite loss poles; note pole at zero
 ni=0; % number of loss poles at infinity

@@ -3,8 +3,6 @@
 % sensitivity; a superior approach has been found; still this approach is
 % interesting and could lead to alternative algorithms in the future
 
-% A symmetric filter that should be real
-
 %w_shift = pi*j;
 w_shift = 0.0j;
 p = [-0.25 -0.1 -0.08 0.08 0.1 0.25]; % initial guess at finite loss poles

@@ -1,3 +1,7 @@
+% A narrow band ladder filter design demonstrating normalized design
+% techniques, 5 movable poles, 1 loss-pole at infinity, no fixed poles,
+% 0.1dB pass-band from 1 to 1.2 rad
+
 p = [-5 -2 -1 5 7]; % initial guess at finite loss poles; note pole at zero
 ni=1; % number of loss poles at infinity
 wp = []; ws = [];
@@ -12,11 +16,10 @@ px = [];
 svSpecs = {p, px, wp, ws};
 [p, px, wp, ws, sclFctr, shftFctr] = trnsfrm(p, px, wp, ws);
 
-% A positive-pass continuous-time filter with an equi-ripple pass-band
+% A positive-pass continuous-time filter with an equiripple pass-band
 [H, E, F, P] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,'elliptic');
 plot_crsps(H,wp,ws,'r');
 
-%[X1o, X1s, X2o, X2s, maxOrdr, indic] = mkXsCmplx2(H, F, length(P), true);
 [X1o2, X1s2, X2o2, X2s2, maxOrdr, indic] = mkXsCmplx(H, F, length(P), true);
 [X1o, X1s, X2o, X2s, maxOrdr, indic] = mkXsCmplx2(H, F, length([P px]), true)
 X0 = chooseTF(X1o, X1s, X2o, X2s, indic);

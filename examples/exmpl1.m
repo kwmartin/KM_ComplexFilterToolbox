@@ -1,12 +1,6 @@
-% The first two filtersare analog (continuous-time) filters. The first of
-% these has an equiripple passband, whereas the second one has a monotonic
-% passband.
-
-% The third and fourth filters are digital (discrete-time) filters again
-% with equiripple and monotonic passbands.
-
-% In all cases, the filters are complex with asymmetric (in frequency)
-% responses.
+% A continuous-time ladder filter design
+% 7 movable poles, 1 fixed pole, 0.1dB pass-band
+% from 1 to 4 rad., shows LC removals
 
 p = [-10 -2 0.25 0.5 6 8 10]; % initial guess at finite loss poles; note pole at zero
 ni=3; % number of loss poles at infinity
@@ -52,6 +46,7 @@ lddr2 = ladderClass();
 % Denormalize the ladder filter
 lddr.scale(1/sclFctr)
 lddr.freqShft(-shftFctr);
+dispLddr(lddr);
 lim = [-10 10 -160 5];
 wp = svSpecs{3};
 ws = svSpecs{4};

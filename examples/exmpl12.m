@@ -1,3 +1,6 @@
+% ladder design example, 0.02dB passband goes from 0.5 rad. to 1.5 rad., 95
+% dB loss in lower stop-band, 61 dB in upper stop-band
+
 p = [-5, -3, -1, 3.0, 5.0]; % initial guess at finite loss poles
 %p = [-2, 3.0]; % initial guess at finite loss poles
 %px = [0.0 3.0];

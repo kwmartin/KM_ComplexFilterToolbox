@@ -1,6 +1,4 @@
-% The first two filters are analog (continuous-time) filters.
-
-% A symetric filter that should be real
+% An early example, now deprecated
 
 %w_shift = pi*j;
 w_shift = 0.0j;

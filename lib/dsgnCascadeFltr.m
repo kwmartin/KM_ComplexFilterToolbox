@@ -30,7 +30,6 @@ function cscdFltr = dsgnCascadeFltr(p,px,ni,wp,ws,as,Ap,type)
   warning('off', 'Control:ltiobject:TFComplex');
   warning('off', 'Control:ltiobject:ZPKComplex');
 
-  svSpecs = {p, px, wp, ws};
   [p, px, wp, ws, as, sclFctr, shftFctr] = nrmlzSpecsD(p, px, wp, ws, as);
 
   ONE_STP = 0;

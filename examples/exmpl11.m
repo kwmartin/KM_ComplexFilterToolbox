@@ -1,5 +1,5 @@
-% 4 loss-poles in lower stop-band, two loss-poles in upper stop-band, 2
-% loss-poles at infinity; single ended (termination at load) LC realization
+% 3 loss-poles in lower stop-band, two loss-poles in upper stop-band, 2
+% loss-poles at infinity; single ended (termination at load) LC ladder realization
 
 p = [-5, -3, -2, 2.5, 3.5]; % initial guess at finite loss poles
 %px = [0.0 3.0];

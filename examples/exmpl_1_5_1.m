@@ -9,7 +9,6 @@ wp(1) = 0.5; % lower passband edge
 wp(2) = 1.5; % upper passband edge
 ws = [0.2 1.8]; % Stop-band spec
 as = [20 20]; % Stop-band attenuation; not important unless unequal
-
 Ap = 0.02; % the passband ripple in dB
 ONE_STP = 1; % Consider negative and positive stop bands as a single stop-band
 % A continuous-time filter with an equi-ripple pass-band
@@ -18,6 +17,7 @@ hndl(3) = figure('Position',[300 200 500 600]);
 
 plot_crsps(H,wp,ws,'b',[-10 10 -120 0.5]);
 
+warning('off', 'Control:ltiobject:ZPKComplex');
 Etf = tf(zpk(E, [], 1));
 Ftf = tf(zpk(F, [], 1));
 Z1 = (Etf - Ftf)/(Etf + Ftf);

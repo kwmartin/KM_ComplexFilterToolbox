@@ -36,7 +36,9 @@ hold(ax2, 'on');
 sum = Out(:,1);
 for i = 2:N
     plotRspns(Out(:,i), [-0.5 0.5], 'b', ylim);
-    sum = sum + Out(:,i);
+    if (i~= 40)
+        sum = sum + Out(:,i);
+    end
 end
 plotRspns(sum, [-0.5 0.5], 'r', ylim);
 toc

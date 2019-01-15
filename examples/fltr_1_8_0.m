@@ -61,7 +61,7 @@ lddr = ladderClass();
 %lddr.R2 = 1;
 
 % Denormalize the ladder filter
-lddr.scale(1/sclFctr)
+lddr.freqScale(1/sclFctr)
 lddr.freqShft(-shftFctr);
 %dispLddr(lddr);
 % denormalize the transfer function

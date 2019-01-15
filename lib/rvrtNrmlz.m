@@ -21,7 +21,7 @@ function [H2,lddr2] = rvrtNrmlz(H1, lddr1, sclFctr, shftFctr)
 %
 
 lddr2 = ladderClass(lddr1);
-lddr2.scale(1/sclFctr)
+lddr2.freqScale(1/sclFctr)
 lddr2.freqShft(-shftFctr*2*pi);
 H2 = freqScale(H1, 1/sclFctr);
 H2 = freq_shift(H2, -shftFctr*2*pi);

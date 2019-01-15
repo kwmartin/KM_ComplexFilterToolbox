@@ -44,7 +44,7 @@ lddr2 = ladderClass();
 [X10, elem14] = rmvSCmplx(X2o, lddr2);
 
 % Denormalize the ladder filter
-lddr.scale(1/sclFctr)
+lddr.freqScale(1/sclFctr)
 lddr.freqShft(-shftFctr);
 dispLddr(lddr);
 lim = [-10 10 -160 5];

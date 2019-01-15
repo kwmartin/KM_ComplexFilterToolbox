@@ -1,7 +1,5 @@
-function out = simCscdFltrBnk(cscd, xin, fShft)
-% function out = simCscdFltrBnk(cscd, xin, fShft) simulates a cscd filter
-% bank; cscd is a cascadeClass object; xin is the input data, fShft is 
-% frequency shift between channels
+function OutData = parseOut(nmbChnls)
+% parses output of rdFltr.go into a matrix
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -19,20 +17,11 @@ function out = simCscdFltrBnk(cscd, xin, fShft)
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
-
-  A = {};
-  B = {};
-  C = {};
-  D = {};
-  for i = 1:cscd.size
-    sys = cscd.sctns(i).sys;
-    [a b c d] = ssdata(sys);
-    A{i} = a;
-    B{i} = b;
-    C{i} = c;
-    D{i} = d;
+  [Out delim] = importdata('/home/martin/Dropbox/go/src/github.com/kw_martin/tstYml/fltr.dat');
+  N = size(Out, 1);
+  OutData = zeros(N, nmbChnls);
+  for i = 1:N
+    C = textscan(Out{i},'(%f)');
+    OutData(i,:) = C{1};
   end
-
-  xin = zeros(8192,1);
-  xin(1) = 1;
-  out = simFltrBnk2(A, B, C, D , xin, fShft);
+  a=1;

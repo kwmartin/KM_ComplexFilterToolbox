@@ -67,7 +67,7 @@ classdef (ConstructOnLoad = true) ladderClass < handle
       obj.R2 = 1;
     end
 
-    function obj = scale(obj, scaleFctr)
+    function obj = freqScale(obj, scaleFctr)
     % frequency scale ladder; scaleFctr > 1 makes L's and C's smaller
     % all L's and C's are multiplied by 1/scaleFctr
 
@@ -99,6 +99,27 @@ classdef (ConstructOnLoad = true) ladderClass < handle
             obj.ladderElems(i).Y = obj.ladderElems(i).Y - deltW*obj.ladderElems(i).C*j;
         end
       end
+    end
+
+    function obj = impedScale(obj, scaleFctr)
+    % frequency shifts a ladder up or down the j axis
+
+      for i = 1:obj.size
+        if abs(obj.ladderElems(i).Y) > 5*eps
+          obj.ladderElems(i).Y = obj.ladderElems(i).Y/scaleFctr;
+        end
+        if abs(obj.ladderElems(i).C) > 5*eps
+          obj.ladderElems(i).C = obj.ladderElems(i).C/scaleFctr;
+        end
+        if abs(obj.ladderElems(i).X) > 5*eps
+          obj.ladderElems(i).X = obj.ladderElems(i).X*scaleFctr;
+        end
+        if abs(obj.ladderElems(i).L) > 5*eps
+          obj.ladderElems(i).L = obj.ladderElems(i).L*scaleFctr;
+        end
+      end
+      obj.R1 = obj.R1*scaleFctr;
+      obj.R2 = obj.R2*scaleFctr;
     end
 
     % Evaluate ladder voltages and currents from output to input

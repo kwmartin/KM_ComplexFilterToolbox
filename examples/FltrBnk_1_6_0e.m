@@ -1,6 +1,7 @@
 % a 64 channel filter-bank simulation based on monotonic filters having 4
 % movable loss-poles
 
+fltrNm = 'FltrBnk_1_6_0e';
 N = 64;
 delta_f = 1/N;
 %w_shift = pi*j;
@@ -20,6 +21,9 @@ H1 = dsgnDigitalFltr(p, px, ni, wp, ws, as, Ap, 'elliptic');
 plot_drsps(H1, wp, ws, 'b', [-0.5 0.5 -120 1]);
 cscdFltr1 = mkCscdFltrD(H1, wp);
 %cscdFltr1.plotGn(wp, ws, -100, 2);
+
+cscd2Yml(cscdFltr1, strcat(fltrNm, '.yml'));
+
 xin = zeros(8192,1);
 xin(1) = 1;
 ylim = [-120 2];
@@ -43,4 +47,24 @@ end
 plotRspns(sum, [-0.5 0.5], 'r', ylim);
 toc
 
-a=1;
+Out2 = parseOut(64);
+tic
+hndl2 = figure('Position',[800 100 600 600]);
+[ax3 ax4, f, ymRef] = plotRspns(Out2(:,1), [-0.05 0.1], 'b', ylim);
+hold(ax3, 'on');
+hold(ax4, 'on');
+sum = Out(:,1);
+for i = 2:N
+    plotRspns(Out2(:,i), [-0.5 0.5], 'b', ylim);
+    if (i~= 40)
+        sum = sum + Out2(:,i);
+    end
+end
+plotRspns(sum, [-0.5 0.5], 'r', ylim);
+toc
+
+drawnow;
+cscdHndl = gcf;
+print(strcat('../examples/Figures/', fltrNm), '-dpng');
+
+ a=1;

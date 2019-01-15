@@ -1,0 +1,3 @@
+[submodule "lib/lib/yamlmatlab"]
+	path = lib/lib/yamlmatlab
+	url = https://github.com/ewiger/yamlmatlab.git

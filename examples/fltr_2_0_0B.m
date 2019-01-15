@@ -1,12 +1,12 @@
-% The first two filters are analog (continuous-time) filters.
+fltrNm = 'FltrBnk_2_0_00';
 
 % A symmetric filter that should be real
 
 w_shift = pi*2.0j;
 r_shift = imag(w_shift);
 
-p = [-3 3]; % initial guess at finite loss poles
-ni=1; % number of loss poles at infinity
+p = []; % initial guess at finite loss poles
+ni=2; % number of loss poles at infinity
 wp = []; ws = [];
 wp(1) = -0.5; % lower passband edge
 wp(2) = 0.5; % upper passband edge
@@ -17,12 +17,12 @@ px = [];
 
 % frequency shift specs so pass band is at positive frequencies
 % from 0.0125 to 0.0375
-[p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, pi*2.0); 
+[p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 10); 
 
 % Design the normalized continuous-time filter
 % Return transfer functions for normalized filter, and
 % sclFctr, and shftFctr used to normalize so we can go back
-Fltr = dsgnAnalogFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
+Fltr = dsgnAnalogFltr(p_, px_, ni, wp_, ws_, as, Ap, 'monotonic');
 H = Fltr.H;
 E = Fltr.E;
 F = Fltr.F;
@@ -56,21 +56,23 @@ termRight = true;
 % For this example, we will use X0 found at line 38
 % get an instantiation of the ladderClass
 lddr = ladderClass();
-% remove the first two elements which ensure we transmission zeros,
-% often called loss poles, at frequencies P(1) and P(2)
-[X1, elem1, elem2, elem3] = rmv2XPoles(X0, P(1), P(2), lddr);
-% remove the last loss pole at infinity
-[X2, elem4] = rmvSCmplx(X1, lddr);
+% remove the last first pole at infinity
+[X1, elem1] = rmvSCmplx(X0, lddr);
+% remove the second loss pole at infinity
+[X2, elem2] = rmvSCmplx(X1, lddr);
+%lddr.makeSingleTerm();
 % set R2 of the ladder to 1
 lddr.R2 = 1;
 
 dispLddr(lddr);
-lim = [-5 15 -40 1];
+lim = [-95 105 -40 1];
 [gn, db] = plot_lddr(H, lddr, wp*sclFctr, ws*sclFctr, 'b', lim);
 
 % Denormalize the ladder filte
 lddr.freqScale(1/sclFctr)
 lddr.freqShft(-shftFctr);
+dispLddr(lddr);
+lddr.impedScale(697.7405);
 dispLddr(lddr);
 % denormalize the transfer function
 H2 = freqScale(H, 1/sclFctr);
@@ -79,13 +81,6 @@ H3 = freq_shift(H2, -shftFctr);
 % the plot of the transfer function has 0.001 dB added so it
 % can be visualized (by zooming in)
 [gn, db] = plot_lddr(H3, lddr, wp_, ws_, 'b', lim);
-print('../examples/Figures/fltr_1_2_0','-dpng');
+print(strcat('../examples/Figures/', fltrNm), '-dpng');
 
-[KiMtrx, KfMtrx, OutMtrx, H0] = calcSFG_Fltr3(lddr);
-[Fltr] = mkSFG_Fltr2(KiMtrx, KfMtrx, OutMtrx);
-
-%plot_crsps(Fltr,wp_,ws_,'b',[-8.5 11.5 -50 1]);
-
-TF1 = calcSFG1(lddr);
-TF2 = calcSFG2(lddr);
 a=1;

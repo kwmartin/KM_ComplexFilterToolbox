@@ -64,7 +64,7 @@ lddr = ladderClass();
 lddr.makeSingleTerm();
 
 % Denormalize the ladder filter
-lddr.scale(1/sclFctr)
+lddr.freqScale(1/sclFctr)
 lddr.freqShft(-shftFctr);
 %dispLddr(lddr);
 % denormalize the transfer function

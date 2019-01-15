@@ -5,8 +5,7 @@ N = 64;
 delta_f = 1/N;
 %w_shift = pi*j;
 w_shift = 0.0j;
-% initial guess at finite loss poles
-p = [-delta_f*2.5 -delta_f*1.5 delta_f*1.5 delta_f*2.5];
+p = [-delta_f*2.5 -delta_f*1.5 delta_f*1.5 delta_f*2.5]; % initial guess at finite loss poles
 ni=1; % number of loss poles at infinity
 wp = []; ws = [];
 wp(1) = -delta_f/2; % lower passband edge

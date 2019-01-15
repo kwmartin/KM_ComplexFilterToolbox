@@ -51,7 +51,7 @@ lddr.R2 = elem11.C / elem10.C;
 %lddr.R2 = X4.K;
 
 % Denormalize the ladder filter
-lddr.scale(1/sclFctr)
+lddr.freqScale(1/sclFctr)
 lddr.freqShft(-shftFctr);
 dispLddr(lddr);
 

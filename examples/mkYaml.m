@@ -1,5 +1,4 @@
-addpath(genpath('/home/martin/Dropbox/Matlab/lib/yamlmatlab'));
-yaml_file = '/home/martin/Dropbox/programming/Python/DigitalFilters/BandPass_8thc.yaml';
+ yaml_file = '/home/martin/Dropbox/programming/Python/DigitalFilters/BandPass_8thc.yaml';
 yaml_file = 'test.yaml';
 YamlStruct = yaml.ReadYaml(yaml_file);
 tstStrct(1).COMPONENTS = cell(1,4);

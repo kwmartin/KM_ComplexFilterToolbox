@@ -76,7 +76,7 @@ plot_lddr(H, lddr,wp,ws,'b',lim);
 dispLddr(lddr);
 dispLddr(lddr2);
 % Denormalize the ladder filter
-lddr.scale(1/sclFctr)
+lddr.freqScale(1/sclFctr)
 lddr.freqShft(-shftFctr);
 dispLddr(lddr);
 % denormalize the transfer function

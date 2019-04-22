@@ -41,7 +41,7 @@ plot(f,[ndB((n/2 + 1):n); ndB(1:n/2)],c);
 wdiff = wp(2) - wp(1);
 x1 = wp(1) - 0.1*wdiff;
 x2 = wp(2) + 0.1*wdiff;
-y1 = -1.0;
+y1 = -2.0;
 y2 = 0.1;
 axis([x1 x2 y1 y2])
 title('Passband')

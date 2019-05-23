@@ -18,7 +18,12 @@ function cscd2Yml(cscdFltr, fileNm) % output cascade filter to yaml file
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
-  path(path, '../lib/yamlmatlab');
+  RootDir = getenv('CMPLXROOT');
+  if isempty(RootDir)
+    setenv('CMPLXROOT', '/home/martin/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox');
+  end
+
+  path(path, strcat(RootDir, '/lib/yamlmatlab'));
   c2str = @(c)sprintf('%.8f + %.8fi ', c, c/1i);
   
   nmbSctns = int8(cscdFltr.size);

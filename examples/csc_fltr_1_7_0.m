@@ -11,7 +11,7 @@ ws = [0 0.2];
 as = [20 20];
 Ap = 0.025; % the passband ripple in dB
 
-cscdFltr = dsgnCascadeFltr(p,px,ni,wp,ws,as,Ap,'elliptic');
+cscdFltr = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,'elliptic');
 cscdFltr.plotGn(wp, ws, -160, 2);
 
 freq_shtf = 0.0;

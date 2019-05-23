@@ -32,7 +32,20 @@ function H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type)
   [p, px, wp, ws, as, sclFctr, shftFctr] = nrmlzSpecsD(p, px, wp, ws, as);
 
   ONE_STP = 0;
-  [H1, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,type);
-  % plot_crsps(H1,wp,ws,'b',[-10 10 -100 1]);
+  if strcmp(type, 'monotonic') || strcmp(type, 'elliptic')
+    [H1, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,type);
+  elseif strcmp(type, 'bessel')
+    Ordr = 11;
+    % Ap = -Ap;
+    H1 = bessel_filt(Ordr, wp, Ap);
+  elseif strcmp(type, 'equiGD')
+    Ordr = 11;
+    [H1 T0] = LinPhFltr(Ordr, 0.01, Ap);
+  elseif strcmp(type, 'equiGDLsPls')
+    Ordr = 11;
+    H1 = LinPh_LssPls(Ordr, 0.01, Ap, 3);
+  end
+  % plot_crsps(H4,wp,ws,'b',[-10 10 -100 1]);
+  % plot_am_ph_gd(H4, [-1.5 1.5], 'b');
   [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
   a=1;

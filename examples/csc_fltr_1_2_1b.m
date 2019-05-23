@@ -1,10 +1,15 @@
+% 2 movable poles, 1 pole at infinity, 1 fixed pole,
+% wp = -0.0125 to 0.0125, 0.1dB elliptic passband
+% includes Monte-Carlo run of 100 samples
+
 p = [-0.25  0.25]; % initial guess at moveable finite loss poles
 px = [-0.025]; % fixed poles, this poles will be at dc after frequency shift of specs and poles
+% it will be at dc after frequency shift of specs
 ni=1; % number of loss poles at infinity
 wp(1) = -0.0125; % lower passband edge
 wp(2) = 0.0125; % upper passband edge
 ws = [-0.024 0.024]; % lower and upper stopband frequencies
-as = [20 20];
+as = [20 20]; % attenuation goals
 
 Ap = 0.1; % the passband ripple in dB
 ONE_STP = 0; % treat both stop-bands as a single stop-band
@@ -30,7 +35,7 @@ runMcCscd(cscdFltr, wp_, 2e-5, 0, 100, [-80 2]);
 toc
 drawnow;
 cscdHndl = gcf;
-% print('../examples/Figures/csc_fltr_1_2_1b','-dpdf');
-print('../examples/Figures/csc_fltr_1_2_1b','-dpng');
+% print('Figures/csc_fltr_1_2_1b','-dpdf');
+print('Figures/csc_fltr_1_2_1b','-dpng');
 
 a=1;

@@ -27,7 +27,6 @@ runMcCscd(cscdFltr, wp_, 1e-4, 0, 100, [-40 2]);
 toc
 drawnow;
 cscdHndl = gcf;
-% print('../examples/Figures/csc_fltr_1_2_0','-dpdf');
 print('../examples/Figures/csc_fltr_1_2_0','-dpng');
 
 a=1;

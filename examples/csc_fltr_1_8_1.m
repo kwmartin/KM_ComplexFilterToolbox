@@ -8,6 +8,7 @@
 %w_shift = pi*j;
 w_shift = 0.0j;
 p = [-0.35 -0.25 -0.1 -0.08 -0.06 0.08 0.25 0.35]; % initial guess at finite loss poles
+px = [-0.05];
 ni=1; % number of loss poles at infinity
 wp = []; ws = [];
 wp(1) = -0.025; % lower passband edge
@@ -15,7 +16,6 @@ wp(2) = 0.025; % upper passband edge
 ws = [-0.49 -0.049 0.049 0.49];
 as = [70 50 50 70];
 Ap = 0.05; % the passband ripple in dB
-px = [-0.05];
 ONE_STP = 0;
 % A positive-pass continuous-time filter with a elliptic pass-band
 

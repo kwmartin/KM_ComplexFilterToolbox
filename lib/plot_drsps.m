@@ -1,4 +1,5 @@
 function [ax1, ax2] = plot_drsps(H,wp,ws,colour,lim)
+%   Replace this function with plot_dam() where lim has only [y1 y2]
 %   PLOT_DRSPS(H) is used to plot the stopband and passband magnitude response
 %   of a discrete tranfer function H. wp is the passband freqs. in rad. ws is the
 %   stop-band specificatios, colour specifies the colour of the plot. lim specifies
@@ -27,6 +28,7 @@ a = poly(pd{1});
 A = db(kd.*freqz(b,a,2*pi*[wp ws]));
 w = -0.5:1e-4: 0.5;
 s = 2*pi*w;
+x2n=@(x)int16(length(w)*(x + 0.5));
 h=kd.*freqz(b,a,s);
 dbH = db(h);
 fig = figure('Position',[800 100 600 600]);
@@ -49,8 +51,8 @@ else
 end
 
 N = length(s);
-n1 = int16(N*(wp(1) - x1)/(x2 - x1));
-n2 = int16(N*(wp(2) - x1)/(x2 - x1));
+n1 = x2n(wp(1));
+n2 = x2n(wp(2));
 pbMin = min(dbH(n1:n2));
 
 axis([x1 x2 y1 y2])

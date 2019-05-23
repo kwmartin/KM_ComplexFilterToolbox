@@ -2,10 +2,14 @@ To compile: >go build
 To run: fltrBnk fltr.yml
 Desktop Hm:
 Matlab: 538ms
-Run Time Go: 42ms-67ms (mostly 62ms - 66ms) (8.4 times)
-Run Time C: 21-31ms (mostly 21ms) (26 times)
+Run Time Go: 42ms-67ms (mostly 62ms - 66ms) (8.4 times faster)
+Run Time C: 21ms-31ms (mostly 21ms) (26 times faster)
 
 Laptop:
 Matlab: 447ms-618ms
 Run Time Go: 39ms-75ms (mostly 40ms - 52ms)
-Run Time C: 22-33ms (mostly 23ms)
+Run Time C: 22ms-33ms (mostly 23ms)
+
+Raspberry Pi 3B+
+Run Time Go: 54ms-58ms (9.6 times faster)
+Run Time C: 240ms-280ms (2.6 times faster)

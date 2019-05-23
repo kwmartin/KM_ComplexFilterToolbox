@@ -31,9 +31,20 @@ function cscdFltr = dsgnCascadeFltr(p,px,ni,wp,ws,as,Ap,type)
   warning('off', 'Control:ltiobject:ZPKComplex');
 
   [p, px, wp, ws, as, sclFctr, shftFctr] = nrmlzSpecsD(p, px, wp, ws, as);
-
   ONE_STP = 0;
-  [H1, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,type);
-
+  %[H1, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,type);
+  if strcmp(type, 'monotonic') || strcmp(type, 'elliptic')
+    [H1, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,type);
+  elseif strcmp(type, 'bessel')
+    Ordr = 11;
+    %Ap = -Ap;
+    H1 = bessel_filt(Ordr, wp, Ap);
+  elseif strcmp(type, 'equiGD')
+    Ordr = 11;
+    [H1 T0] = LinPhFltr(Ordr, 0.01, Ap);
+  elseif strcmp(type, 'equiGDLsPls')
+    Ordr = 11;
+    H1 = LinPh_LssPls(Ordr, 0.01, Ap, 3);
+  end
   cscdFltr = proto2Cscd(H1, p, px, wp, ws, as, sclFctr, shftFctr);
   a=1;

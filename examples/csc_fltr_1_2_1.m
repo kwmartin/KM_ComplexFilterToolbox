@@ -1,5 +1,5 @@
-% 2 movable poles, 1 pole at infinity, 1 fixed poles,
-% wp = -0.0125 to 0.01375, 0.1dB elliptic passband
+% 2 movable poles, 1 pole at infinity, 1 fixed pole,
+% wp = -0.0125 to 0.0125, 0.1dB elliptic passband
 % includes Monte-Carlo run of 100 samples
 
 p = [-0.25  0.25]; % initial values of moveable transmission zeros
@@ -18,24 +18,18 @@ ONE_STP = 0; % treat both stop-bands as a single stop-band
 % from 0.0125 to 0.0375
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.025); 
 
-% the following process is how we used to run the design
-% it's now been replaced by dsgnCascadeFltr()
-% top level function for designed digital filter based on bilinear-z transform
-H = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
-% plot resulting transfer function
-[ax1, ax2] = plot_drsps(H, wp_, ws_, 'b', [-0.5 0.5 -80 1]);
-
-% order and group poles and zeros into a cascade filter
-cscdFltr = mkCscdFltrD(H, wp_);
+cscdFltr = dsgnCascadeFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
+% plot cascade filter using object function
+cscdFltr.plotGn(wp_, ws_, -80, 2);
 
 tic
 % simulate cascade filter 100 times with SS matrix elements
 % varying by 0.01%
-runMcCscd(cscdFltr, wp_, 2e-5, 0, 100, [-80, 2]);
+runMcCscd(cscdFltr, wp_, 1e-4, 0, 100, [-80, 2]);
 toc
+
 drawnow;
 cscdHndl = gcf;
-% print('../examples/Figures/csc_fltr_1_2_1.m/cscdMC','-dpdf');
-print('../examples/Figures/csc_fltr_1_2_1_MC','-dpng');
+print('Figures/csc_fltr_1_2_1_MC','-dpng');
 
 a=1;

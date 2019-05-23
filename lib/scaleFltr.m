@@ -23,5 +23,7 @@ function H2 = scaleFltr(H, sclFctr)
 [a, b, c, d] = ssdata(H);
 A = sclFctr*a;
 B = sclFctr*b;
+warning('off','Control:transformation:StateSpaceScaling')
 H1 = ss(A, B, c, d);
 H2 = zpk(H1);
+warning('on','Control:transformation:StateSpaceScaling')

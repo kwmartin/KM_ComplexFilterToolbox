@@ -1,7 +1,12 @@
-addpath /home/martin/Dropbox/Matlab/lib
-addpath /home/martin/Dropbox/Matlab/Complex/Working/KM_ComplexFilterToolbox/examples
-addpath /home/martin/Dropbox/Matlab/Complex/Working/KM_ComplexFilterToolbox/lib
-%path('../lib',path)
-%path('/home/martin/Dropbox/Matlab/Complex/lib', path)
+RootDir = getenv('CMPLXROOT');
+if isempty(RootDir)
+    setenv('CMPLXROOT', '/home/martin/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox');
+    RootDir = getenv('CMPLXROOT');
+end
+ExmplDir = strcat(RootDir, '/examples');
+LibDir = strcat(RootDir, '/lib');
+cd(strcat(RootDir, '/examples'));
+path(LibDir,path);
+path(ExmplDir,path);
 warning('off', 'Control:ltiobject:ZPKComplex')
 warning('off', 'Control:ltiobject:TFComplex');

@@ -44,12 +44,8 @@ function [H, Ki, KF, Ko, Kd] = calcSectionSS(z, p, gain)
   end
 
   if np == 2 && nz == 0 % Second order without transmission zeros
-    if abs(real(z(1))) > tol || abs(real(z(2))) > tol
-      error('Only jw axis zeros are curently handled')
-    end
     k11 = 0;
     w0 = sqrt(p(1)*p(2));
-    wz_sq = z(1)*z(2);
     k12 = -w0*j;
     k21 = w0*j;
     k22 = p(1)+p(2);

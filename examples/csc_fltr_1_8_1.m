@@ -26,7 +26,7 @@ ONE_STP = 0;
 % cscdFltr1 = mkCscdFltrD(H, wp_);
 % This functionality has now been encapsulated in dsgnCascadeFltr()
 tic
-cscdFltr1 = dsgnCascadeFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
+cscdFltr1 = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 H = cscdFltr1.getSystem();
 % if internal object update not needed just use H = cscdFltr1.sys
 toc

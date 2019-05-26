@@ -28,5 +28,5 @@ function cscdFltr = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,type)
 %
 
     H = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type);
-    cscdFltr = mkCscdFltrD(H, wp);
+    cscdFltr = mkCscdFltrD2(H, wp);
     a=1;

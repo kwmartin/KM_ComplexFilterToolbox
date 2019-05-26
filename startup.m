@@ -1,6 +1,6 @@
 RootDir = getenv('CMPLXROOT');
 if isempty(RootDir)
-    setenv('CMPLXROOT', '/home/martin/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox');
+    setenv('CMPLXROOT', cd);
     RootDir = getenv('CMPLXROOT');
 end
 ExmplDir = strcat(RootDir, '/examples');

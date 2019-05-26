@@ -22,8 +22,8 @@ ONE_STP = 0;
 % plot_crsps(Hbssl, [-1 1], [-10 10], 'b',[-20 20 -180 2]);
 % [lgH, phH, gdH, dLdW, dTdW] = plot_am_ph_gd(Hbssl, [-1 1], [-10 10], 'b');
 
-Ap = 1.702;
-cscdFltr1 = dsgnCascadeFltr(p,px,ni,wp,ws,as,Ap,'equiGD');
+Ap = 1.405;
+cscdFltr1 = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,'equiGD');
 H1 = cscdFltr1.getSystem();
 plot_dam_ph_gd(H1, wp, ws, 'b');
 
@@ -78,6 +78,7 @@ toc
 
 drawnow;
 cscdHndl = gcf;
-print(strcat('Figures/', fltrNm), '-dpng');
+FigDir = strcat(ExmplDir, 'Figures/');
+print(strcat(ExmplDir, fltrNm), '-dpng');
 
 a=1;

@@ -44,5 +44,7 @@ function [z3 p3] = groupZerosD(H, wp)
     i = i+1;
   end
 
-  % assuming bilinear transform, the number of zeros equals the number of poles
+  % add remaining poles having zeros at infinity
+  p3 = [p3 p2];
+
   a=1;

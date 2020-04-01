@@ -1,4 +1,4 @@
-function [lgH, phH, gdH, dLdW, dTdW] = AnlzH(H, w)
+function [lgH, phH, gdH, dLdW, dTdW, d2LdW] = AnlzH(H, w)
 %   [lgH, phH, gdH, dHdW] = AnlzH(H, w) analyzs H and returns
 %   the ln(abs(H)) (nepers), phH (radians), gdH (group delay in s),
 %   and d(abs(H))/dw at frequency or frequencis specified in w (in radians)
@@ -19,6 +19,7 @@ function [lgH, phH, gdH, dLdW, dTdW] = AnlzH(H, w)
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenss/>.
 %
+  w = w(:);
   [z, p, k] = zpkdata(H, 'vector');
   npts = length(w);
   onesVctr = ones(size(w));
@@ -39,7 +40,9 @@ function [lgH, phH, gdH, dLdW, dTdW] = AnlzH(H, w)
       ddrvSum = ddrvSum - 1./((s - p(l)*onesVctr).^2);
   end
   phH = imag(logSum);
-  lgH = log(k) + real(logSum);
+  lgH = log(abs(k)) + real(logSum);
   gdH = -real(derivSum); % because we didn't multiply by j in finding first order derivatives
   dLdW = -imag(derivSum);
   dTdW = -imag(ddrvSum);
+  d2LdW = real(ddrvSum);
+  a=1;

@@ -17,7 +17,7 @@ ONE_STP = 0; % treat both stop-bands as a single stop-band
 % from 0.0125 to 0.0375
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.025); 
 
-cscdFltr = dsgnCascadeFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
+cscdFltr = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 % plot cascade filter using object function
 cscdFltr.plotGn(wp_, ws_, -40, 2);
 tic

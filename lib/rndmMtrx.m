@@ -18,4 +18,4 @@ function M = rndmMtrx(std, size)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
   mSize = [size size];
-  M = eye(size) + normrnd(0, std, mSize) + j*normrnd(0, std, mSize);
+  M = eye(size) + std*randn(size) + j*std*randn(size);

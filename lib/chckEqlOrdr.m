@@ -1,7 +1,7 @@
 function isEqual = chckEqlOrdr(ply, fun)
-% isEqual = chckEqlOrdr(ply, fun) checks if a polyClass objest is identical to fun
+% isEqual = chckEqlOrdr(ply, fun) checks if a polyClass object is identical to fun
 % It's used to possibly terminate finding roots of a function early when
-% the fun is itself a polynomial having less roots than expected.
+% the fun is itself a polynomial having fewer roots than expected.
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -33,4 +33,4 @@ evalPts = (rts1 + rts2)/2;
 evalPly = ply.peval(evalPts);
 evalFun = fun(evalPts);
 div = evalPly./evalFun;
-isEqual = range(abs(div))  < tol;
+isEqual = isempty(find((1 -abs(div)) > tol));

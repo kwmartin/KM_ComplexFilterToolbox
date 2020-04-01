@@ -1,4 +1,4 @@
-function [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H, w)
+function [lgH, phH, gdH, dLdW, dTdW, d2LdW] = AnlzDH(H, w)
 %   [lgH, phH, gdH, dHdW] = AnlzH(H, w) analyzes H and returns
 %   the ln(abs(H)) (nepers), phH (radians), gdH (group delay in s),
 %   and d(abs(H))/dw at frequency or frequencies specified in w (in radians)
@@ -33,13 +33,17 @@ function [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H, w)
       derivSum = derivSum + eS./(eS - z(l)*onesVctr);
       ddrvSum = ddrvSum + (eS.*z(l))./((eS - z(l)*onesVctr).^2);
   end
+  %gdv = zeros(np, npts);
   for l = 1:np
       logSum = logSum - log((eS - p(l)));
       derivSum = derivSum - eS./(eS - p(l)*onesVctr);
+      %gdV(l,:) = real(eS./(eS - p(l)*onesVctr));
       ddrvSum = ddrvSum - (eS.*p(l))./((eS - p(l)*onesVctr).^2);
   end
   phH = imag(logSum);
-  lgH = log(k) + real(logSum);
+  lgH = log(abs(k)) + real(logSum);
   gdH = -real(derivSum); % because we didn't multiply by j in finding first order derivatives
   dLdW = -imag(derivSum);
   dTdW = -imag(ddrvSum);
+  d2LdW = real(ddrvSum);
+  a = 1;

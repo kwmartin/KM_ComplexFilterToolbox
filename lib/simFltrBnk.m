@@ -70,4 +70,4 @@ function Xout2 = simFltrBnk(A, B, C, D, xin, delta_f)
   jMatrix = diag((j).^ex);
   Xout2 = Xout*jMatrix;
 
-  a=1;
+  a_=1;

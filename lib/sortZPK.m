@@ -22,7 +22,5 @@ function [z, p, k] = sortZPK(X0)
     warning('off', 'Control:ltiobject:TFComplex');
     warning('off', 'Control:ltiobject:ZPKComplex');
     [z p k] = zpkdata(X0, 'v');
-    [zi, indic] = sort(imag(z));
-    z = real(z(indic)) + zi*j;
-    [pi, indic] = sort(imag(p));
-    p = real(p(indic)) + pi*j;
+    z = sortImag(z);
+    p = sortImag(p);

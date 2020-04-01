@@ -37,6 +37,11 @@ for i = 1:ls
         w2(i) = w(i);
     end
 
+    % The next two lines look after the special case at wsz == 1 which is
+    % repeated and this upsets interp1()
+    indx = find(abs(diff(wsz) < eps));
+    wsz(indx + 1) = wsz(indx + 1) + 2*eps;
+
     a2(i) = interp1(wsz,As,w2(i));
     a1(i) = interp1(wsz,As,w1(i));
     h(i) = (a2(i) - a1(i))/(w2(i) - w1(i));

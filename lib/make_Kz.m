@@ -1,5 +1,5 @@
-function Kz_ = make_Kz2(p,px,type)
-%   Kz_ = make_Kz2(p,px,type) returns characteristic function in z
+function Kz_ = make_Kz(p,px,type)
+%   Kz_ = make_Kz(p,px,type) returns characteristic function in z
 %   Note: z is not the inverse delay operator (e^jwT), rather
 %   z = sqrt((s - j*wp(2))./(s - j*wp(1)))
 %   In s, H(s)H(-s) = 1 + K(s)K(-s) where K(s) is the characteristic function
@@ -29,32 +29,19 @@ p = [p px];
 p = sort(p);
 np = np + nx ;
 
-psq = p.*p;
-pz = zpk([],[],1);
-for i = 1:np
-    pp(i) = zpk(tf([1 2*p(i) psq(i)],1));
-    pz = pz* pp(i);
-end
+p_2 = -repmat(p,1,2);
+pz = zpk(p_2,[],1);
 
-% This is one of the most significant sections of this toolbox
-% see:  A. Sedra and P. Brackett, Filter Theory and Design: Active and Passive.
-% Matrix Publishers, 1978.
 switch type
   case 'elliptic'
-    % fz is even part of pz, Sedra eqn 4.85
-    % There is so much history behind the next line, incredible! KM
-    fz = (tf(pz) + tf(pz)')/2;
-    fz = zpk(fz);
+    p1 = polyClass(pz.z{1}, 1);
+    [fev, fodd] = getEvOdPly(p1); % KM 11/17/2019 now using polyClass functions
+    fz = zpk(fev.rts,[],1);
+
   case 'monotonic'
     N = np;
-    %P = pz.z{1};
-    %fz0 = prod(P)^(1/(2*N));
-    %fz0 = prod(P)^(1/N);
-    %fz0 = 1;
-    %fz1 = zpk([j*fz0, -j*fz0], [], 1); % one zero at -jfz0 and a zero at jfz0
-    %fz = fz1^(2*N); % Note, fz is numerator of K(z)*K'(-z)
-    %fz = fz1^(N); % Note, fz is numerator of K(z)*K'(-z)
-    num = repmat([j -j], 1, N);
+    fz0 = prod(p)^(1/np);
+    num = sortImag(fz0.*repmat([j -j], 1, np));
     fz = zpk(num, [], 1);
 otherwise
     error('The third argument must be either elliptic or monotonic');

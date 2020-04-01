@@ -1,10 +1,24 @@
-classdef (ConstructOnLoad = true) cascadeClass < handle % Class used for Cascade Filters
-% The cascadeClass object contains biquads in contcscFltrSctns objects
-% It also has a function for evaluating the frequency response of
-% complex cascade filters plus a number of other utility functions (see below)
+classdef (ConstructOnLoad = true) cascadeClass < handle
+%   classdef (ConstructOnLoad = true) cascadeClass < handle
+%   cascadeClass defines a class to hold Cascade Filter instantiations
+%   The cascadeClass object contains biquads in cscFltrSctnClass objects
+%   It also has a function for evaluating the frequency response of
+%   complex cascade filters plus a number of other utility functions.
+%   sctns: an array of cscFltrSctnClass objects which contain first or second order sections.
+%   size: the number of sections
+%   obj = cascadeClass(sctn): make a new cascadeClass object, sctn can be
+%   empty, or a cascadeClass obj, for copying a filter, or cscFltrSctnClass which gets added as the first section
+%   obj = addSctn(obj, sctn): add an additional section
+%   gn = freqEval(obj, f): evaluate the cascade filter as frequencies f (in real Hz)
+%   gn = scaleFltr(obj, wp): scale gains of sections so gain peaks are all 1 (f-inf scaling)
+%   sys = getSystem(obj): update and return the overall system in a zpk system obj
+%   sys = fshftFltr(obj, fshft): freq shift cascade filter; returns shifted zpk obj
+%   sys = fsclFltr(obj, sclFctr): freq scale cascade filter using scaleFltrD.m
+%   plotGn(obj, wp, ws, minY, maxY): plot the response of the cascade filter using plot_drsps.m
+%   out = sim(obj, xin, delta_f): simulate the cascade filter for complex input signal xin, after optionally frequency shifting filter (useful for filterbanks)
 %
 %   Toolbox for the Design of Complex Filters
-%   Copyright (C) 2018  Kenneth Martin
+%   Copyright (C) 2020  Kenneth Martin
 %
 %   This program is free software: you can redistribute it and/or modify
 %   it under the terms of the GNU General Public License as published by
@@ -77,7 +91,7 @@ classdef (ConstructOnLoad = true) cascadeClass < handle % Class used for Cascade
       getSystem(obj); % update system
     end
 
-    % update and return the overall system
+    % update and return the overall system in a zpk system obj
     function sys = getSystem(obj)
       sys = zpk([], [], 1);
       for i = 1:obj.size
@@ -103,14 +117,14 @@ classdef (ConstructOnLoad = true) cascadeClass < handle % Class used for Cascade
     end      
 
     % update and return the overall system
-    function plotGn(obj, wp, ws, minY, maxY)
+    function plotGn(obj, wp, minY, maxY)
       % update system in case anything was changed
       obj.sys = getSystem(obj);
-      plot_drsps(obj.sys, wp, ws, 'b', [-0.5 0.5 minY maxY]);
+      plot_drsps(obj.sys, wp, 'b', [minY maxY]);
     end      
 
     function out = sim(obj, xin, delta_f)
-      % simulate the possibly frequency shifted section
+      % simulate the possibly frequency shifted cascade filter
       xo = xin;
       for i = 1:obj.size
         xo = obj.sctns(i).sim(xo, delta_f);

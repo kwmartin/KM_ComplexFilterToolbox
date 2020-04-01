@@ -28,5 +28,7 @@ function cscdFltr = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,type)
 %
 
     H = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type);
+    % For a cascade filter of biquads, call mkCscdFltrD()
+    % For a cascade filter of first-order functions, call mkCscdFltrD2()
     cscdFltr = mkCscdFltrD2(H, wp);
     a=1;

@@ -11,14 +11,14 @@ wp(1) = -0.025; % lower passband edge
 wp(2) = 0.025; % upper passband edge
 ws = [-0.49 -0.035 0.035 0.49];
 as = [70 50 50 70];
-Ap = 0.05; % the passband ripple in dB
+Ap = 3.05; % the passband ripple in dB
 px = [];
 ONE_STP = 0;
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.05);
 
 tic
 % A positive-pass continuous-time filter with a elliptic pass-band
-cscdFltr1 = dsgnCascadeFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
+cscdFltr1 = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 H = cscdFltr1.getSystem();
 % if internal object update not needed just use H = cscdFltr1.sys
 toc

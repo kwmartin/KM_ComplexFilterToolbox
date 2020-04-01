@@ -1,5 +1,5 @@
 function [val]= muller(fun,ply,N,Init,tol,maxIter,imagRoots)
-% function [val]= muller3(fun,ply,N,Init,tol,maxIter,imagRoots) find roots of fun
+% function [val]= muller(fun,ply,N,Init,tol,maxIter,imagRoots) find roots of fun
 % Uses the Muller1 method to solve for a root of f(x) and puts them in ply object
 %
 % Find a solution to f(x) = 0 given three approximations p0, p1
@@ -48,7 +48,7 @@ function [val]= muller(fun,ply,N,Init,tol,maxIter,imagRoots)
   
   %Step 1
   minDenom = 1e-15;
-  maxFun = 1e10;
+  maxFun = 1e40;
   ply.K = 1;
 
   dfltfun = @(s) (fun(s)./(ply.peval(s) + 1e-24));
@@ -88,6 +88,12 @@ function [val]= muller(fun,ply,N,Init,tol,maxIter,imagRoots)
       %if imagRoots
       %  h = imag(h)*j;
       %end
+
+      if abs(h) < 1e-15
+        table = char(table);
+        root_ = p;
+        break
+      end
 
       p = p2 + h;
 
@@ -154,6 +160,13 @@ function [val]= muller(fun,ply,N,Init,tol,maxIter,imagRoots)
   
       h1 = p1 - p0;
       h2 = p2 - p1;
+
+      if abs(h2 + h1) < 1e-15
+        table = char(table);
+        root_ = p;
+        break
+      end
+
       del1 = (fun1-fun0)./(h1);
       del2 = (fun2-fun1)./(h2);
       d = (del2-del1)./(h2 + h1);

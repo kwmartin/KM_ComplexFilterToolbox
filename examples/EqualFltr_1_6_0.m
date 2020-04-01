@@ -1,8 +1,8 @@
 % a filter-bank simulation based on monotonic filters having 4
 % movable loss-poles
 
-fltrNm = 'EqualFltr_1_6_0';
-N = 8;
+fltrNm = 'EquiRipple_1_6_0';
+N = 1024;
 delta_f = 1/N;
 %w_shift = pi*j;
 w_shift = 0.0j;
@@ -14,7 +14,7 @@ wp(2) = delta_f/2; % upper passband edge
 ws = [-0.49 -delta_f delta_f 0.49];
 as = [50 50 50 50];
 %Ap = 1.19; % the passband ripple in dB
-Ap = 0.001; % the passband ripple in dB
+Ap = 1.19; % the passband ripple in dB
 px = [];
 ONE_STP = 0;
 
@@ -22,10 +22,11 @@ ONE_STP = 0;
 % plot_crsps(Hbssl, [-1 1], [-10 10], 'b',[-20 20 -180 2]);
 % [lgH, phH, gdH, dLdW, dTdW] = plot_am_ph_gd(Hbssl, [-1 1], [-10 10], 'b');
 
-Ap = 1.405;
-cscdFltr1 = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,'equiGD');
+%Ap = 3.0103;
+Ap = 2.8;
+cscdFltr1 = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,'equiGDLsPls');
 H1 = cscdFltr1.getSystem();
-plot_dam_ph_gd(H1, wp, ws, 'b');
+plot_dam_ph_gd(H1, [-0.5 0.5], -100, 'b');
 
 %cscdFltr1.plotGn(wp, ws, -80, 2);
 
@@ -34,7 +35,7 @@ cscd2Yml(cscdFltr1, strcat(fltrNm, '.yml'));
 xin = zeros(8192,1);
 xin(1) = 1;
 %xin(1:64:8192) = 1;
-ylim = [-200 2];
+ylim = [-120 2];
 
 Out1 = cscdFltr1.sim(xin, 0);
 h0 = figure('Position',[800 100 600 600]);
@@ -46,12 +47,14 @@ h1 = figure('Position',[800 100 600 600]);
 [ax0 ax0, f, ymRef] = plotRspns(Out1, [-0.1 0.1], 'b', ylim);
 
 Xin = zeros(256,N);
-Xin(1,4) = 1;
+Xin(1,:) = 1;
 tic
 Out1 = simCscdFltrBnk3(cscdFltr1, Xin, delta_f);
+clear sum; % one of the routines has been over-loading "sum"; be warned we'll find you
 In2 = sum(Out1,2);
 %In2 = Out1;
-Out = simCscdFltrBnk(cscdFltr1, In2, delta_f);
+Out = simCscdFltrBnk(cscdFltr1, Xin, delta_f);
+%Out = simCscdFltrBnk(cscdFltr1, In2, delta_f);
 toc
 figure;
 plot(real(Out(:,4)), 'b');
@@ -78,7 +81,8 @@ toc
 
 drawnow;
 cscdHndl = gcf;
+ExmplDir = '/home/martin/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox/examples/';
 FigDir = strcat(ExmplDir, 'Figures/');
-print(strcat(ExmplDir, fltrNm), '-dpng');
+print(strcat(FigDir, fltrNm), '-dpng');
 
 a=1;

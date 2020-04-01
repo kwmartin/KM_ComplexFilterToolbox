@@ -18,11 +18,11 @@ ONE_STP = 0;
 
 tic
 % A positive-pass continuous-time filter with a elliptic pass-band
-cscdFltr1 = dsgnCascadeFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
+cscdFltr1 = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 H = cscdFltr1.getSystem();
 % if internal object update not needed just use H = cscdFltr1.sys
 toc
-cscdFltr1.plotGn(wp_, ws_, -120, 2);
+cscdFltr1.plotGn(wp_, -120, 2);
 tic
 runMcCscd(cscdFltr1, wp_, 2e-5, 0, 100, [-120, 2]);
 toc

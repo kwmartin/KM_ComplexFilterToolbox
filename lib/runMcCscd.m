@@ -1,4 +1,4 @@
-function xout1 = runMcCscd(cscdFltr, wp, std, fShft, nmbRuns, ylim)
+function xout1 = runMcCscd(cscdFltr, wp, std, fShft, nmbRuns, ylim, color)
 % runMcCscd(cscdFltr, wp, std, fShft, nmbRuns, ylim)
 % run nmbRuns and plot FFTs of impulse responses of cascade filter
 % having randomly perturbed matrices. cscdFltr is object of cascadeClass,
@@ -41,8 +41,8 @@ function xout1 = runMcCscd(cscdFltr, wp, std, fShft, nmbRuns, ylim)
   freq_shtf = fShft;
   xout1 = simBiquad(A_, B_, C_, D_ , xin, freq_shtf);
 
-  hndl(6) = figure('Position',[800 100 600 600]);
-  [ax1 ax2, f, ymRef] = plotRspns(xout1, wp + freq_shtf, 'b', ylim);
+  % hndl(6) = figure('Position',[800 100 600 600]);
+  [ax1 ax2, f, ymRef] = plotRspns(xout1, wp + freq_shtf, color, ylim);
   errs = zeros(size(ymRef));
   %[f, ndB, dB, ym, ya] = nfft2(xout1,'b', -120, 2);
 
@@ -62,7 +62,7 @@ function xout1 = runMcCscd(cscdFltr, wp, std, fShft, nmbRuns, ylim)
     end
 
     xout2 = simBiquad(A_2, B_2, C_2, D_2, xin, freq_shtf);
-    [ax1 ax2, f, ym] = plotRspns(xout2, wp + freq_shtf, 'm', ylim);
+    [ax1 ax2, f, ym] = plotRspns(xout2, wp + freq_shtf, color, ylim);
     errs = errs + (ym - ymRef).^2;
     %[f, ndB, dB, ym, ya] = nfft2(xout2,'r', minY, 2);
     a = 1;

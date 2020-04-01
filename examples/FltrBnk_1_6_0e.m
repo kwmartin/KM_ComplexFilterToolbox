@@ -12,21 +12,26 @@ delta_f = 1/N;
 w_shift = 0.0j;
 p = [-0.3 -0.2 -0.1 0.1 0.2 0.3]; % initial guess at finite loss poles
 ni=1; % number of loss poles at infinity
-wp = []; ws = [];
-wp(1) = -delta_f/2; % lower passband edge
-wp(2) = delta_f/2; % upper passband edge
-ws = [-0.49 -delta_f delta_f 0.49];
+fp = []; ws = [];
+fp(1) = -delta_f/2; % lower passband edge
+fp(2) = delta_f/2; % upper passband edge
+ws = 2*pi*[-0.49 -delta_f delta_f 0.49];
 as = [50 50 50 50];
-Ap = 1.5; % the passband ripple in dB
+Ap = 0.3; % the passband ripple in dB
 px = [];
 ONE_STP = 0;
+wp = 2*tan(pi*fp);
 
-cscdFltr1 = dsgnCascadeFltr(p,px,ni,wp,ws,as,Ap,'elliptic');
+% cscdFltr1 = dsgnCascadeFltr2(p,px,ni,wp,ws,as,Ap,'elliptic');
+H = design_dig_filt(p,px,ni,wp,ws,as,Ap,'elliptic');
+plot_drsps(H, fp, 'b', [-120 1]);
+cscdFltr1 = mkCscdFltrD2(H, wp);
+
 H1 = cscdFltr1.getSystem();
-plot_drsps(H1, wp, ws, 'b', [-0.5 0.5 -120 1]);
-%cscdFltr1.plotGn(wp, ws, -100, 2);
+plot_drsps(H1, fp, 'b', [-120 1]);
+%cscdFltr1.plotGn(fp, ws, -100, 2);
 
-cscd2Yml(cscdFltr1, strcat(fltrNm, '.yml'));
+cscd2Yml(cscdFltr1, strcat(RootDir, '/examples/', fltrNm, '.yml'));
 
 xin = zeros(8192,1);
 xin(1) = 1;

@@ -1,9 +1,9 @@
-function [ax1, ax2] = plot_drsps(H,wp,ws,colour,lim)
+function [ax1, ax2] = plot_drsps(H,fp,colour,lim)
 %   Replace this function with plot_dam() where lim has only [y1 y2]
 %   PLOT_DRSPS(H) is used to plot the stopband and passband magnitude response
-%   of a discrete tranfer function H. wp is the passband freqs. in rad. ws is the
-%   stop-band specificatios, colour specifies the colour of the plot. lim specifies
-%   plot axis [x1 x2 y1 y2].
+%   of a discrete tranfer function H. fp is the passband freqs. in Hz.
+%   colour might be 'b', 'r', or 'g', as examples. lim specifies
+%   plot the y axis limits: [y1 y2].
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -22,54 +22,48 @@ function [ax1, ax2] = plot_drsps(H,wp,ws,colour,lim)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
 
-[zd pd kd] = zpkdata(H);
-b = poly(zd{1});
-a = poly(pd{1});
-A = db(kd.*freqz(b,a,2*pi*[wp ws]));
-w = -0.5:1e-4: 0.5;
-s = 2*pi*w;
-x2n=@(x)int16(length(w)*(x + 0.5));
-h=kd.*freqz(b,a,s);
-dbH = db(h);
-fig = figure('Position',[800 100 600 600]);
-ax1 = subplot(2,1,1);
-plot(s./(2*pi),dbH,colour)
+    [zd pd kd] = zpkdata(H);
+    b = poly(zd{1});
+    a = poly(pd{1});
+    A = db(kd.*freqz(b,a,2*pi*[fp -0.5 0.5]));
+    w = -0.5:1e-6: 0.5;
+    s = 2*pi*w;
+    x2n=@(x)int64(length(w)*(x + 0.5));
+    % h=kd.*freqz(b,a,s);
+    % dbH = db(h);
+    [dbH h] = log_rspsd(H,j*s);
+    fig = figure('Position',[500 300 500 600]);
+    ax1 = subplot(2,1,1);
+    plot(s./(2*pi),dbH,colour,'LineWidth',1)
 
-if nargin == 5
-    if length(lim) ~= 4
-        error('The specifications for plotting must be a vector of size 4');
+    if length(lim) ~= 2
+        error('The specifications for plotting must be a vector of size 2');
     end
-    x1 = lim(1);
-    x2 = lim(2);
-    y1 = lim(3);
-    y2 = lim(4);
-else
-	x1 = -0.5;
-	x2 = 0.5;
-	y1 = 1.8*min(A);
-	y2 = 2;
-end
+    x1 = -0.5;
+    x2 = 0.5;
+    y1 = lim(1);
+    y2 = lim(2);
 
-N = length(s);
-n1 = x2n(wp(1));
-n2 = x2n(wp(2));
-pbMin = min(dbH(n1:n2));
+    N = length(s);
+    n1 = x2n(fp(1));
+    n2 = x2n(fp(2));
+    pbMin = min(dbH(n1:n2));
 
-axis([x1 x2 y1 y2])
-title('Magnitude Gain')
-ylabel('dB')
-xlabel('Frequency')
-ax2 = subplot(2,1,2);
-plot(s./(2*pi),dbH,colour)
+    axis([x1 x2 y1 y2])
+    title('Magnitude Gain')
+    ylabel('dB')
+    xlabel('Frequency')
+    ax2 = subplot(2,1,2);
+    plot(s./(2*pi),dbH,colour,'LineWidth',1)
 
-wdiff = wp(2) - wp(1);
-x1 = wp(1) - 0.05*wdiff;
-x2 = wp(2) + 0.05*wdiff;
-mxH = db(max(h));
-y1 =  + pbMin - 0.1;
-y2 = max(dbH) + 0.1;
+    wdiff = fp(2) - fp(1);
+    x1 = fp(1) - 0.05*wdiff;
+    x2 = fp(2) + 0.05*wdiff;
+    mxH = db(max(h));
+    y1 =  + pbMin - 2.0;
+    y2 = max(dbH) + 1.0;
 
-axis([x1 x2 y1 y2])
-title('Passband')
-ylabel('dB')
-xlabel('Frequency')
+    axis([x1 x2 y1 y2])
+    title('Passband')
+    ylabel('dB')
+    xlabel('Frequency')

@@ -30,5 +30,7 @@ function H3 = LinPh_LssPls(n, deltT, ap, fstp)
         [deltT1 deriv] = fnd_gd_ripple(H3,[0 1])
         deltT0 = (deltT/deltT1) * deltT0;
     end
+    w = fndApFrq(H2, ap);
+    H3 = scaleFltr(H2, 1.0/w);
 
-  a = 1;
+    a = 1;

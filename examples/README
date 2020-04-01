@@ -151,4 +151,20 @@ FltrBnk_1_4_0.m: a 256 channel filter-bank simulation based on monotonic filters
     movable loss-poles
 FltrBnk_1_8_0.m: a 32 channel filter-bank simulation based on monotonic filters having 8
     movable loss-poles; next to adjacent containment better than -110dB
+function out = simCscd(cscd, xin, fShft)
+% function out = simCscd(cscd, xin, fShft) simulates the cscd filter
+% cscd is a cascadeClass object
+% xin is the input data, fShft is an optional frequency shift
+% It calls: out = simBiquad(A, B, C, D , xin, fShft);
+function out = simCscdRspns(cscd, fShft, ylim)
+% out = simCscdRspns(cscd fShft) simulates the impulse response of a
+% cascade filter and plots the magnitude fft of the output
+% fShft is an optional frequency shift. It generates an 8182x1 impulse
+% input.
+function out = simCscdFltrBnk(cscd, xin, fShft)
+% function out = simCscdFltrBnk(cscd, xin, fShft) simulates a cscd filter
+% bank; cscd is a cascadeClass object; xin is the input data, fShft is 
+% frequency shift between channels
+% It calls: out = simFltrBnk2(A, B, C, D , xin, fShft);
+
 

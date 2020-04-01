@@ -33,6 +33,4 @@ function out = simCscd(cscd, xin, fShft)
     D{i} = d;
   end
 
-  xin = zeros(8192,1);
-  xin(1) = 1;
   out = simBiquad(A, B, C, D , xin, fShft);

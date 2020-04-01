@@ -1,3 +1,7 @@
+function [p,np] = get_poles(sys,px)
+% [p,np] = get_poles(sys,px) returns the loss poles excluding the fixed
+% loss-poles corresponding to px .
+
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2016  Kenneth Martin
 
@@ -13,10 +17,6 @@
 
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-function [p,np] = get_poles(sys,px)
-% This function returns the loss poles excluding the fixed
-% loss-poles corresponding to px .
 
 % delete imagainary part and then convert to positive
 p_ = abs(real(sys.p{1}));
@@ -38,5 +38,3 @@ end
 
 p = p_.';
 np = length(p_);
-
-

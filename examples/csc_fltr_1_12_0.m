@@ -18,7 +18,7 @@ ONE_STP = 0;
 % A positive-pass continuous-time filter with a elliptic pass-band
 
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.25);
-cscdFltr1 = dsgnCascadeFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
+cscdFltr1 = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 cscdFltr1.plotGn(wp_, ws_, -160, 2);
 tic
 runMcCscd(cscdFltr1, wp_, 2e-5, 0, 10, [-200, 2]);

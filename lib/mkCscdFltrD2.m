@@ -40,6 +40,15 @@ function cscdFltr = mkCscdFltrD2(H, wp)
     sctn = cscFltrSctnClass(sys);
     sctn.setGain(1,wp);
     cscdFltr.addSctn(sctn);
+    nmbSctns = length(p);
+  end
+
+  for i = nmbSctns+1:length(z) % in case there are fewer zeros than poles
+    sys = zpk(z(i), [], 1, 1);
+    sctn = cscFltrSctnClass(sys);
+    sctn.setGain(1,wp);
+    cscdFltr.addSctn(sctn);
+    nmbSctns = length(p);
   end
 
   % the built scaling function of the cascadeClass() is used to

@@ -40,9 +40,9 @@ function [p, px, wp, ws, as, H4] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, 
   % works for complex transfer functions
 
   % Extract zeros, poles, and k
-  [z p k] = zpkdata(H2, 'v');
+  [z p_ k] = zpkdata(H2, 'v');
   % Transform to discrete-time system using bilinear transform
-  [zd pd kd] = bilinear(z,p,k,1);
+  [zd pd kd] = bilinear(z,p_,k,1);
   kd = real(kd); % bilinear has kd with a small complex part; looks like a bug
 
   % Make control-system zpk model

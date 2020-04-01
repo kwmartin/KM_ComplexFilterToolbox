@@ -12,8 +12,8 @@ wp(1) = -delta_f/2; % lower passband edge
 wp(2) = delta_f/2; % upper passband edge
 ws = [-0.49 -delta_f delta_f 0.49];
 as = [50 50 50 50];
-Ap = 2.13; % the passband ripple in dB
-Ap = 3.0103; % the passband ripple in dB
+%Ap = 2.13; % the passband ripple in dB
+Ap = 2.55; % the passband ripple in dB
 px = [];
 ONE_STP = 0;
 % A positive-pass continuous-time filter with a elliptic pass-band
@@ -22,7 +22,7 @@ svSpecs = {p, px, wp, ws};
 
 cscdFltr1 = dsgnCascadeFltr(p,px,ni,wp,ws,as,Ap,'monotonic');
 H1 = cscdFltr1.getSystem();
-plot_drsps(H1, wp, ws, 'b', [-0.5 0.5 -120 1]);
+plot_drsps(H1, wp, 'b', [-140 1]);
 %cscdFltr1.plotGn(wp, ws, -100, 2);
 xin = zeros(8192,1);
 xin(1) = 1;

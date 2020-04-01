@@ -20,7 +20,7 @@ function [X2] = simpl2(X1, tol)
 warning('off', 'Control:ltiobject:TFComplex');
 warning('off', 'Control:ltiobject:ZPKComplex');
 if nargin < 2
-    tol =  1e-5;
+    tol =  1e-7;
 end
 
 [Ks, Pls, Rem] = findRes(X1);

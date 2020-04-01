@@ -1,3 +1,7 @@
+function [Eevn, Eodd] = getEvnOdd(Epl)
+%   [Eevn, Eodd] = getEvnOdd(Epl) returns two polyClass objects
+%   Eevn is the even part of Epl, Eodd is the odd part of Epl
+
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2016  Kenneth Martin
 
@@ -14,7 +18,6 @@
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [Eevn, Eodd] = getEvnOdd(Epl)
 
 Ne = length(Epl);
 if mod(Ne, 2) == 1

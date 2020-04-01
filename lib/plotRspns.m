@@ -22,7 +22,8 @@ function [ax1 ax2, f, ym] = plotRspns(xin, wp, c, ylim);
 if nargin==2, colour=c; else, colour='m'; end
 n=size(xin, 1);
 y=fft(xin);
-ya=abs(y)/(n/2);
+% ya=abs(y)/(n/2);
+ya=abs(y);
 ymax = max(ya);
 ym=ya./ymax;
 ndB=20*log10(ym+eps);
@@ -30,18 +31,19 @@ dB=20*log10(ya+eps);
 f=-0.5:1/n:0.5-1/n;
 
 ax1 = subplot(2,1,1);
-plot(f,[ndB((n/2 + 1):n); ndB(1:n/2)],c);
+% plot(f,[ndB((n/2 + 1):n); ndB(1:n/2)],c,'LineWidth',2);
+plot(f,[dB((n/2 + 1):n); dB(1:n/2)],c,'LineWidth',1);
 axis([-0.5 0.5 ylim]);
 title('Magnitude Gain')
 ylabel('dB')
 xlabel('Frequency')
 
 ax2 = subplot(2,1,2);
-plot(f,[ndB((n/2 + 1):n); ndB(1:n/2)],c);
+plot(f,[ndB((n/2 + 1):n); ndB(1:n/2)],c,'LineWidth',2);
 wdiff = wp(2) - wp(1);
 x1 = wp(1) - 0.1*wdiff;
 x2 = wp(2) + 0.1*wdiff;
-y1 = -2.0;
+y1 = -3.5;
 y2 = 0.1;
 axis([x1 x2 y1 y2])
 title('Passband')

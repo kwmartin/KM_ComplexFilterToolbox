@@ -42,7 +42,12 @@ classdef (ConstructOnLoad = true) polyClass < handle
           obj.K = rts.K;
         else
           rts = rts(:).';
-          obj.rts = sortRoots(rts);
+          if isempty(rts(imag(rts) ~= 0))
+              rts = sort(rts);
+          else
+              rts = sortRoots(rts);
+          end
+          obj.rts = rts;
           obj.cleanRts();
           obj.rts = obj.rts(:);
           obj.N = length(rts);
@@ -128,6 +133,21 @@ classdef (ConstructOnLoad = true) polyClass < handle
       Eminus.cleanRts();
     end
 
+    function Emlt = mtimes(obj1,obj2)
+      if isa(obj2,'double')
+          Emlt = polyClass(obj1.rts,obj1.K);
+          Emlt.K = obj1.K * obj2;
+      elseif isa(obj2,'polyClass')
+          Emlt = polyClass([],1);
+          Emlt.rts = [obj1.rts; obj2.rts];
+          Emlt.K = obj1.K*obj2.K;
+          Emlt.N = obj1.N + obj2.N;
+      else
+            error('Multiplication is only supported for doubles or polyClass objects');
+      end
+
+    end
+
     function disp(obj)
       c = char(obj);
       if iscell(c)
@@ -176,7 +196,7 @@ function str = char(obj)
     for a = (obj.rts).';
       if a ~= 0;
         %s(ind) = {['(s - ' num2str(a) ')' newline]};
-        s(ind) = {['(s - ' num2str(a) ')']};
+        s(ind) = {['(s - (' num2str(a) '))']};
         ind = ind + 1;
       else
         %s(ind) = {['s' newline]};

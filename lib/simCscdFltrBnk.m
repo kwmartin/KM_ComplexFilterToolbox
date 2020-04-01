@@ -33,6 +33,6 @@ function out = simCscdFltrBnk(cscd, xin, fShft)
     D{i} = d;
   end
 
-  xin = zeros(8192,1);
-  xin(1) = 1;
+  % xin = zeros(8192,1);
+  % xin(1) = 1;
   out = simFltrBnk2(A, B, C, D , xin, fShft);

@@ -10,11 +10,11 @@ hndl = figure('Position',[500 100 800 800]);
 [ax1 ax2, f, ymRef] = plotRspns(Out(:,1), [-0.05 0.1], 'b', ylim);
 hold(ax1, 'on');
 hold(ax2, 'on');
-sum = Out(:,1);
+Sum = Out(:,1);
 for i = 2:N
     plotRspns(Out(:,i), [-0.5 0.5], 'b', ylim);
     if (i~= 32)
-        sum = sum + Out(:,i);
+        Sum = Sum + Out(:,i);
     end
 end
-plotRspns(sum, [-0.5 0.5], 'r', ylim);
+plotRspns(Sum, [-0.5 0.5], 'r', ylim);

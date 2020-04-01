@@ -1,4 +1,4 @@
-function H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type)
+function H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr)
 % H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type) design a discrete-time transfer function
 % Design a digital transfer function from specs, p: moveable poles, px: fixed poles,
 % ni: number of fixed poles at infinity, wp: pass-band edge frequencies, ws: stop-band
@@ -26,6 +26,20 @@ function H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
 
+  ws1 = max(ws(ws < wp(1)));
+  ws2 = min(ws(ws > wp(2)));
+  if any((p < wp(1)) & (p > ws1)) | any((p > wp(2)) & (p < ws2))
+    error('A moveable pole is in the transition region');
+  elseif any((px < wp(1)) & (px > ws1)) | any((px > wp(2)) & (px < ws2))
+    error('A fixed pole is in the transition region');
+  end
+
+  if nargin == 8
+    Ordr = length(p) + length(px) + ni;
+  elseif nargin ~= 9
+    error('There should be 8 or 9 input arguments');
+  end
+
   warning('off', 'Control:ltiobject:TFComplex');
   warning('off', 'Control:ltiobject:ZPKComplex');
 
@@ -34,18 +48,58 @@ function H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type)
   ONE_STP = 0;
   if strcmp(type, 'monotonic') || strcmp(type, 'elliptic')
     [H1, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,type);
+    [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
   elseif strcmp(type, 'bessel')
-    Ordr = 11;
     % Ap = -Ap;
     H1 = bessel_filt(Ordr, wp, Ap);
+    [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
+  elseif strcmp(type, 'besselLsPls')
+    H1 = besselLsPls(Ordr, Ap, 3);
+    [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
   elseif strcmp(type, 'equiGD')
-    Ordr = 11;
-    [H1 T0] = LinPhFltr(Ordr, 0.01, Ap);
+    deltT = 0.25;
+    [H1 T0] = LinPhFltr(Ordr, 0.01, Ap); % design continous prototype
+    [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
+    H2 = adaptP2(H2,deltT);
+    H2.k = H2.k/(abs(freqresp(H2,0)));
   elseif strcmp(type, 'equiGDLsPls')
-    Ordr = 11;
-    H1 = LinPh_LssPls(Ordr, 0.01, Ap, 3);
+    tic
+    deltGD = 0.25;
+    Hz2 = dsgnEquiRplGD(p,px,wp,ws,as,Ap,Ordr,sclFctr,shftFctr,deltGD);
+    toc
+
+    tic
+    H1 = LinPh_LssPls(Ordr, deltGD, Ap, 3); % design continous prototype
+    [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
+    H3 = freq_shiftd(H2, shftFctr);
+    H4 = adaptP3(H3,0.1);
+    H2 = freq_shiftd(H4, -shftFctr);
+    % H2 = adaptP(H2);
+    H2.k = H2.k/(abs(freqresp(H2,0)));
+    Hz = place_polesdLP3(H2,wp);
+    toc
+
+    plot_drsps(Hz,wp,'r',[-70 5]);
+    f = -0.5:1e-4:0.5;
+    w = 2*pi*f;
+    s_ = j*w;
+    figure;
+    rdb = @(f,H)(db(rspsd(H,j*2*pi*f)));
+    plot(f,rdb(f,Hz));
+    [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(Hz, w(:));
+    axis([-0.5 0.5 -100 2]);
+    indx = find(gdH > 100);
+    gdH(indx) = gdH(indx+1);
+    indx = find(gdH < -100);
+    gdH(indx) = gdH(indx+1);
+    figure
+    plot(f,gdH,'r','LineWidth',1);
+
+    H2 = Hz; % original Hz might have been better
+    a = 1;
   end
-  % plot_crsps(H4,wp,ws,'b',[-10 10 -100 1]);
+  % plot_crsps(H1,wp,ws,'b',[-10 10 -100 1]);
   % plot_am_ph_gd(H4, [-1.5 1.5], 'b');
-  [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
+  % plot_dam_ph_gd(H2, [-0.5 0.5], 'b');
+  % plot_drsps(H2,wp,'r',[-100 1]);
   a=1;

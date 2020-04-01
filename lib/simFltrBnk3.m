@@ -56,11 +56,11 @@ function Xout2 = simFltrBnk(A, B, C, D, Xin, delta_f)
       end
       Xin(i, :) = Xout(i, :);
     end
-    a=1;
+    a_=1;
   end
 
   jMatrix = diag((j).^ex);
   Xout2 = Xout*jMatrix;
   Xout2 = Xout; % got rid of phase shift for now
 
-  a=1;
+  a_=1;

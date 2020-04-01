@@ -51,7 +51,7 @@ p_ = p_.'; % Convert to row
 np_ = length(p_);
 
 pz2 = p_.^2; % Calculate squares of pole frequencies
-s = s.'; % Convert to column
+s = s(:); % Convert to column
 h = zeros(ls,np_); % Matrix size
 
 for i = 1:ls % For each frequency

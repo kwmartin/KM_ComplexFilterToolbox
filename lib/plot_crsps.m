@@ -45,8 +45,8 @@ delta = (x2 - x1)/1e4;
 s = x1:delta:x2;
 h = 20*log_rsps(H,j*s);
 N = length(s);
-n1 = int16(N*(wp(1) - x1)/(x2 - x1));
-n2 = int16(N*(wp(2) - x1)/(x2 - x1));
+n1 = int64(N*(wp(1) - x1)/(x2 - x1));
+n2 = int64(N*(wp(2) - x1)/(x2 - x1));
 pbMin = min(h(n1:n2));
 
 hndl = figure('Position',[800 100 600 600]);

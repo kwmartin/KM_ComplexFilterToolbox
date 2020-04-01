@@ -19,12 +19,10 @@ ONE_STP = 0; % treat both stop-bands as a single stop-band
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.025); 
 
 % top level function for designed digital filter based on bilinear-z transform
-H = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
+cscdFltr = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
+H = cscdFltr.sys;
 % plot resulting transfer function
 [ax1, ax2] = plot_drsps(H, wp_, ws_, 'b', [-0.5 0.5 -100 1]);
-
-% order and group poles and zeros into a cascade filter
-cscdFltr = mkCscdFltrD(H, wp_);
 
 % plot cascade filter using object function
 cscdFltr.plotGn(wp_, ws_, -80, 2);

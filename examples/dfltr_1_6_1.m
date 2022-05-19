@@ -12,5 +12,5 @@ as = [10 10 50 50 10];
 
 Ap = 0.01; % the passband ripple in dB
 H = design_dtm_filt(p,px,ni,wp,ws,as,Ap,'elliptic'); %This is a discrete-time design with a fixed loss-pole at dc.
-plot_drsps(H,wp,ws,'r',[-0.5 0.5 -120 1]); % Plot the response (with specified axis scaling)
+plot_drsps(H,wp./(2*pi),'r',[-120 1]); % Plot the response (with specified axis scaling)
 

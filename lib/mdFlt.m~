@@ -1,0 +1,47 @@
+function y = mdFlt(x)
+%   [y] = mdFlt(x) applies a 7'th order median filter to x. The first 4 outputs are equal to the median of the
+%   first 7 values of x.
+%
+%   Toolbox for the Design of Complex Filters
+%   Copyright (C) 2020  Kenneth Martin
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+    changeCnt = 0;
+    y = zeros(size(x));
+    y(1:4) = mdn(x(1:7));
+    for i = 4:length(x)-3
+        y(i) = mdn(x(i-3:i+3));
+    end
+    y(end-2:end) = y(end-3);
+    for i = 4:length(x)
+        if abs(y(i) - y(i-1)) > abs(y(i-1)*0.25)
+            if changeCnt < 8
+                y(i) = y(i-1);
+                changeCnt += 1 + changeCnt;
+            end
+        else
+            if changeCnt > 0 changeCnt = changeCnt - 1; end
+        end
+    end
+    a_=1; % a line at the end to place a breakpoint
+end
+
+function y=mdn(x)
+    x2 = sort(x);
+    i = round(length(x)/2);
+    y = x2(i);
+    a=1;
+end
+

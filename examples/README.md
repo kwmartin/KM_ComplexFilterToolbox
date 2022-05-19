@@ -1,0 +1,1 @@
+EquiRipple_1_6_0 is one of the best filter banks at 8/28/2019, KM

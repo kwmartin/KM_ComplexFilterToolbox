@@ -1,0 +1,75 @@
+function [pks,locs,wdths,hts, diffs, diffs2, tgs] = xtrctB2B(yin)
+%   bts = xtrctB2B(yin) extracts the periods between consecutive beats assuming
+%   yin is mostly positive. First a reasonable threshold is found that most of the noise
+%   is below. Values below the threshold are set to 0. The peaks above the threshold are
+%   found. The peaks are then run through a median filter to help correct for possible errors
+%
+%   Toolbox for the Design of Complex Filters
+%   Copyright (C) 2020  Kenneth Martin
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without1 even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+    mean1 = mean(yin);
+    % thrshld1 = 1.25*mean1;
+    y2 = yin;
+    % y2 = lpFltr(yin,0.025); % done externally
+    % y2(y2 < thrshld1) = 0; % This looks like not a good idea
+    [pks,locs,wdths,hts] = findpeaks(y2, 'MinPeakHeight',5,'MinPeakDistance',60);
+
+    diffs = diff(locs);
+    diffs2 = mdFlt(diffs);
+    avg = mean(diffs2);
+    tgs = [];
+    indcs_spur = find(diffs < 0.4*diffs2); % A spurious peak; remove it
+    locs2 = @(indic)(diffs2(indic-1) + sum(diffs(1:indic-2)) + locs(1));
+    while indcs_spur
+        indic1 = indcs_spur(1) + 1; % note indices for diffs is 1 less than indices for locs
+        if pks(indic1) < pks(indic1-1)
+            indc = indic1;
+        else
+            indc = indic1 - 1;
+        end
+        tgs = [tgs; [indc -1]]; % a '-1' indicates a peak has been deleted
+        pks(indc) = [];
+        locs(indc) = [];
+        wdths(indc) = [];
+        hts(indc) = [];
+        diffs = diff(locs);
+        diffs2 = medfilt1(diffs,5);
+        indcs_spur = find(diffs < 0.4*diffs2);
+   end
+
+    diffs = diff(locs);
+    diffs2 = mdFlt(diffs);
+    indcs_msng = find((diffs - diffs2) > 0.45*avg); % Missing peaks; fill them in
+    for i = 1:length(indcs_msng)
+        indc1 = indcs_msng(i);
+        indc2 = indcs_msng(i) + 1;
+        loc1 = locs(indc1);
+        loc2 = locs(indc2);
+        loc_mid = 0.5*(loc1 + loc2);
+        % somewhat arbitrarilly make inserted peak 70% of surrounding peaks
+        pk_mid = 0.35*(pks(indc1) + pks(indc2));
+        wdth_mid = 0.35*(wdths(indc1) + wdths(indc2));
+        ht_mid = 0.35*(hts(indc1) + hts(indc2));
+        pks = [pks(1:indc1); pk_mid; pks(indc2:end)];
+        locs = [locs(1:indc1); loc_mid; locs(indc2:end)];
+        wdths = [wdths(1:indc1); wdth_mid; wdths(indc2:end)];
+        hts = [hts(1:indc1); ht_mid; hts(indc2:end)];
+        tgs = [tgs; [indc2 1]]; % a '1' indicates a peak has been added
+    end
+    diffs = diff(locs);
+    diffs2 = mdFlt(diffs);
+    diffs2(abs(diffs2 - mean(diffs2)) > 0.20*mean(diffs2)) = mean(diffs2);
+    a = 1;

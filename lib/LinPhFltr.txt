@@ -1,0 +1,13 @@
+Work and glt1:
+  options = optimoptions('fsolve','Display','none');
+  options.FunctionTolerance = 1e-16;
+  options.OptimalityTolerance = 1e-8;
+  options.StepTolerance = 1e-8;
+  options.MaxFunctionEvaluations = 5000;
+  options.MaxIterations = 1000;
+
+Home:
+  options.TolFun = 1e-16;
+  options.TolX = 1e-8;
+  options.MaxFunEvals = 5000;
+  options.MaxIter = 1000;

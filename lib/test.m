@@ -1,0 +1,495 @@
+function [y] = tmplt(x)
+%   [y] = tmplt(x) is a template for new functions
+%
+%   Toolbox for the Design of Complex Filters
+%   Copyright (C) 2020  Kenneth Martin
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+    y = x;
+    a_=1; % a line at the end to place a breakpoint
+
+
+fin = 0.01;
+win = 2*pi*fin;
+N = 5000;
+t = 0:(N-1);
+
+xin = 0.0*sin(win.*t) + 1.0*sin(2*win.*t);
+xin = xin(:);
+k = [2*sin(win/2) 2*sin(2*win/2)];
+G = 0.25;
+[Xfb, Xs] = simResonators2(xin, k, G);
+figure
+plot(Xs(:,1))
+
+z = tf('z', 1);
+z1 = exp(j*pi*0.01);
+H1 = z1*z^-1/(1 - z1*z^-1);
+H1R = minreal(-(H1 + conj(H1)));
+z2 = exp(j*pi*0.02);
+H2 = z2*z^-1/(1 - z2*z^-1);
+H2R = minreal(-(H1 + conj(H1)));
+G = 0.125;
+G1 = minreal(G*H1R/(1 + G*(H1R + H2R)));
+
+k1 = 2*sin(pi*0.05);
+k2 = 2*sin(pi*0.1);
+k3 = 2*sin(pi*0.15);
+k4 = 2*sin(pi*0.2);
+
+G = 0.125;
+h1 = minreal(((z^-1)*(2 - k1) - 2*(z^-2))/(1 - (2 - k1^2)*(z^-1) + (z^-2)));
+h2 = minreal(((z^-1)*(2 - k2) - 2*(z^-2))/(1 - (2 - k2^2)*(z^-1) + (z^-2)));
+h3 = minreal(((z^-1)*(2 - k3) - 2*(z^-2))/(1 - (2 - k3^2)*(z^-1) + (z^-2)));
+h4 = minreal(((z^-1)*(2 - k4) - 2*(z^-2))/(1 - (2 - k4^2)*(z^-1) + (z^-2)));
+h_1 = minreal(G*h1/(1 + G*(h1 + h2 + h3 + h4)));
+h_2 = minreal(G*h2/(1 + G*(h1 + h2 + h3 + h4)));
+h_3 = minreal(G*h3/(1 + G*(h1 + h2 + h3 + h4)));
+h_4 = minreal(G*h4/(1 + G*(h1 + h2 + h3 + h4)));
+h_1 = simpl(h_1);
+h_2 = simpl(h_2);
+h_3 = simpl(h_3);
+h_4 = simpl(h_4);
+plotDig(h_1,-100);
+plotDig(h_2,-100);
+plotDig(h_3,-100);
+plotDig(h_4,-100);
+
+k = 2.*sin(pi.*[0.01 0.02 0.03 0.04 0.05]);
+X0 = sin((0:8191)'.*2.*pi.*[0.01 0.02 0.03 0.04 0.05]);
+xin = help (X0,2);
+[Xfb, Xs, Xe, Xs2] = simResonators(xin, k, G);
+
+N=p1.N;
+rtsf=-f1.rts(1:f1.N/2).*f1.rts(f1.N/2+1:f1.N);
+rtsp=-p1.rts(1:p1.N/2).*p1.rts(p1.N:-1:p1.N/2+1);
+p2 = polyClass(rtsp, p1.K);
+f2 = polyClass(rtsf, f1.K);
+nh2 = f2 + p2;
+nh2.rts;
+nh_rts = sortRoots([sqrt(nh2.rts); -sqrt(nh2.rts)]);
+nh_ = polyClass(nh_rts, nh2.K);
+
+rtzh = nh_rts(imag(nh_rts) > 0);
+rtzh = rtzh(real(rtzh) > 0);
+rtszh = sortRoots([rtzh; -rtzh]);
+rtph = sqrt(rtsp);
+rtph = rtph(1:2:end-1);
+rtsh = sort([rtph; -rtph]);
+
+
+% fin = [0.015625 0.015625*2];
+% fin = [0.015625];
+% wp = win;
+fp = [0.015625 0.015625*2 0.015625*3 0.015625*4 0.015625*5];
+fin = fp;
+k = 2*sin(wp/2);
+win = 2*pi*fin;
+N = length(wp);
+x0 = zeros(size(wp));
+x1 = -ones(size(wp));
+[X10 X20] = fndInitXs(x0,x1, k);
+npts = 2^12;
+t = (0:(npts-1))';
+%xin = sum(sin(t(:)*win),2);
+xin = sum(t*w, 2);
+G = 0.05;
+[Xfb, Xs, Xe, Xs1, X1, X2] = simResonators2(xin, k, G, X10, X20);
+xin2 = flip(xin);
+[X10 X20] = fndInitXs(Xfb(end,:),-Xs(end,:), k);
+[Xfb, Xs, Xe, Xs1, X1, X2] = simResonators2(xin2, k, G, X10, X20);
+figure;
+plot(Xfb(:,1));
+hold;
+plot(Xs(:,1));
+fp = [0.015625 0.015625*2];
+[Xfb, Xs, Xe, Xs1, X1, X2] = simBckFrth(xin, fp, G);
+
+% at line 69 of ECGrial1.m
+dat = dataCells.val(8,:).';
+y = anlyzData(dat,cscdLP,cscdHP,cscdFltr1,delta_f);
+% at line 27 of of anlyzData
+dat = xin(2058:4352);
+f0 = 1/140.80;
+N=80;
+fp = f0*(1:N);
+wp = 2*pi*fp;
+G = 1/(2*N);
+k = 2*sin(pi*fp);
+[Xfb, Xs, Xe, Xs1, X1, X2] = simBckFrth(dat, fp, G);
+o1 = Xfb.*Xfb;
+o2 = sum(o1);
+o3 = o2/length(o1(:,1));
+figure
+plot(db(o3))
+
+f = -0.5:1e-4:0.5;
+w = 2*pi*f;
+Hw = anlzRial2(wp, w, G);
+figure
+plot(w,db(Hw(:,1)))
+hold
+plot(w,db(Hw(:,2)))
+plot(w,db(Hw(:,3)))
+plot(w,db(Hw(:,4)))
+plot(w,db(Hw(:,5)))
+plot(w,db(Hw(:,6)))
+plot(w,db(Hw(:,7)))
+plot(w,db(Hw(:,8)))
+plot(w,db(Hw(:,9)))
+plot(w,db(Hw(:,10)))
+plot(w,db(Hw(:,11)))
+plot(w,db(Hw(:,12)))
+
+k = 1;
+figure;
+plot(Xfb(:,k));
+hold
+plot(Xs(:,k));
+
+xpwr = Xs.*Xs;
+xcor = Xs1./(xpwr + 1e-3*ones(size(xpwr)));
+
+
+f0 = 1/256;
+N = 256;
+G = 1/(4*N);
+fin = f0*(0:(N-1)/2);
+win = 2*pi*fin;
+%fp = 1.2*fin;
+fp = 1.0*fin;
+wp = fp*2*pi;
+k = 2*sin(wp/2);
+npts = 4/f0;
+t = (0:(npts-1))';
+
+xin = sum(cos(t*win), 2);
+% xin = square(2*pi*f0*t);
+G = 1/(4*N);
+tic
+[Xfb, Xs, Xe, Xs1, X1, X2] = simBckFrthAdapt2(xin, fp, G);
+toc
+
+f0 = 1/256;
+N = 256;
+G = 1/(4*N);
+fin = f0*(0:(N-1)/2);
+win = 2*pi*fin;
+%fp = 1.2*fin;
+fp = 1.0*fin;
+wp = fp*2*pi;
+k = 2*sin(wp/2);
+xin = zeros(8192,1);
+xin(1) = 1;
+x0 = zeros(size(k));
+x1 = zeros(size(k));
+[X10 X20] = fndInitXs(x0,x1, k);
+[Xfb, Xs, Xe, Xs1, X1, X2] = simResonators2(xin, k, G, x0, x1);
+figure
+[f, ym, ya] = plotRspnsd(Xfb(:,1), [-50 5]);
+hold
+[f, ym, ya] = plotRspnsd(Xfb(:,1), [-50 5]);
+[f, ym, ya] = plotRspnsd(Xfb(:,2), [-50 5]);
+[f, ym, ya] = plotRspnsd(Xfb(:,3), [-50 5]);
+[f, ym, ya] = plotRspnsd(Xfb(:,4), [-50 5]);
+
+wp = 0.1*2*pi;
+win = wp;
+npts = 1024;
+t = (0:(npts-1))';
+xin = sum(exp(j*t*win), 2);
+X0 = zeros(size(wp));
+[Xfb, Xs, Xe, X1o] = simCmplxResonators1(xin, wp, G, X0);
+
+f0 = 1/32;
+G = 1/(2*N);
+%fin = f0*(1:N);
+fin = f0*[1 4];
+win = 2*pi*fin;
+% fp = f0*[0.9 1.8];
+fp = 1.05*fin;
+wp = 2*pi*fp;
+g = ones(size(wp));
+npts = 257;
+t = (0:(npts-1))';
+% xin = sum(exp(1.0j*t*win), 2);
+xin = zeros(npts,1);
+N = size(wp);
+for k=1:N
+    xin = xin + g(k).*exp(1.0j*t*win(k));
+end
+% xin = square(2*pi*f0*t);
+%  tic
+%  [Xfb, Xs, Xe] = simBckFrthCmplx(xin, fp, G);
+[Xfb, Xs, Xe] = simBckFrthCmplxAdapt1(xin, fp, G);
+%  toc
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Next section works
+N=64;
+I = [0:N-1];
+f0 = 1/N;
+fp = I*f0;
+wp = 2*pi*fp;
+G = 1/(1*length(wp));
+
+npts = 2/f0 + 1;
+t = (0:(npts-1))';
+% fin = f0*[3.5];
+fin = f0*[4.1];
+win = 2*pi*fin;
+xin = sum(exp(1j*t(:)*win),2);
+
+[Xfb, Xs, Xe, Y, Xp] = simBckFrthCmplx(xin, fp, G);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+f = -0.5:1e-4:0.5;
+w = 2*pi*f;
+Hw = anlzCmplxRial(wp, w, G);
+figure
+plot(w,db(Hw(:,1)))
+hold
+for i=2:N
+    plot(w,db(Hw(:,i)))
+end
+axis([-1.1*pi 1.1*pi -50 2]);
+
+ylim = [-60 2];
+N = 64;
+fltrAnal = @simCmplxResonators2;
+Xfb = simFltrRspnsd(fltrAnal,N,ylim);
+% works up to here
+
+wp = [0.01]*2*pi;
+e2jwp = exp(wp);
+N = length(wp);
+G = 1/(2*N);
+win = wp;
+npts = 1024;
+t = (0:(npts-1))';
+xin = sum(exp(j*t*win), 2);
+X0 = ones(size(wp));
+[Xfb, Xs, Xe, Y, Xp] = simCmplxResonators2(xin, e2jwp, G, X0);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[s, ipeaks] = ecgsyn();
+xf = @(f,n,dph)(0.1*exp(j*(2*pi*f*(n-1)/1024 + dph)));
+N=4096;
+I = [0:N-1];
+f0 = 1/N;
+fp = I*f0;
+wp = 2*pi*fp;
+G = 1/(1*length(wp));
+
+npts = 4/f0 + 1;
+t = (0:(npts-1))';
+% fin = f0*[3.5];
+fin = f0*[8.1 19.9];
+win = 2*pi*fin;
+x1 = exp(1j*t(:)*win(1));
+x2 = 0.1*exp(1j*t(:)*win(2));
+%xin = sum(exp(1j*t(:)*win),2);
+% xin = 1.0*x1 + x2;
+xin = s(1:8192);
+
+[Xfb, Xs, Xe, Y, Xp] = simBckFrthCmplx(xin, fp, G);
+
+zy = zeros(size(Y,1),1);
+y2 = Y;
+y2(:,2:4) = repmat(zy,1,3);
+sy2=sum(y2,2);
+py2 = sum(y2.*conj(y2));
+py2(1:10).'
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[s, ipeaks] = ecgsyn();
+xin = s(1:8193);
+e2jwp = exp(1j*wp);
+Xfbi = zeros(size(wp));
+yt = [];
+tic
+[Xfb, Xs, Xe, Y, Xp] = simCmplxResonators2(xin, e2jwp, G, Xfbi);
+toc
+Xfbi = Xfb(end,:);
+y1 = sum(Xfb(:,:),2);
+yt = [yt; y1];
+figure
+plot(real(yt));
+zrs = zeros(4096,1);
+y2 = [zrs; y1];
+plot(real(y2),'r')
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+v1 = zeros(1024,1);
+v1(3:50) = 1:48;
+v1(976:1023) = 48:-1:1;
+y2 = real(Y*v1);
+y3 = y2.^2;
+y4 = real(lpFltr(y3,0.04));
+figure
+plot(y4);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [s, ipeaks] = ecgsyn();
+cnvrtTm1 = @(scs)(scs*360);
+cnvrtTm2 = @(scs,N0)((scs*360 - N0)*256/360  - 2048);
+N=4096;
+I = [0:N-1];
+f0 = 1/N;
+fp = I*f0;
+wp = 2*pi*fp;
+G = 1/(1*length(wp));
+%[s, fs, tm] = chngFs('mitdb/124',256,70000,65536);
+%[s, fs, tm] = chngFs('mitdb/124',256,262144,131072);
+%[s, fs, tm] = chngFs('mitdb/105',256,418320,131072);
+[s, fs, tm] = chngFs('mitdb/103',256,32768,131072);
+xin = s;
+[Yt, Y1t, Y2t, Y3t, Y4t] = simEcgs(xin, fp, G);
+[pks,locs,wdths,hts,diffs2] = xtrctB2B(Y4t);
+
+yp = Y1t.*conj(Y1t);
+figure;
+plot(yp(:,5));
+figure
+plot(sum(yp(:,8:9),2));
+figure
+plot(sum(yp(:,16:17),2));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+x = [uint8(1) uint8(1) uint8(1)]
+coder.varsize('x', [1, Inf])
+t = coder.typeof(x)
+codegen crccalculate10 -args {t} crccalculate10.c
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+tic
+xout = runJuliaSim('mitdb/103',JuliaDir);
+toc
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+xin = zeros(8192,1);
+xin(1) = 1;
+ylim = [-80 2];
+dB = plotRspnsd(xin, ylim);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+v1 = zeros(256,1);
+v1(3:26) = 1:24;
+v1((256 - 24):(256 - 1)) = 24:-1:1;
+
+v1 = zeros(256,1);
+v1(3:26) = ones(1,24);
+v1((256 - 24):(256 - 1)) = ones(1,24);
+
+x = [0 2 10 20 30 40];
+y = [0 0 2 20 30 0];
+rng = 1:40;
+s = spline(x,y,rng);
+s(s < 0) = 0;
+v1 = zeros(256,1);
+v1(rng) = s;
+v1(1) = 0;
+rng2 = flip(rng(2:end));
+v1(256 - rng2  + 2) = s(rng2);
+v = setV([0 2 10 20 30 40],[0 0 2 20 30 0]);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[s1, fs, tm] = chngFs('ECG_mat_data/Healthy_control/s0287lrem',8,250,1,28800);
+figure
+plot(s1)
+s2 = preFltrData(s1,0.16,0.0008,2);
+figure
+plot(s2)
+out1 = simCscdFltrBnk(cscdFltr1, s2, 1/256);
+yp = out1.*conj(out1);
+% v = setV([0 5 10 30 70 100],[0 5 10 25 30 0]);
+v = setV([0 5 10 25 70 80],[0 4 8.5 25 35 0]);
+% figure
+% plot(v)
+y2 = out1*v;
+% figure
+% plot(real(y2));
+y3 = y2.*conj(y2);
+y3 = y3./mean(y3);
+tic
+yst1 = fltrEcg(s1,0.1,0.25);
+yst2 = abs(subSmpl(yst1,2));
+yst3 = lpFltr5thOrdr(yst2,0.15625);
+toc
+figure
+plot(yst3)
+
+% figure
+% plot(y3)
+y4 = lpFltr(y3,0.0125); % This number is critical ; we probably need to adapt it
+figure
+plot(y4)
+[pks,locs,wdths,hts, diffs, diffs2, tgs] = xtrctB2B(y4);
+figure;
+plot(diffs);
+hold;
+plot(diffs2);
+% Heart rate = (Fs/mean(diffs2))*60 in beats per minute with Fs 128 Hz (256
+% decimated by 2)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+flDirect = '/home/martin/Dropbox_old/Medical/database/mitbin1db/';
+tic
+[lpOut, pks, diffs, diffs2] = AnlyzRcrd('101', flDirect, cscdFltr1);
+toc
+figure;
+plot(diffs);
+hold;
+plot(diffs2);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+xi = @(f,npts)(exp(j*2*pi*f*(0:npts-1)'));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+xin = zeros(8192,1);
+xin(1) = 1;
+ylim = [-80 2];
+out = fltrEcg(xin,0.1,0.25);
+dB = plotRspnsd(out, ylim);
+
+cor = @(x, lag) (sum(x(1:end-lag).*x(lag+1:end)))
+
+stp = @(n,ln)(dbstop('in','ECGanal1','at',sprintf('%d',ln),'if',sprintf('%s == %d && %s == %d','i', fix((n-1)/4)+1, 'k', rem((n-1),4)+1)))
+Mod = @(x,N)(mod(x - 1, N) + 1);
+yindx = @(i,strt)(strt -1 + 1);
+ndB = plotFFT(yst4, [-80 5], 31.25);
+
+y1 = 0:3;
+y2 = [y1, 3:-1:0]
+y3 = [y2, zeros(1,48)]
+y4 = [y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3 y3];
+y4 = y4./7;
+bf = bufClass(y4(1:512));
+corrs = autoCorr(y4,1:256);
+figure
+plot(corrs);
+figure
+hold
+nmbFrms = fix(length(y4)/512);
+for k1 = 1:nmbFrms-1
+    for k2 = (k1*512 + 1):(k1 + 1)*512
+        crrs = bf.updBfr(y4(k2));
+    end
+    plot(crrs)
+end
+a = 1;

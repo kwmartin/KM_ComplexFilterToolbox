@@ -1,0 +1,70 @@
+zx2 = z2x2(H.z{1},wp)
+px2 = z2x2(H.p{1},wp)
+s = tf('s')
+x = tf('s')
+num = (s^2 - zx2(1))*(s^2 - zx2(2))
+n2 = zpk(num)
+den = (s^2 - px2(1))*(s^2 - px2(2))
+d2 = zpk(den)
+fx = (0:1e-4:10);
+Hx = n2/d2;
+%Hx.k = H.k;
+hp = 20*log_rsps(Hx,j*fx) - 0.1;
+figure;
+plot(hp)
+hr = 20*log_rsps(Hx,fx) - 0.1;
+figure
+plot(hr)
+%Hx = H.k*n2/d2;
+sr = (0:1e-4:10);
+h2 = 20*log_rsps(Hx,s2);
+h2 = 20*log_rsps(Hx,sr);
+plot(h2)
+Hx2 = Hx*Hx';
+Hx2 - Hx*Hx
+Hx2
+Hx
+h2 = 20*log_rsps(Hx2,s);
+plot(h2)
+hr2 = 20*log_rsps(Hx2,sr);
+plot(hr2)
+roots((s^2 - 0.7922s + 0.2793))
+roots((s^2 - 0.7922*s + 0.2793))
+s^2 - 0.7922s + 0.2793
+s
+x
+x^2 - 0.7922x + 0.2793
+x^2 - 0.7922*x + 0.2793
+zpk(x^2 - 0.7922*x + 0.2793)
+t1 = zpk(x^2 - 0.7922*x + 0.2793)
+t1.z{1}
+Hx
+Hx2
+t1.z{1}
+t2 = zpk(x^2 + 0.7922*x + 0.2793)
+t2.z{1}
+Hx.p{1}
+Hx2.p{1}
+H2 = H*H';
+H.p{1}
+H2.p{1}
+z2x = z2x2(H2.z{1},wp)
+z2
+zx
+p2x = z2x2(H2.p{1},wp)
+px
+
+Kz = zpk(fz.z{1},pz.z{1},1)
+pzn = zpk(-pz.z{1}, [], 1)
+Kz_ = zpk(fz.z{1},pzn.z{1},1)
+KKz = Kz*Kz_
+HHz = zpk(1 + tf(e_^2*KKz))
+zhh = sort(HHz.z{1},'ComparisonMethod','abs')
+phh = sort(HHz.p{1},'ComparisonMethod','abs')
+zhh2 = abs(real(zhh)) +j*(abs(imag(zhh)))
+phh2 = abs(real(phh))
+zhh3 = (zhh2(1:4:end-3) + zhh2(2:4:end-2) + zhh2(3:4:end-1) + zhh2(4:4:end))/4
+phh3 = (phh2(1:4:end-3) + phh2(2:4:end-2) + phh2(3:4:end-1) + phh2(4:4:end))/4
+zhh4 = [zhh3; [-real(zhh3) - j*imag(zhh3)]]
+phh4 = [phh3; -phh3]
+Hx2 = zpk(zhh4, phh4, 1)

@@ -1,0 +1,708 @@
+mitdb/100	Info1	1085 1629 x1
+mitdb/100	Meds1	 Aldomet, Inderal
+mitdb/100	AgeSex	69	M
+mitdb/100	ECG1	MLII	360	200 adu/mV	1806
+mitdb/100	ECG2	V5	360	200 adu/mV	1806
+mitdb/100	AnnR1	atr	360	2274	1805	0-1806
+mitdb/100	AnnR1	atr/(N	360	1	1805
+mitdb/100	AnnR1	atr/N	360	2239	1805	0-1806
+mitdb/100	AnnR1	atr/A	360	33	1742	6-1748
+mitdb/100	AnnR1	atr/V	360	1	0	1519-1519
+mitdb/101	Info1	1011 654 x1
+mitdb/101	Meds1	 Diapres
+mitdb/101	AgeSex	75	F
+mitdb/101	ECG1	MLII	360	200 adu/mV	1806
+mitdb/101	ECG2	V1	360	200 adu/mV	1806
+mitdb/101	AnnR1	atr	360	1874	1805	0-1805
+mitdb/101	AnnR1	atr/(N	360	1	1805
+mitdb/101	AnnR1	atr/N	360	1860	1805	0-1805
+mitdb/101	AnnR1	atr/~	360	4	208	113-321
+mitdb/101	AnnR1	atr/|	360	4	205	114-319
+mitdb/101	AnnR1	atr/Q	360	2	538	319-856
+mitdb/101	AnnR1	atr/A	360	3	1102	376-1478
+mitdb/102	Info1	1525 167 x1
+mitdb/102	Meds1	 Digoxin
+mitdb/102	Info2	 The rhythm is paced with a demand pacemaker.  The PVCs are multiform.
+mitdb/102	AgeSex	84	F
+mitdb/102	ECG1	V5	360	200 adu/mV	1806
+mitdb/102	ECG2	V2	360	200 adu/mV	1806
+mitdb/102	AnnR1	atr	360	2192	1805	0-1805
+mitdb/102	AnnR1	atr/(P	360	3	1643
+mitdb/102	AnnR1	atr//	360	2028	1805	0-1805
+mitdb/102	AnnR1	atr/f	360	56	1725	76-1802
+mitdb/102	AnnR1	atr/(N	360	2	82
+mitdb/102	AnnR1	atr/N	360	99	1614	81-1695
+mitdb/102	AnnR1	atr/V	360	4	1472	95-1567
+mitdb/103	Info1	 -1 M 742 654 x1
+mitdb/103	Info2	 Diapres, Xyloprim
+mitdb/103	ECG1	MLII	360	200 adu/mV	1806
+mitdb/103	ECG2	V2	360	200 adu/mV	1806
+mitdb/103	AnnR1	atr	360	2091	1805	0-1805
+mitdb/103	AnnR1	atr/(N	360	1	1805
+mitdb/103	AnnR1	atr/N	360	2082	1804	1-1805
+mitdb/103	AnnR1	atr/~	360	6	563	1090-1652
+mitdb/103	AnnR1	atr/A	360	2	198	1162-1360
+mitdb/104	Info1	1567 694 x1
+mitdb/104	Meds1	 Digoxin, Pronestyl
+mitdb/104	Info2	 The rate of paced rhythm is close to that of the underlying sinus rhythm,
+mitdb/104	Info3	 resulting in many pacemaker fusion beats.  The PVCs are multiform.  Several
+mitdb/104	Info4	 bursts of muscle noise occur, but the signals are generally of good quality.
+mitdb/104	AgeSex	66	F
+mitdb/104	ECG1	V5	360	200 adu/mV	1806
+mitdb/104	ECG2	V2	360	200 adu/mV	1806
+mitdb/104	AnnR1	atr	360	2311	1805	0-1805
+mitdb/104	AnnR1	atr/(P	360	23	1511
+mitdb/104	AnnR1	atr//	360	1380	1805	0-1805
+mitdb/104	AnnR1	atr/f	360	666	1796	4-1800
+mitdb/104	AnnR1	atr/~	360	37	495	21-516
+mitdb/104	AnnR1	atr/(N	360	22	232
+mitdb/104	AnnR1	atr/Q	360	18	259	63-321
+mitdb/104	AnnR1	atr/N	360	163	1687	76-1762
+mitdb/104	AnnR1	atr/V	360	2	697	229-926
+mitdb/105	Info1	1624 1629 x1
+mitdb/105	Meds1	 Digoxin, Nitropaste, Pronestyl
+mitdb/105	Info2	 The PVCs are uniform.  The predominant feature of this tape is
+mitdb/105	Info3	 high-grade noise and artifact.
+mitdb/105	AgeSex	73	F
+mitdb/105	ECG1	MLII	360	200 adu/mV	1806
+mitdb/105	ECG2	V1	360	200 adu/mV	1806
+mitdb/105	AnnR1	atr	360	2691	1805	0-1805
+mitdb/105	AnnR1	atr/(N	360	1	1805
+mitdb/105	AnnR1	atr/N	360	2526	1804	1-1805
+mitdb/105	AnnR1	atr/V	360	41	1704	15-1720
+mitdb/105	AnnR1	atr/~	360	88	1677	85-1762
+mitdb/105	AnnR1	atr/|	360	30	1444	265-1709
+mitdb/105	AnnR1	atr/Q	360	5	420	1234-1654
+mitdb/106	Info1	1581 654 x1
+mitdb/106	Meds1	 Inderal
+mitdb/106	Info2	 The PVCs are multiform.
+mitdb/106	AgeSex	24	F
+mitdb/106	ECG1	MLII	360	200 adu/mV	1806
+mitdb/106	ECG2	V1	360	200 adu/mV	1806
+mitdb/106	AnnR1	atr	360	2098	1805	0-1805
+mitdb/106	AnnR1	atr/~	360	30	1795	0-1796
+mitdb/106	AnnR1	atr/(N	360	21	1044
+mitdb/106	AnnR1	atr/N	360	1507	1804	1-1805
+mitdb/106	AnnR1	atr/V	360	520	1712	91-1804
+mitdb/106	AnnR1	atr/(B	360	18	435
+mitdb/106	AnnR1	atr/(VT	360	1	2
+mitdb/106	AnnR1	atr/(T	360	1	13
+mitdb/107	Info1	1340 167 x1
+mitdb/107	Meds1	 Digoxin
+mitdb/107	Info2	 Complete heart block is present. The PVCs are multiform.
+mitdb/107	AgeSex	63	M
+mitdb/107	ECG1	MLII	360	200 adu/mV	1806
+mitdb/107	ECG2	V1	360	200 adu/mV	1806
+mitdb/107	AnnR1	atr	360	2140	1805	0-1805
+mitdb/107	AnnR1	atr/(P	360	1	1805
+mitdb/107	AnnR1	atr//	360	2078	1805	0-1805
+mitdb/107	AnnR1	atr/V	360	59	1710	89-1799
+mitdb/107	AnnR1	atr/~	360	2	2	1242-1244
+mitdb/108	Info1	1227 654 x1
+mitdb/108	Meds1	 Digoxin, Quinaglute
+mitdb/108	Info2	 There is borderline first degree AV block and sinus arrhythmia.  The
+mitdb/108	Info3	 PVCs are multiform.  The lower channel exhibits considerable noise and
+mitdb/108	Info4	 baseline shifts.
+mitdb/108	AgeSex	87	F
+mitdb/108	ECG1	MLII	360	200 adu/mV	1806
+mitdb/108	ECG2	V1	360	200 adu/mV	1806
+mitdb/108	AnnR1	atr	360	1824	1805	0-1805
+mitdb/108	AnnR1	atr/(N	360	1	1805
+mitdb/108	AnnR1	atr/N	360	1739	1805	0-1805
+mitdb/108	AnnR1	atr/V	360	17	1709	11-1720
+mitdb/108	AnnR1	atr/x	360	11	1709	12-1720
+mitdb/108	AnnR1	atr/~	360	41	1768	28-1796
+mitdb/108	AnnR1	atr/|	360	8	1394	270-1664
+mitdb/108	AnnR1	atr/F	360	2	590	502-1091
+mitdb/108	AnnR1	atr/A	360	4	1023	731-1754
+mitdb/108	AnnR1	atr/j	360	1	0	1210-1210
+mitdb/109	Info1	1508 694 x1
+mitdb/109	Meds1	 Quinidine
+mitdb/109	Info2	 There is first degree AV block.  The PVCs are multiform.
+mitdb/109	AgeSex	64	M
+mitdb/109	ECG1	MLII	360	200 adu/mV	1806
+mitdb/109	ECG2	V1	360	200 adu/mV	1806
+mitdb/109	AnnR1	atr	360	2535	1805	0-1805
+mitdb/109	AnnR1	atr/(N	360	1	1805
+mitdb/109	AnnR1	atr/L	360	2492	1805	0-1805
+mitdb/109	AnnR1	atr/F	360	2	14	17-31
+mitdb/109	AnnR1	atr/V	360	38	1764	39-1802
+mitdb/109	AnnR1	atr/~	360	2	14	1571-1585
+mitdb/111	Info1	937 167 x1
+mitdb/111	Meds1	 Digoxin, Lasix
+mitdb/111	Info2	 There is first degree AV block.  There are short bursts of both baseline
+mitdb/111	Info3	 shifts and muscle noise, but in general, the quality is excellent.
+mitdb/111	AgeSex	47	F
+mitdb/111	ECG1	MLII	360	200 adu/mV	1806
+mitdb/111	ECG2	V1	360	200 adu/mV	1806
+mitdb/111	AnnR1	atr	360	2133	1805	0-1805
+mitdb/111	AnnR1	atr/(N	360	1	1805
+mitdb/111	AnnR1	atr/L	360	2123	1804	1-1805
+mitdb/111	AnnR1	atr/~	360	8	1484	165-1650
+mitdb/111	AnnR1	atr/V	360	1	0	518-518
+mitdb/112	Info1	903 654 x2
+mitdb/112	Meds1	 Digoxin, Pronestyl
+mitdb/112	Info2	 There is S-T segment depression in the upper channel.
+mitdb/112	AgeSex	54	M
+mitdb/112	ECG1	MLII	360	200 adu/mV	1806
+mitdb/112	ECG2	V1	360	200 adu/mV	1806
+mitdb/112	AnnR1	atr	360	2550	1805	0-1805
+mitdb/112	AnnR1	atr/(N	360	1	1805
+mitdb/112	AnnR1	atr/N	360	2537	1805	0-1805
+mitdb/112	AnnR1	atr/~	360	10	156	679-835
+mitdb/112	AnnR1	atr/A	360	2	69	704-774
+mitdb/113	Info1	1240 2851 x1
+mitdb/113	Meds1	 None
+mitdb/113	Info2	 The variation in the rate of normal sinus rhythm is possibly due to a
+mitdb/113	Info3	 wandering atrial pacemaker.
+mitdb/113	AgeSex	24	F
+mitdb/113	ECG1	MLII	360	200 adu/mV	1806
+mitdb/113	ECG2	V1	360	200 adu/mV	1806
+mitdb/113	AnnR1	atr	360	1796	1805	0-1806
+mitdb/113	AnnR1	atr/(N	360	1	1805
+mitdb/113	AnnR1	atr/N	360	1789	1805	0-1806
+mitdb/113	AnnR1	atr/a	360	6	1313	24-1337
+mitdb/114	Info1	750 1629 x1
+mitdb/114	Meds1	 Digoxin
+mitdb/114	Info2	 The PVCs are uniform.
+mitdb/114	AgeSex	72	F
+mitdb/114	ECG1	V5	360	200 adu/mV	1806
+mitdb/114	ECG2	MLII	360	200 adu/mV	1806
+mitdb/114	AnnR1	atr	360	1890	1805	0-1805
+mitdb/114	AnnR1	atr/(N	360	2	1100
+mitdb/114	AnnR1	atr/N	360	1820	1804	1-1805
+mitdb/114	AnnR1	atr/V	360	43	903	85-989
+mitdb/114	AnnR1	atr/J	360	2	455	248-704
+mitdb/114	AnnR1	atr/F	360	4	368	369-738
+mitdb/114	AnnR1	atr/|	360	1	0	437-437
+mitdb/114	AnnR1	atr/~	360	7	1201	570-1771
+mitdb/114	AnnR1	atr/(SVTA	360	1	5
+mitdb/114	AnnR1	atr/A	360	10	1071	700-1771
+mitdb/115	Info1	994 167 x2
+mitdb/115	Meds1	 None
+mitdb/115	AgeSex	39	F
+mitdb/115	ECG1	MLII	360	200 adu/mV	1806
+mitdb/115	ECG2	V1	360	200 adu/mV	1806
+mitdb/115	AnnR1	atr	360	1962	1805	0-1805
+mitdb/115	AnnR1	atr/(N	360	1	1805
+mitdb/115	AnnR1	atr/N	360	1953	1805	0-1805
+mitdb/115	AnnR1	atr/~	360	2	9	1289-1298
+mitdb/115	AnnR1	atr/|	360	6	203	1439-1643
+mitdb/116	Info1	1453 1629 x2
+mitdb/116	Meds1	 None
+mitdb/116	Info2	 There are two PVC forms.
+mitdb/116	AgeSex	68	M
+mitdb/116	ECG1	MLII	360	200 adu/mV	1806
+mitdb/116	ECG2	V1	360	200 adu/mV	1806
+mitdb/116	AnnR1	atr	360	2421	1805	0-1805
+mitdb/116	AnnR1	atr/(N	360	1	1805
+mitdb/116	AnnR1	atr/N	360	2302	1805	1-1805
+mitdb/116	AnnR1	atr/V	360	109	1638	98-1736
+mitdb/116	AnnR1	atr/A	360	1	0	830-830
+mitdb/116	AnnR1	atr/~	360	8	406	1000-1406
+mitdb/117	Info1	950 654 x2
+mitdb/117	Meds1	 None
+mitdb/117	AgeSex	69	M
+mitdb/117	ECG1	MLII	360	200 adu/mV	1806
+mitdb/117	ECG2	V2	360	200 adu/mV	1806
+mitdb/117	AnnR1	atr	360	1539	1805	0-1805
+mitdb/117	AnnR1	atr/(N	360	1	1805
+mitdb/117	AnnR1	atr/N	360	1534	1805	1-1805
+mitdb/117	AnnR1	atr/~	360	3	10	717-727
+mitdb/117	AnnR1	atr/A	360	1	0	727-727
+mitdb/118	Info1	1456 653 x2
+mitdb/118	Meds1	 Digoxin, Norpace
+mitdb/118	Info2	 The PVCs are multiform.
+mitdb/118	AgeSex	69	M
+mitdb/118	ECG1	MLII	360	200 adu/mV	1806
+mitdb/118	ECG2	V1	360	200 adu/mV	1806
+mitdb/118	AnnR1	atr	360	2301	1805	0-1805
+mitdb/118	AnnR1	atr/(N	360	1	1805
+mitdb/118	AnnR1	atr/R	360	2166	1805	0-1805
+mitdb/118	AnnR1	atr/V	360	16	1558	31-1589
+mitdb/118	AnnR1	atr/A	360	96	1710	93-1804
+mitdb/118	AnnR1	atr/x	360	10	1179	179-1359
+mitdb/118	AnnR1	atr/~	360	12	1467	261-1728
+mitdb/119	Info1	1129 654 x2
+mitdb/119	Meds1	 Pronestyl
+mitdb/119	Info2	 The PVCs are uniform.
+mitdb/119	AgeSex	51	F
+mitdb/119	ECG1	MLII	360	200 adu/mV	1806
+mitdb/119	ECG2	V1	360	200 adu/mV	1806
+mitdb/119	AnnR1	atr	360	2094	1805	0-1805
+mitdb/119	AnnR1	atr/(N	360	49	1296
+mitdb/119	AnnR1	atr/N	360	1543	1804	1-1805
+mitdb/119	AnnR1	atr/V	360	444	1792	1-1794
+mitdb/119	AnnR1	atr/(B	360	37	235
+mitdb/119	AnnR1	atr/(T	360	17	214
+mitdb/119	AnnR1	atr/~	360	4	340	1207-1546
+mitdb/121	Info1	1245 167 x2
+mitdb/121	Meds1	 Digoxin, Isordil, Nitropaste
+mitdb/121	AgeSex	83	F
+mitdb/121	ECG1	MLII	360	200 adu/mV	1806
+mitdb/121	ECG2	V1	360	200 adu/mV	1806
+mitdb/121	AnnR1	atr	360	1876	1805	0-1805
+mitdb/121	AnnR1	atr/(N	360	1	1805
+mitdb/121	AnnR1	atr/N	360	1861	1805	0-1805
+mitdb/121	AnnR1	atr/~	360	12	1535	213-1748
+mitdb/121	AnnR1	atr/A	360	1	0	1012-1012
+mitdb/121	AnnR1	atr/V	360	1	0	1014-1014
+mitdb/122	Info1	640 654 x2
+mitdb/122	Meds1	 Digoxin, Lasix, Pronestyl
+mitdb/122	Info2	 The lower channel has low-amplitude high-frequency noise throughout.
+mitdb/122	AgeSex	51	M
+mitdb/122	ECG1	MLII	360	200 adu/mV	1806
+mitdb/122	ECG2	V1	360	200 adu/mV	1806
+mitdb/122	AnnR1	atr	360	2479	1805	0-1805
+mitdb/122	AnnR1	atr/(N	360	1	1805
+mitdb/122	AnnR1	atr/N	360	2476	1805	0-1805
+mitdb/122	AnnR1	atr/|	360	2	1	381-381
+mitdb/123	Info1	1482 694 x2
+mitdb/123	Meds1	 Digoxin, Inderal
+mitdb/123	Info2	 The PVCs are uniform and interpolated.
+mitdb/123	AgeSex	63	F
+mitdb/123	ECG1	MLII	360	200 adu/mV	1806
+mitdb/123	ECG2	V5	360	200 adu/mV	1806
+mitdb/123	AnnR1	atr	360	1519	1805	0-1805
+mitdb/123	AnnR1	atr/(N	360	1	1805
+mitdb/123	AnnR1	atr/N	360	1515	1804	0-1805
+mitdb/123	AnnR1	atr/V	360	3	1243	424-1667
+mitdb/124	Info1	1199 653 x2
+mitdb/124	Meds1	 Digoxin, Isordil, Quinidine
+mitdb/124	Info2	 The PVCs are multiform.  The junctional escape beats follow PVCs.
+mitdb/124	AgeSex	77	M
+mitdb/124	ECG1	MLII	360	200 adu/mV	1806
+mitdb/124	ECG2	V4	360	200 adu/mV	1806
+mitdb/124	AnnR1	atr	360	1634	1805	0-1805
+mitdb/124	AnnR1	atr/(N	360	6	1023
+mitdb/124	AnnR1	atr/R	360	1531	1805	1-1805
+mitdb/124	AnnR1	atr/(NOD	360	2	6
+mitdb/124	AnnR1	atr/J	360	29	51	287-338
+mitdb/124	AnnR1	atr/V	360	47	1412	301-1713
+mitdb/124	AnnR1	atr/(IVR	360	3	37
+mitdb/124	AnnR1	atr/F	360	5	326	311-638
+mitdb/124	AnnR1	atr/A	360	2	774	445-1219
+mitdb/124	AnnR1	atr/~	360	2	13	549-562
+mitdb/124	AnnR1	atr/j	360	5	1102	612-1714
+mitdb/124	AnnR1	atr/(T	360	2	22
+mitdb/200	Info1	1953 3655 x1
+mitdb/200	Meds1	 Digoxin, Quinidine
+mitdb/200	Info2	 The PVCs are multiform.  There are occasional bursts of high-frequency
+mitdb/200	Info3	 noise in the upper channel, and severe noise and artifact in the lower
+mitdb/200	Info4	 channel.
+mitdb/200	AgeSex	64	M
+mitdb/200	ECG1	MLII	360	200 adu/mV	1806
+mitdb/200	ECG2	V1	360	200 adu/mV	1806
+mitdb/200	AnnR1	atr	360	2792	1805	0-1805
+mitdb/200	AnnR1	atr/(B	360	71	813
+mitdb/200	AnnR1	atr/V	360	826	1799	1-1799
+mitdb/200	AnnR1	atr/N	360	1743	1804	1-1805
+mitdb/200	AnnR1	atr/(N	360	70	958
+mitdb/200	AnnR1	atr/(VT	360	7	15
+mitdb/200	AnnR1	atr/A	360	30	1552	210-1762
+mitdb/200	AnnR1	atr/~	360	43	1583	220-1803
+mitdb/200	AnnR1	atr/F	360	2	464	608-1072
+mitdb/201	Info1	1960 2851 x1
+mitdb/201	Meds1	 Digoxin, Hydrochlorthiazide, Inderal, KCl
+mitdb/201	Info2	 The PVCs are uniform and late-cycle.  Junctional escape beats occur following
+mitdb/201	Info3	 episodes of ventricular trigeminy.
+mitdb/201	AgeSex	68	M
+mitdb/201	ECG1	MLII	360	200 adu/mV	1806
+mitdb/201	ECG2	V1	360	200 adu/mV	1806
+mitdb/201	AnnR1	atr	360	2039	1805	0-1805
+mitdb/201	AnnR1	atr/(AFIB	360	3	228
+mitdb/201	AnnR1	atr/N	360	1625	1805	0-1805
+mitdb/201	AnnR1	atr/a	360	97	1753	49-1802
+mitdb/201	AnnR1	atr/(NOD	360	3	17
+mitdb/201	AnnR1	atr/j	360	10	1412	382-1794
+mitdb/201	AnnR1	atr/(N	360	16	529
+mitdb/201	AnnR1	atr/V	360	198	1142	398-1540
+mitdb/201	AnnR1	atr/x	360	37	1361	443-1803
+mitdb/201	AnnR1	atr/A	360	30	1066	520-1586
+mitdb/201	AnnR1	atr/J	360	1	0	527-527
+mitdb/201	AnnR1	atr/(T	360	12	397
+mitdb/201	AnnR1	atr/~	360	4	6	1098-1103
+mitdb/201	AnnR1	atr/F	360	2	110	1461-1571
+mitdb/201	AnnR1	atr/(SVTA	360	1	2
+mitdb/202	Info1	1960 2851 x1
+mitdb/202	Meds1	 Digoxin, Hydrochlorthiazide, Inderal, KCl
+mitdb/202	Info2	 The PVCs are uniform and late-cycle.  This record was taken from the same
+mitdb/202	Info3	 analog tape as record 201.
+mitdb/202	AgeSex	68	M
+mitdb/202	ECG1	MLII	360	200 adu/mV	1806
+mitdb/202	ECG2	V1	360	200 adu/mV	1806
+mitdb/202	AnnR1	atr	360	2146	1805	1-1805
+mitdb/202	AnnR1	atr/(N	360	3	29
+mitdb/202	AnnR1	atr/N	360	2061	1804	1-1805
+mitdb/202	AnnR1	atr/V	360	19	1555	29-1584
+mitdb/202	AnnR1	atr/A	360	36	897	403-1300
+mitdb/202	AnnR1	atr/|	360	2	147	669-816
+mitdb/202	AnnR1	atr/a	360	19	936	744-1681
+mitdb/202	AnnR1	atr/(AFIB	360	4	361
+mitdb/202	AnnR1	atr/F	360	1	0	1297-1297
+mitdb/202	AnnR1	atr/(AFL	360	1	48
+mitdb/203	Info1	1878 356 x1
+mitdb/203	Meds1	 Coumadin, Digoxin, Heparin, Hygroton, Lasix
+mitdb/203	Info2	 The PVCs are multiform.  There are QRS morphology changes in the upper
+mitdb/203	Info3	 channel due to axis shifts.  There is considerable noise in both channels,
+mitdb/203	Info4	 including muscle artifact and baseline shifts.  This is a very difficult
+mitdb/203	Info5	 record, even for humans!
+mitdb/203	AgeSex	43	M
+mitdb/203	ECG1	MLII	360	200 adu/mV	1806
+mitdb/203	ECG2	V1	360	200 adu/mV	1806
+mitdb/203	AnnR1	atr	360	3108	1805	0-1805
+mitdb/203	AnnR1	atr/(AFIB	360	21	1383
+mitdb/203	AnnR1	atr/~	360	57	1501	0-1501
+mitdb/203	AnnR1	atr/N	360	2529	1805	0-1805
+mitdb/203	AnnR1	atr/V	360	444	1785	6-1791
+mitdb/203	AnnR1	atr/(VT	360	21	31
+mitdb/203	AnnR1	atr/a	360	2	3	96-99
+mitdb/203	AnnR1	atr/|	360	26	1396	101-1498
+mitdb/203	AnnR1	atr/Q	360	4	938	553-1491
+mitdb/203	AnnR1	atr/(T	360	1	4
+mitdb/203	AnnR1	atr/(AFL	360	2	314
+mitdb/203	AnnR1	atr/F	360	1	0	1730-1730
+mitdb/205	Info1	1957 694 x2
+mitdb/205	Meds1	 Digoxin, Quinaglute
+mitdb/205	Info2	 The PVCs are of two forms, one of which is much more common than the other.
+mitdb/205	AgeSex	59	M
+mitdb/205	ECG1	MLII	360	200 adu/mV	1806
+mitdb/205	ECG2	V1	360	200 adu/mV	1806
+mitdb/205	AnnR1	atr	360	2672	1805	0-1805
+mitdb/205	AnnR1	atr/(N	360	7	1484
+mitdb/205	AnnR1	atr/N	360	2571	1805	1-1805
+mitdb/205	AnnR1	atr/V	360	71	1464	247-1711
+mitdb/205	AnnR1	atr/A	360	3	1177	299-1475
+mitdb/205	AnnR1	atr/(VT	360	6	23
+mitdb/205	AnnR1	atr/F	360	11	680	303-983
+mitdb/205	AnnR1	atr/~	360	2	23	897-920
+mitdb/205	AnnR1	atr/|	360	1	0	919-919
+mitdb/207	Info1	859 694 x1
+mitdb/207	Meds1	 Digoxin, Quinaglute
+mitdb/207	Info2	 This is an extremely difficult record.  The predominant rhythm is normal
+mitdb/207	Info3	 sinus with first degree AV block and left bundle branch block.  There are
+mitdb/207	Info4	 periods when the conduction block changes to a right bundle branch block
+mitdb/207	Info5	 pattern.  The PVCs are multiform.  Idioventricular rhythm appears following
+mitdb/207	Info6	 the longest episode of ventricular flutter.  The record ends during the
+mitdb/207	Info7	 episode of SVTA.
+mitdb/207	AgeSex	89	F
+mitdb/207	ECG1	MLII	360	200 adu/mV	1806
+mitdb/207	ECG2	V1	360	200 adu/mV	1806
+mitdb/207	AnnR1	atr	360	2385	1805	0-1805
+mitdb/207	AnnR1	atr/(B	360	4	119
+mitdb/207	AnnR1	atr/R	360	86	247	0-248
+mitdb/207	AnnR1	atr/V	360	105	1538	1-1539
+mitdb/207	AnnR1	atr/L	360	1457	1715	38-1753
+mitdb/207	AnnR1	atr/(VT	360	2	1
+mitdb/207	AnnR1	atr/(N	360	10	1334
+mitdb/207	AnnR1	atr/[	360	6	1500	41-1541
+mitdb/207	AnnR1	atr/(VFL	360	6	46
+mitdb/207	AnnR1	atr/!	360	472	1597	41-1638
+mitdb/207	AnnR1	atr/]	360	6	1588	51-1639
+mitdb/207	AnnR1	atr/~	360	15	236	283-519
+mitdb/207	AnnR1	atr/|	360	2	0	1535-1535
+mitdb/207	AnnR1	atr/(IVR	360	1	109
+mitdb/207	AnnR1	atr/E	360	105	108	1641-1748
+mitdb/207	AnnR1	atr/A	360	107	55	1750-1805
+mitdb/207	AnnR1	atr/(SVTA	360	1	51
+mitdb/208	Info1	2546 N/A x1
+mitdb/208	Meds1	 None
+mitdb/208	Info2	 The PVCs are uniform.  The couplets, many of which include a fusion PVC, are
+mitdb/208	Info3	 often seen in a bigeminal pattern.   The triplets each consist of two
+mitdb/208	Info4	 PVCs and a fusion PVC.
+mitdb/208	AgeSex	23	F
+mitdb/208	ECG1	MLII	360	200 adu/mV	1806
+mitdb/208	ECG2	V1	360	200 adu/mV	1806
+mitdb/208	AnnR1	atr	360	3040	1805	0-1805
+mitdb/208	AnnR1	atr/(N	360	27	1421
+mitdb/208	AnnR1	atr/F	360	373	1802	0-1802
+mitdb/208	AnnR1	atr/V	360	992	1803	1-1804
+mitdb/208	AnnR1	atr/N	360	1586	1804	1-1805
+mitdb/208	AnnR1	atr/~	360	24	1536	18-1554
+mitdb/208	AnnR1	atr/(T	360	26	322
+mitdb/208	AnnR1	atr/|	360	8	892	370-1261
+mitdb/208	AnnR1	atr/S	360	2	2	1070-1072
+mitdb/208	AnnR1	atr/Q	360	2	12	1262-1274
+mitdb/209	Info1	1202 654 x1
+mitdb/209	Meds1	 Aldomet, Hydrodiuril, Inderal
+mitdb/209	AgeSex	62	M
+mitdb/209	ECG1	MLII	360	200 adu/mV	1806
+mitdb/209	ECG2	V1	360	200 adu/mV	1806
+mitdb/209	AnnR1	atr	360	3052	1805	0-1805
+mitdb/209	AnnR1	atr/(N	360	11	1281
+mitdb/209	AnnR1	atr/N	360	2621	1805	1-1805
+mitdb/209	AnnR1	atr/A	360	383	1745	53-1798
+mitdb/209	AnnR1	atr/|	360	7	1465	151-1616
+mitdb/209	AnnR1	atr/~	360	19	1449	248-1698
+mitdb/209	AnnR1	atr/(SVTA	360	10	102
+mitdb/209	AnnR1	atr/V	360	1	0	784-784
+mitdb/210	Info1	2461 694 x1
+mitdb/210	Meds1	 None
+mitdb/210	Info2	 The PVCs are multiform.
+mitdb/210	AgeSex	89	M
+mitdb/210	ECG1	MLII	360	200 adu/mV	1806
+mitdb/210	ECG2	V1	360	200 adu/mV	1806
+mitdb/210	AnnR1	atr	360	2685	1805	0-1805
+mitdb/210	AnnR1	atr/(AFIB	360	9	762
+mitdb/210	AnnR1	atr/N	360	2423	1805	0-1805
+mitdb/210	AnnR1	atr/V	360	194	1802	2-1804
+mitdb/210	AnnR1	atr/F	360	10	1740	23-1763
+mitdb/210	AnnR1	atr/~	360	17	798	188-985
+mitdb/210	AnnR1	atr/a	360	22	1580	210-1790
+mitdb/210	AnnR1	atr/(VT	360	2	6
+mitdb/210	AnnR1	atr/(T	360	1	7
+mitdb/210	AnnR1	atr/|	360	1	0	842-842
+mitdb/210	AnnR1	atr/(B	360	5	23
+mitdb/210	AnnR1	atr/E	360	1	0	1761-1761
+mitdb/212	Info1	2879 171 x1
+mitdb/212	Meds1	 None
+mitdb/212	Info2	 There is rate-related right bundle branch block which appears when the heart
+mitdb/212	Info3	 rate exceeds approximately 90 bpm.
+mitdb/212	AgeSex	32	F
+mitdb/212	ECG1	MLII	360	200 adu/mV	1806
+mitdb/212	ECG2	V1	360	200 adu/mV	1806
+mitdb/212	AnnR1	atr	360	2763	1805	0-1805
+mitdb/212	AnnR1	atr/(N	360	1	1805
+mitdb/212	AnnR1	atr/R	360	1825	1771	1-1772
+mitdb/212	AnnR1	atr/N	360	923	1742	63-1805
+mitdb/212	AnnR1	atr/~	360	13	914	701-1615
+mitdb/212	AnnR1	atr/|	360	1	0	897-897
+mitdb/213	Info1	2817 1629 x1
+mitdb/213	Meds1	 Digoxin
+mitdb/213	Info2	 The PVCs are multiform and usually late-cycle, frequently resulting in
+mitdb/213	Info3	 fusion PVCs.  The morphology of the fusion PVCs varies from almost normal
+mitdb/213	Info4	 to almost identical to that of the PVCs.
+mitdb/213	AgeSex	61	M
+mitdb/213	ECG1	MLII	360	200 adu/mV	1806
+mitdb/213	ECG2	V1	360	200 adu/mV	1806
+mitdb/213	AnnR1	atr	360	3294	1805	0-1806
+mitdb/213	AnnR1	atr/(N	360	22	1556
+mitdb/213	AnnR1	atr/N	360	2641	1805	0-1806
+mitdb/213	AnnR1	atr/F	360	362	1738	61-1799
+mitdb/213	AnnR1	atr/A	360	25	1738	63-1801
+mitdb/213	AnnR1	atr/V	360	220	1666	122-1787
+mitdb/213	AnnR1	atr/(B	360	19	60
+mitdb/213	AnnR1	atr/(VT	360	2	4
+mitdb/213	AnnR1	atr/a	360	3	76	1489-1565
+mitdb/214	Info1	3189 1629 x1
+mitdb/214	Meds1	 Digoxin, Dilantin
+mitdb/214	Info2	 The PVCs are multiform.  There are two episodes of artifactual amplitude
+mitdb/214	Info3	 decrease and one occurrence of tape slippage.
+mitdb/214	AgeSex	53	M
+mitdb/214	ECG1	MLII	360	200 adu/mV	1806
+mitdb/214	ECG2	V1	360	200 adu/mV	1806
+mitdb/214	AnnR1	atr	360	2297	1805	0-1805
+mitdb/214	AnnR1	atr/(N	360	13	1573
+mitdb/214	AnnR1	atr/L	360	2003	1805	0-1805
+mitdb/214	AnnR1	atr/V	360	256	1795	6-1801
+mitdb/214	AnnR1	atr/~	360	4	6	77-83
+mitdb/214	AnnR1	atr/(T	360	10	68
+mitdb/214	AnnR1	atr/|	360	5	363	139-502
+mitdb/214	AnnR1	atr/Q	360	2	1	314-316
+mitdb/214	AnnR1	atr/"	360	1	0	315-315
+mitdb/214	AnnR1	atr/(VT	360	2	5
+mitdb/214	AnnR1	atr/F	360	1	0	1677-1677
+mitdb/215	Info1	2633 694 x1
+mitdb/215	Meds1	 None
+mitdb/215	Info2	 The PVCs are multiform.  There are two very short occurrences of tape slippage
+mitdb/215	Info3	 (each less than one second in duration).
+mitdb/215	AgeSex	81	M
+mitdb/215	ECG1	MLII	360	200 adu/mV	1806
+mitdb/215	ECG2	V1	360	200 adu/mV	1806
+mitdb/215	AnnR1	atr	360	3400	1805	0-1805
+mitdb/215	AnnR1	atr/(N	360	3	1624
+mitdb/215	AnnR1	atr/N	360	3195	1805	0-1805
+mitdb/215	AnnR1	atr/V	360	164	1780	18-1798
+mitdb/215	AnnR1	atr/(VT	360	2	2
+mitdb/215	AnnR1	atr/~	360	30	1583	187-1770
+mitdb/215	AnnR1	atr/A	360	3	306	285-592
+mitdb/215	AnnR1	atr/"	360	2	444	1340-1784
+mitdb/215	AnnR1	atr/F	360	1	0	1655-1655
+mitdb/217	Info1	2450 653 x1
+mitdb/217	Meds1	 Digoxin, Lasix, Quinidine
+mitdb/217	Info2	 The PVCs are multiform.
+mitdb/217	AgeSex	65	M
+mitdb/217	ECG1	MLII	360	200 adu/mV	1806
+mitdb/217	ECG2	V1	360	200 adu/mV	1806
+mitdb/217	AnnR1	atr	360	2280	1805	0-1805
+mitdb/217	AnnR1	atr/(P	360	33	1313
+mitdb/217	AnnR1	atr//	360	1542	1804	1-1805
+mitdb/217	AnnR1	atr/f	360	260	1666	5-1671
+mitdb/217	AnnR1	atr/V	360	162	1635	38-1673
+mitdb/217	AnnR1	atr/(B	360	9	42
+mitdb/217	AnnR1	atr/N	360	244	1237	162-1399
+mitdb/217	AnnR1	atr/(AFIB	360	24	252
+mitdb/217	AnnR1	atr/(VT	360	1	2
+mitdb/217	AnnR1	atr/~	360	4	62	786-848
+mitdb/217	AnnR1	atr/|	360	1	0	1614-1614
+mitdb/219	Info1	 -1 M 978 654 x1
+mitdb/219	Info2	 Digoxin
+mitdb/219	Info3	 Following some conversions from atrial fibrillation to normal sinus
+mitdb/219	Info4	 rhythm are pauses up to 3 seconds in duration.  The PVCs are multiform.
+mitdb/219	ECG1	MLII	360	200 adu/mV	1806
+mitdb/219	ECG2	V1	360	200 adu/mV	1806
+mitdb/219	AnnR1	atr	360	2312	1804	1-1805
+mitdb/219	AnnR1	atr/(AFIB	360	10	1133
+mitdb/219	AnnR1	atr/N	360	2082	1804	1-1805
+mitdb/219	AnnR1	atr/V	360	64	1764	39-1802
+mitdb/219	AnnR1	atr/(T	360	1	10
+mitdb/219	AnnR1	atr/F	360	1	0	176-176
+mitdb/219	AnnR1	atr/"	360	4	1032	303-1335
+mitdb/219	AnnR1	atr/(N	360	8	293
+mitdb/219	AnnR1	atr/A	360	7	654	306-960
+mitdb/219	AnnR1	atr/x	360	133	553	839-1392
+mitdb/219	AnnR1	atr/(B	360	2	8
+mitdb/220	Info1	1543 654 x2
+mitdb/220	Meds1	 Digoxin
+mitdb/220	AgeSex	87	F
+mitdb/220	ECG1	MLII	360	200 adu/mV	1806
+mitdb/220	ECG2	V1	360	200 adu/mV	1806
+mitdb/220	AnnR1	atr	360	2068	1805	0-1805
+mitdb/220	AnnR1	atr/N	360	1954	1805	0-1805
+mitdb/220	AnnR1	atr/A	360	94	1744	50-1794
+mitdb/220	AnnR1	atr/~	360	4	1040	404-1445
+mitdb/220	AnnR1	atr/(SVTA	360	8	14
+mitdb/220	AnnR1	atr/(N	360	8	1381
+mitdb/221	Info1	1268 694 x1
+mitdb/221	Meds1	 Hydrochlorthiazide, Lasix
+mitdb/221	Info2	 The PVCs are multiform, but one form is much more common than the others.
+mitdb/221	AgeSex	83	M
+mitdb/221	ECG1	MLII	360	200 adu/mV	1806
+mitdb/221	ECG2	V1	360	200 adu/mV	1806
+mitdb/221	AnnR1	atr	360	2462	1805	0-1805
+mitdb/221	AnnR1	atr/(AFIB	360	12	1416
+mitdb/221	AnnR1	atr/N	360	2031	1804	1-1805
+mitdb/221	AnnR1	atr/V	360	396	1762	2-1764
+mitdb/221	AnnR1	atr/(T	360	8	42
+mitdb/221	AnnR1	atr/~	360	12	660	526-1186
+mitdb/221	AnnR1	atr/(B	360	1	3
+mitdb/221	AnnR1	atr/(VT	360	2	4
+mitdb/222	Info1	1633 1629 x1
+mitdb/222	Meds1	 Digoxin, Quinidine
+mitdb/222	Info2	 The episodes of paroxysmal atrial flutter/fibrillation are usually
+mitdb/222	Info3	 followed by nodal escape beats.  There are several intervals of
+mitdb/222	Info4	 high-frequency noise/artifact in both channels.
+mitdb/222	AgeSex	84	F
+mitdb/222	ECG1	MLII	360	200 adu/mV	1806
+mitdb/222	ECG2	V1	360	200 adu/mV	1806
+mitdb/222	AnnR1	atr	360	2634	1805	0-1805
+mitdb/222	AnnR1	atr/(N	360	32	375
+mitdb/222	AnnR1	atr/N	360	2062	1805	0-1805
+mitdb/222	AnnR1	atr/~	360	15	1384	109-1493
+mitdb/222	AnnR1	atr/A	360	208	1064	534-1598
+mitdb/222	AnnR1	atr/(AFIB	360	24	97
+mitdb/222	AnnR1	atr/(NOD	360	31	225
+mitdb/222	AnnR1	atr/j	360	212	1045	548-1593
+mitdb/222	AnnR1	atr/(AFL	360	42	423
+mitdb/222	AnnR1	atr/(AB	360	3	88
+mitdb/222	AnnR1	atr/(SVTA	360	4	8
+mitdb/222	AnnR1	atr/J	360	1	0	866-866
+mitdb/223	Info1	3070 654 x2
+mitdb/223	Meds1	 None
+mitdb/223	Info2	 The PVCs are multiform.  The two longest episodes of ventricular tachycardia
+mitdb/223	Info3	 are slow (100 to 105 bpm) and bidirectional.
+mitdb/223	AgeSex	73	M
+mitdb/223	ECG1	MLII	360	200 adu/mV	1806
+mitdb/223	ECG2	V1	360	200 adu/mV	1806
+mitdb/223	AnnR1	atr	360	2643	1805	0-1805
+mitdb/223	AnnR1	atr/(N	360	11	741
+mitdb/223	AnnR1	atr/N	360	2029	1805	1-1805
+mitdb/223	AnnR1	atr/V	360	473	1774	24-1798
+mitdb/223	AnnR1	atr/A	360	72	1698	64-1762
+mitdb/223	AnnR1	atr/e	360	16	1638	121-1759
+mitdb/223	AnnR1	atr/(T	360	3	38
+mitdb/223	AnnR1	atr/F	360	14	1370	142-1513
+mitdb/223	AnnR1	atr/~	360	10	607	157-764
+mitdb/223	AnnR1	atr/(VT	360	7	106
+mitdb/223	AnnR1	atr/(B	360	7	259
+mitdb/223	AnnR1	atr/a	360	1	0	1155-1155
+mitdb/228	Info1	2775 1629 x1
+mitdb/228	Meds1	 Digoxin, Norpace
+mitdb/228	Info2	 There is first degree AV block.  The PVCs are multiform.  There are
+mitdb/228	Info3	 three short occurrences of tape slippage with a maximum duration of 2.2
+mitdb/228	Info4	 seconds.
+mitdb/228	AgeSex	80	F
+mitdb/228	ECG1	MLII	360	200 adu/mV	1806
+mitdb/228	ECG2	V1	360	200 adu/mV	1806
+mitdb/228	AnnR1	atr	360	2141	1805	0-1805
+mitdb/228	AnnR1	atr/(N	360	21	1439
+mitdb/228	AnnR1	atr/N	360	1688	1804	0-1805
+mitdb/228	AnnR1	atr/|	360	24	602	14-616
+mitdb/228	AnnR1	atr/(B	360	20	348
+mitdb/228	AnnR1	atr/V	360	362	1786	17-1804
+mitdb/228	AnnR1	atr/~	360	20	1466	60-1526
+mitdb/228	AnnR1	atr/A	360	3	506	1165-1672
+mitdb/228	AnnR1	atr/"	360	3	18	1300-1318
+mitdb/230	Info1	2992 3655 x2
+mitdb/230	Meds1	 Dilantin
+mitdb/230	AgeSex	32	M
+mitdb/230	ECG1	MLII	360	200 adu/mV	1806
+mitdb/230	ECG2	V1	360	200 adu/mV	1806
+mitdb/230	AnnR1	atr	360	2466	1805	0-1805
+mitdb/230	AnnR1	atr/(N	360	104	1060
+mitdb/230	AnnR1	atr/N	360	2255	1805	0-1805
+mitdb/230	AnnR1	atr/(PREX	360	103	741
+mitdb/230	AnnR1	atr/~	360	2	3	1460-1463
+mitdb/230	AnnR1	atr/|	360	1	0	1500-1500
+mitdb/230	AnnR1	atr/V	360	1	0	1748-1748
+mitdb/231	Info1	2009 2851 x2
+mitdb/231	Meds1	 None
+mitdb/231	Info2	 AV conduction is quite abnormal with periods of 2:1 AV block, examples
+mitdb/231	Info3	 of Mobitz II block, and right bundle branch block which appears to be
+mitdb/231	Info4	 rate-related.  The couplet is probably ventricular.
+mitdb/231	AgeSex	72	F
+mitdb/231	ECG1	MLII	360	200 adu/mV	1806
+mitdb/231	ECG2	V1	360	200 adu/mV	1806
+mitdb/231	AnnR1	atr	360	2011	1805	0-1805
+mitdb/231	AnnR1	atr/(N	360	6	1008
+mitdb/231	AnnR1	atr/R	360	1254	1805	1-1805
+mitdb/231	AnnR1	atr/"	360	427	1790	6-1796
+mitdb/231	AnnR1	atr/N	360	314	1700	96-1797
+mitdb/231	AnnR1	atr/(BII	360	5	700
+mitdb/231	AnnR1	atr/x	360	2	2	145-148
+mitdb/231	AnnR1	atr/A	360	1	0	146-146
+mitdb/231	AnnR1	atr/V	360	2	0	148-148
+mitdb/232	Info1	2777 3655 x2
+mitdb/232	Meds1	 Aldomet, Inderal
+mitdb/232	Info2	 The rhythm is compatible with sick sinus syndrome.  There is underlying
+mitdb/232	Info3	 sinus bradycardia, first degree AV block, and frequent ectopic atrial runs
+mitdb/232	Info4	 at rates of 80 to 90 bpm.  There are numerous long pauses up to 6 seconds
+mitdb/232	Info5	 in duration.
+mitdb/232	AgeSex	76	F
+mitdb/232	ECG1	MLII	360	200 adu/mV	1806
+mitdb/232	ECG2	V1	360	200 adu/mV	1806
+mitdb/232	AnnR1	atr	360	1816	1804	0-1804
+mitdb/232	AnnR1	atr/(SBR	360	1	1804
+mitdb/232	AnnR1	atr/R	360	397	1801	1-1802
+mitdb/232	AnnR1	atr/A	360	1382	1802	2-1804
+mitdb/232	AnnR1	atr/~	360	35	1340	7-1347
+mitdb/232	AnnR1	atr/j	360	1	0	1256-1256
+mitdb/233	Info1	1682 654 x2
+mitdb/233	Meds1	 Dilantin
+mitdb/233	Info2	 The PVCs are multiform.
+mitdb/233	AgeSex	57	M
+mitdb/233	ECG1	MLII	360	200 adu/mV	1806
+mitdb/233	ECG2	V1	360	200 adu/mV	1806
+mitdb/233	AnnR1	atr	360	3152	1805	0-1805
+mitdb/233	AnnR1	atr/(N	360	36	1565
+mitdb/233	AnnR1	atr/V	360	831	1803	0-1803
+mitdb/233	AnnR1	atr/N	360	2230	1805	1-1805
+mitdb/233	AnnR1	atr/A	360	7	1694	16-1710
+mitdb/233	AnnR1	atr/(VT	360	6	11
+mitdb/233	AnnR1	atr/(T	360	1	4
+mitdb/233	AnnR1	atr/(B	360	28	108
+mitdb/233	AnnR1	atr/F	360	11	1488	169-1657
+mitdb/233	AnnR1	atr/|	360	2	9	716-725
+mitdb/234	Info1	1971 3655 x2
+mitdb/234	Meds1	 None
+mitdb/234	Info2	 The PVCs are uniform.
+mitdb/234	AgeSex	56	F
+mitdb/234	ECG1	MLII	360	200 adu/mV	1806
+mitdb/234	ECG2	V1	360	200 adu/mV	1806
+mitdb/234	AnnR1	atr	360	2764	1805	0-1805
+mitdb/234	AnnR1	atr/(N	360	2	933
+mitdb/234	AnnR1	atr/N	360	2700	1805	0-1805
+mitdb/234	AnnR1	atr/~	360	8	1045	400-1445
+mitdb/234	AnnR1	atr/(SVTA	360	1	26
+mitdb/234	AnnR1	atr/J	360	50	25	846-871
+mitdb/234	AnnR1	atr/V	360	3	684	1026-1710

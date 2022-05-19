@@ -1,0 +1,40 @@
+trnc = @(val, d) (fix(val*2^d) + rand())/2^d;
+
+N = 64; % Filter order
+K = 4; % ratio of filter order to number of channels
+M = N/K; % the number of channels
+
+Gis = [-0.23514695, 0.70710681, -0.97195983, 1.0, ...
+    -0.97195983, 0.70710681, -0.23514695];
+
+P = proto(N,K);
+
+% Get space for the coefficients for all transmit filters
+
+T=zeros(M,N);
+R=zeros(M,N);
+
+T(1,:)=P;
+
+[T, R]=quam_flt(N,4);
+
+T1 = P(2:end);
+R1 = conj(T1(end:-1:1));
+
+npts = 2048;
+xi = zeros(npts,1);
+xi(1:M:end) = 1;
+
+y1= filter(T1,1,xi);
+
+y2 = zeros(npts/M,1);
+indx = 1;
+y2(1) = 0;
+for i = 1:npts
+    y2(indx) = y2(indx) + y1(i)*RF1(N-i+1);
+    if rem(i+1,N) == 0
+        indx = indx + 1;
+    end
+end
+% db(abs(o0/256) - 1)
+

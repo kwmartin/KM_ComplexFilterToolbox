@@ -17,7 +17,7 @@ function OutData = parseOut(nmbChnls)
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
-  [Out delim] = importdata('/home/martin/Dropbox/go/src/github.com/kw_martin/tstYml/fltr.dat');
+  [Out delim] = importdata('/home/martin/Dropbox_old/go/src/github.com/kw_martin/tstYml/fltr.dat');
   N = size(Out, 1);
   OutData = zeros(N, nmbChnls);
   for i = 1:N

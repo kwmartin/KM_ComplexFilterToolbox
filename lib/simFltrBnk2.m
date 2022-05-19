@@ -61,6 +61,7 @@ function Xout2 = simFltrBnk(A, B, C, D, xin, delta_f)
           X1(k,:) = Xi1(k,:).*wshft;
       end
       Xin(i, :) = Xout(i, :);
+      a_=1;
     end
     a_=1;
   end

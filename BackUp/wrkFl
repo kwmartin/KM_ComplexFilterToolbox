@@ -1,0 +1,26 @@
+julia> replace(inBus, "%%iBsNm" => "'freq'")
+"inBus:\n  - name: 'freq'\n    nmbBits: 'freq'bBits\n    sgnFlg: %%iBsSgnFlg\n    nmbSgs: 0\n    tmFlg: 0\n    srcTyp: 0\n    tmIndx: 0\n    src: 0\n    val: 0\n    sgmts: 0\n    lstChng: 0\n"
+
+julia> nmbBits=20
+20
+
+julia> r1 = replace(inBus, "%%iBsNmbBits" => "$nmbBits")
+"inBus:\n  - name: %%iBsNm\n    nmbBits: 20\n    sgnFlg: %%iBsSgnFlg\n    nmbSgs: 0\n    tmFlg: 0\n    srcTyp: 0\n    tmIndx: 0\n    src: 0\n    val: 0\n    sgmts: 0\n    lstChng: 0\n"
+
+outFl = open("tst.yml", "w");
+
+cNm="Accmo"
+hdr="""circNm: $cNm
+circData:
+"""
+write(outFl, hdr) 
+close(outFl)
+
+  sgTyp:::UInt8
+  srcTyp::UInt8
+  src::Int16
+  delay::Int16
+  val::Int64
+  sgmts::Vector{Sgmt}
+  chngTm::Int64
+  Sgmt() = new()

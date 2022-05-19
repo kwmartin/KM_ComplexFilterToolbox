@@ -1,0 +1,77 @@
+% a 256 channel filter-bank simulation based on monotonic filters having 4
+% movable loss-poles
+
+N = 256;
+delta_f = 1/N;
+%w_shift = pi*j;
+w_shift = 0.0j;
+p = [-0.2 -0.1 0.1 0.2]; % initial guess at finite loss poles
+ni=1; % number of loss poles at infinity
+wp = []; ws = [];
+wp(1) = -delta_f/2; % lower passband edge
+wp(2) = delta_f/2; % upper passband edge
+ws = [-0.49 -1.0*delta_f 1.0*delta_f 0.49];
+as = [50 50 50 50];
+Ap = 3.6; % the passband ripple in dB
+px = [];
+ONE_STP = 0;
+
+H1 = dsgnDigitalFltr(p, px, ni, wp, ws, as, Ap, 'monotonic');
+plot_drsps(H1, wp, 'b', [-60 1]);
+cscdFltr1 = mkCscdFltrD2(H1, wp);
+
+[zlp, plp, klp] = ellip(8,0.01,60,0.2);
+hlp = zpk(zlp,plp,klp,1);
+cscdLP = mkCscdFltrD2(hlp, [-0.1 0.1]);
+[zhp,php,khp,AllpassNum,AllpassDen] = zpklp2hp(zlp,plp,klp,0.2,0.004);
+hhp = zpk(zhp,php,khp,1);
+cscdHP = mkCscdFltrD(hhp, [-0.004 0.004]);
+
+control = 'Healthy_control';
+% control = 'Myocardial_infarction'
+fls = [11];
+rcrds = [6:9];
+
+RootDir = getenv('CMPLXROOT');
+% ecgDir = strcat(RootDir,'/ecg/ECG_mat_data/')
+% ecgDir = '/home/martin/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox/ecg/ECG_mat_data/';
+ecgDir = '/home/martin/Medical/database/ECG_mat_data/';
+cntrlDIr = strcat(ecgDir,control);
+flsLst = strcat(cntrlDIr,'.fls');
+fid=fopen(flsLst);
+tline = fgetl(fid);
+files = cell(0,1);
+while ischar(tline)
+    files{end+1,1} = tline;
+    tline = fgetl(fid);
+end
+fclose(fid);
+% if length(files) > 10
+%     files = files(1:10);
+% end
+clear sum;
+% figure
+% hold on
+files = files(fls);
+for i = 1:length(files)
+    matFile = strcat(cntrlDIr,'/',files{i});
+    dataCells = load(matFile);
+    [filepath,name,ext] = fileparts(files{i});
+    data = zeros(15,N);
+    for j = rcrds
+        tic
+        inData = dataCells.val(j,:).';
+        xflt = preFltrData(inData,0.04,0.002,8);
+        Out = simCscdFltrBnk4(cscdFltr1, xflt, 1/N);
+        y = sum(abs(Out));
+        data(j,:) = y;
+        toc
+        figure
+        plot((-N/2 + 1:N/2),y)
+    end
+    svFile = strcat(cntrlDIr,'/','spctrm_',name,'.mat');
+    save(svFile,'data');
+    % outDat = struct(name, data);
+    a = 1;
+end
+a=1;

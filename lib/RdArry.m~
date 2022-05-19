@@ -1,0 +1,7 @@
+function dat = RdArry(flNm)
+% reads a binary file into an array. The first element is an int64
+% that specifies the number of float64 elements.
+
+fd = fopen(flNm, 'r');
+nmbVals = fread(fd,1,'int64');
+dat = fread(fd,nmbVals,'float64');

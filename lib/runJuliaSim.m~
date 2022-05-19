@@ -1,0 +1,33 @@
+function xout = runJuliaSim(rcrd,jlDir)
+%   sends xin to the juliaFiles directory, uses Julia to filter the data,
+%   loads the output from the julia simulation back into the workspace
+%
+%   Toolbox for the Design of Complex Filters
+%   Copyright (C) 2020  Kenneth Martin
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without1 even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+
+    tic
+    data = getData(rcrd, 256);
+    outFile = strcat(jlDir, '/xinFile');
+    save(outFile,'data');
+    command = strcat(['julia ', jlDir, '/runFilt.jl']);
+    [status,cmdout] = system(command);
+    status
+    inFile = strcat(jlDir, '/filtOut');
+    strctin = load(inFile);
+    xout = strctin.fltrOut;
+    toc
+    a = 1;

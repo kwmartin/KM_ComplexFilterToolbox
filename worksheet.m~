@@ -1,0 +1,210 @@
+f = -0.5:1e-4:0.5;
+w = 2*pi*f;
+s_ = j*w;
+
+h1z = H.z{1};
+h1p = H.p{1};
+z = tf('z',1);
+h1 = z/(z - 0) - z/(z - h1p(1));
+f = -0.5:1e-4:0.5;
+w = 2*pi*f;
+s_ = j*w;
+hr = 0.5*(h1 + h1');
+[zd pd kd] = zpkdata(hr, 'v');
+b = poly(zd);
+a = poly(pd);
+w = 2*pi*f;
+gdH = -kd.*freqz(b,a,w);
+figure;
+plot(f,real(gdH),'r','LineWidth',2);
+
+f = -0.5:1e-4:0.5;
+w = 2*pi*f;
+s_ = j*w;
+h1z = H.z{1};
+h1p = H.p{1};
+z = tf('z',1);
+h0 = zpk([0], h1p(1), 1, 1);
+wp0 = [0 0.092646];
+wp0x = 2*tan(wp0*pi);
+h0z = h0.z{1};
+h0p = h0.p{1};
+h0gd = z/(z - h0z(1)) - z/(z - h0p(1));
+h0gdr = zpk(0.5*(h0gd + h0gd'));
+h0gdr = minreal(h0gdr);
+[h0rdB, h0r] = log_rspsd(h0gdr,s_);
+figure
+plot(f,-h0r,'LineWidth',2);
+wp = [-0.1297522 0.0371005];
+wpx = 2*tan(pi*wp);
+wp2x = [0 1.44];
+Hrx = trnsfrmH2x(h0gdr,wpx);
+%plotHx(Hx, e_, -200);
+fx = (0:1e-4:10);
+[hpdb hp] = log_rsps(Hrx,j*fx);
+figure
+plot(fx,-real(hp));
+
+hd = @(f,h)(rspsd(h,2*pi*f));
+
+
+e2ap = @(e_)(10*log10(1 + e_^2));
+ap2e = @(ap)(sqrt(10^(ap/10) - 1));
+
+wpx = 2*tan(wp*pi);
+Hx = trnsfrmH2x(H2,wpx);
+fx = (0:1e-4:10);
+[hplg hp] = log_rsps(Hx,j*fx);
+figure
+plot(fx, 20*hplg);
+
+h = h0;
+wp = [-0.1297522 0.0371005];
+wpx = 2*tan(wp*pi);
+hx = trnsfrmH2x(h,wpx);
+[hwp2db hwp2] = log_rspsd(h, j*2*pi*wp(2));
+
+[hx1db hx1_] = log_rsps(hx,j*0);
+kx = abs(hwp2)/abs(hx1_);
+hx.K = kx;
+wx = (0:1e-4:10);
+[hxdb hx_] = log_rsps(hx,j*wx);
+figure;
+plot(wx,abs(hx_));
+
+phhx = (angle(hx_) - ones(size(hx_))*angle(hx_(1))/2)*(180/pi);
+plot(wx,phhx);
+
+hgd = find_GD_TF(H);
+% [hgddB, hgd_] = log_rspsd(hgd,s_);
+hgd_ = rspsd(hgd,s_);
+hgd_(1)=hgd_(2);
+hgd_(end)=hgd_(end-1);
+figure
+plot(f,-real(hgd_),'LineWidth',2);
+wgd1 = [-0.06606523 0.06606523];
+hgdx = xtrnsfrm(hgd,wgd1);
+
+z = tf('z',1);
+hgd = find_GD_TF(H)*z;
+
+% Transforming group delay residues
+f = -0.5:1e-4:0.5;
+w = 2*pi*f;
+s_ = j*w;
+h1z = H.z{1};
+h1p = H.p{1};
+z = tf('z',1);
+h1 = zpk([0], h1p(1), 1, 1);
+h2 = zpk([0], h1p(2), 1, 1);
+h3 = zpk([0], h1p(3), 1, 1);
+fgd = [-0.06606523 0.06606523];
+wgd = 2*tan(pi*fgd);
+hgd1 = 0.5*(h1 + h1');
+hgd2 = 0.5*(h2 + h2');
+hgd3 = 0.5*(h3 + h3');
+hgdx1 = xtrnsfrm(hgd1,fgd);
+hgdx2 = xtrnsfrm(hgd2,fgd);
+hgdx3 = xtrnsfrm(hgd3,fgd);
+wx = (0:1e-4:10);
+sx = j*wx;
+figure
+gd1_ = rspsd(hgd1,s_);
+gd1_ = real(gd1_);
+plot(f,gd1_);
+hold on
+gd2_ = rspsd(hgd2,s_);
+gd2_ = real(gd2_);
+plot(f,gd2_);
+gd3_ = rspsd(hgd3,s_);
+gd3_ = real(gd3_);
+plot(f,gd3_);
+figure
+gdx1_ = rsps(hgdx1,sx);
+gdx1_ = real(gdx1_);
+plot(wx,gdx1_);
+hold on
+gdx2_ = rsps(hgdx2,sx);
+gdx2_ = real(gdx2_);
+plot(wx,gdx2_);
+gdx3_ = rsps(hgdx3,sx);
+gdx3_ = real(gdx3_);
+plot(wx,gdx3_);
+gdz_ = gd1_ + gd2_ + gd3_;
+figure
+plot(f,gdz_)
+gdx_ = gdx1_ + gdx2_ + gdx3_;
+figure
+plot(wx,gdx_)
+
+r2p = @(x)([abs(x)  angle(x)]);
+zci = @(v) find(v(:).*circshift(v(:), [-1 0]) <= 0);
+Y = @(x) conv2(x,[-1;1;1],'valid');
+
+f = -0.5:1e-4:0.5;
+w = 2*pi*f;
+s_ = j*w;
+
+
+
+% fgd = [-0.06606523 0.06606523];
+fgd = [-0.24 0];
+wgd = 2*tan(pi*fgd);
+wx = (0:1e-4:10);
+sx = j*wx;
+h1z = H.z{1};
+h1p = H.p{1};
+z = tf('z',1);
+h1 = zpk([0], h1p(1), 1, 1);
+h2 = zpk([0], h1p(2), 1, 1);
+h3 = zpk([0], h1p(3), 1, 1);
+hgd1 = 0.5*(h1 + h1');
+hgd2 = 0.5*(h2 + h2');
+hgd3 = 0.5*(h3 + h3');
+figure
+gd1_ = rspsd(hgd1,s_);
+gd1_ = real(gd1_);
+plot(f,gd1_);
+hold on
+gd2_ = rspsd(hgd2,s_);
+gd2_ = real(gd2_);
+plot(f,gd2_);
+gd3_ = rspsd(hgd3,s_);
+gd3_ = real(gd3_);
+plot(f,gd3_);
+
+hgx1 = z2yTrnsfrm2(hgd1,fgd);
+hgx2 = z2yTrnsfrm2(hgd2,fgd);
+hgx3 = z2yTrnsfrm2(hgd3,fgd);
+figure
+gx1_ = rsps(hgx1,sx);
+gx1_ = real(gx1_);
+plot(wx,gx1_);
+hold on
+gx2_ = rsps(hgx2,sx);
+gx2_ = real(gx2_);
+plot(wx,gx2_,'r');
+gx3_ = rsps(hgx3,sx);
+gx3_ = real(gx3_);
+plot(wx,gx3_,'c');
+gdz_ = gd1_ + gd2_ + gd3_;
+figure
+plot(f,gdz_)
+gx_ = gx1_ + gx2_ + gx3_;
+figure
+plot(wx,gx_)
+
+%Stopband related
+HI = 1/H;
+fstp = [-0.1 0.1];
+HIx = z2ySbTrnsf1(HI,fstp);
+wx = (-20:1e-4:20);
+sx = j*wx;
+HIx_ = rsps(HIx,sx);
+figure
+plot(wx,db(HIx_));
+HIxp = HIx.p{1};
+HIxz = HIx.z{1};
+hixp = zpk(HIxp, [], 1);
+hixz = zpk(HIxz, [], 1);
+numReal = tf(simpl((tf(hixz) + tf(hixz)')/2));

@@ -1,0 +1,13 @@
+inBus="""inBus:
+  - name: %%iBsNm
+    nmbBits: %%iBsNmbBits
+    sgnFlg: %%iBsSgnFlg
+    nmbSgs: 0
+    tmFlg: 0
+    srcTyp: 0
+    tmIndx: 0
+    src: 0
+    val: 0
+    sgmts: 0
+    lstChng: 0
+"""

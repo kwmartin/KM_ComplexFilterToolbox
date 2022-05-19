@@ -1,0 +1,18 @@
+circNm: 'Accm0'
+circData:
+  inBus:
+  - name: "freq"
+    nmbBits: 20
+    nmbSgs: 0
+    srcTyp: 0
+    sgnFlg: 1
+    tmFlg: 0
+    tmIndx: None
+    src: None
+    val: None
+    sgmts: 0
+    lstChng: None
+
+
+
+

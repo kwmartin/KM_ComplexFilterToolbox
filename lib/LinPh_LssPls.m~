@@ -1,0 +1,51 @@
+function H = LinPhFltr(n, deltT, ap, fstp)
+%   H = LinPhFltr(n, deltT, ap, az) returns an n'th order real low-pass equi-ripple
+%   group delay filter with finite loss-poles in stop band.
+%
+%   Toolbox for the Design of Complex Filters
+%   Copyright (C) 2018  Kenneth Martin
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+  warning('off', 'Control:ltiobject:ZPKComplex');
+
+  [H1 T0] = LinPhFltr(n, deltT, ap);
+  H2 = equalGDLossPoles(H1, fstp)
+  ap = -ap;
+  w = 1;
+  ep = ap*log(10)/20; % desired loss in nepers
+  for i = 1:10
+    [lgH, phH, gdH, dLdW, dTdW] = AnlzH(h2, w);
+    w = w - (lgH - ep)./dLdW;
+  end
+  fstp = fstp/w;
+
+  H2 = equalGDLossPoles(H1, fstp)
+  H = scaleFltr(h2, 1.0/w);
+
+ 
+for j = 1:5
+    w = 1;
+    ep = ap*log(10)/20; % desired loss in nepers
+    for i = 1:10
+      [lgH, phH, gdH, dLdW, dTdW] = AnlzH(h2, w);
+      w = w - (lgH - ep)./dLdW;
+    end
+  end
+  H = scaleFltr(h2, 1.0/w);
+
+  plot_am_ph_gd(H, [-1.5 1.5], 'b');
+  % plot_crsps(H,wp,ws,'b',[-10 10 -120 1]);
+  [deltT deriv] = fnd_gd_ripple(H,[0 1])
+  a = 1;

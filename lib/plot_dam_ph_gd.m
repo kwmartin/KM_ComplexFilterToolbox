@@ -1,7 +1,8 @@
-function [ax1, ax2] = plot_dam_ph_gd(H,wp,ws,colour)
-%   PLOT_DRSPS(H) is used to plot the stopband and passband magnitude response
-%   of a discrete tranfer function H. wp is the passband freqs. in rad. ws is the
-%   stop-band specificatios, colour specifies the colour of the plot.
+function results = plot_dam_ph_gd(H,frng,colour)
+%   [lgH, phH, gdH, dLdW, dTdW] = plot_dam_ph_gd(H,wp,colour) is used to plot the
+%   amplitude, phase, and group delay of a digital transfer function.
+%   of a discrete tranfer function H. frng is the passband freqs. in Hx.,
+%   colour specifies the colour of the plot.
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -21,24 +22,20 @@ function [ax1, ax2] = plot_dam_ph_gd(H,wp,ws,colour)
 %
 
 deltF = 1e-5;
-w = -0.5:deltF: 0.5;
-x2n=@(x)int32(length(w)*(x + 0.5));
+% x2n=@(x)uint64(length(w)*(x + 0.5));
 
-wdiff = wp(2) - wp(1);
-x1 = wp(1) - 0.25*wdiff;
-x2 = wp(2) + 0.25*wdiff;
-n1 = x2n(x1);
-n2 = x2n(x2);
+x1 = frng(1);
+x2 = frng(2);
 
-w2 = x1:deltF:x2+deltF;
-s = 2*pi*w2;
-[lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H, s);
+f2 = x1:deltF:x2;
+w = 2*pi*f2;
+[lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H, w);
 dbH = lgH.*(20/log(10));
 
 fig = figure('Position',[800 100 600 1000]);
 
 ax1 = subplot(3,1,1);
-plot(w2,dbH,colour);
+plot(f2,dbH,colour);
 
 y1 =  min(dbH) - 0;
 y2 = max(dbH) + 2;
@@ -49,7 +46,7 @@ ylabel('dB')
 xlabel('Frequency')
 
 ax2 = subplot(3,1,2);
-plot(w2,phH,colour);
+plot(f2,phH,colour);
 
 y1 =  min(phH) - 0.5;
 y2 = max(phH) + 0.5;
@@ -60,7 +57,7 @@ ylabel('Radians')
 xlabel('Frequency')
 
 ax3 = subplot(3,1,3);
-plot(w2,gdH,colour);
+plot(f2,gdH,colour);
 
 minGd = min(gdH);
 maxGd = max(gdH);
@@ -71,5 +68,12 @@ axis([x1 x2 y1 y2])
 title('Group Delay')
 ylabel('Seconds')
 xlabel('Frequency')
+
+results.lgH = lgH;
+results.phH = phH;
+results.gdH = gdH;
+results.dLdW = dLdW;
+results.dTdW = dTdW;
+results.f = f2;
 
 a=1;

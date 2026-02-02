@@ -1,0 +1,85 @@
+load("outDat.mat")
+cs(1:8)=[]
+sn(1:8)=[]
+iDat = sn +j*cs;
+
+iN = length(iDat);
+freq1 = 1/20;
+iT = 1/freq1;
+nFrames = iN/iT;
+
+dwT = 2*pi*freq1;
+npts = iT*2;
+freqPts = (dwT:dwT:dwT*npts)';
+ejwT = exp(j*(dwT:dwT:dwT*iT)).';
+
+cs_ = cos(freqPts);
+sn_ = sin(freqPts);
+
+apprxOid = [];
+noise = [];
+stdErr [];
+for i = 1:nFrames-1
+    iSmpl = iDat(1 + (i- 1)*iT:(i + 1)*iT);
+    [P, N] = filterPN(freq1, iSmpl);
+    apprxSmpl = P.*ejwT;
+    apprxOid = [apprxOid; apprxSmpl];
+    errSmpl = apprxSmpl - iSmpl(1:iT);
+    noise = [noise; errSmpl];
+end
+
+npts = 256;
+freqPts = (dwT:dwT:dwT*npts)';
+phi1 = 0.1;
+phi2 = 0.1;
+A = 1.0;
+B = 0.85;
+cs_ = cos(freqPts);
+sn_ = sin(freqPts);
+ics = A*cos(freqPts + phi1);
+isn = B*sin(freqPts + phi2);
+ejwT = exp(j*freqPts);
+ejwTm = conj(ejwT);
+indata = ics + j*isn;
+hilbdata = filterAllPass(1/16, indata);
+P = 0.5*(indata + j*hilbdata).*conj(ejwT);
+N = 0.5*(indata - j*hilbdata).*ejwT;
+
+
+
+% [P4, N4] = filterPN(freq1, indata)
+[P4, N4] = filterPN(freq1, iDat)
+
+P2 = P(end);
+N2 = N(end);
+A2 = P + conj(N);
+B2 = P - conj(N);
+A3 = A2(end);
+B3 = B2(end);
+idealDat = P2.*ejwT + N2.*ejwTm;
+[indata idealDat idealDat-indata]
+ 
+odata = 0.5*(indata + j*hilbdata);
+oscData = cos(freqPts) - j*sin(freqPts);
+baseData = odata.*oscData;
+
+set(0, 'defaultFigureRenderer', 'painters');
+plot(1:npts, [real(odata), imag(odata)]);
+
+k = 1/8;
+freq2 = 1/20;
+EJWT = exp(j*2*pi*freq2);
+CEJWT = exp(-j*2*pi*freq2);
+acoeffs = [1, (k - 1)*EJWT];
+bcoeffs = [0, k*EJWT, -k];
+flt2Out = filter(bcoeffs, acoeffs, ejwT);
+P4 = flt2Out.*ejwTm;
+figure(2);
+plot(1:npts, [real(flt2Out), imag(flt2Out)]);
+
+[P4, N4] = filterPN2(freq2, iDat)
+
+negf = -0.05*cs_ +j*0.05*sn_;
+posf = 0.95*cs_ + j*0.95*sn_;
+
+a = 1;

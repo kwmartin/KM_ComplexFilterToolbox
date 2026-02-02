@@ -33,11 +33,11 @@ function [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H, w)
       derivSum = derivSum + eS./(eS - z(l)*onesVctr);
       ddrvSum = ddrvSum + (eS.*z(l))./((eS - z(l)*onesVctr).^2);
   end
-  %gdv = zeros(np, npts);
+  gdv = zeros(np, npts);
   for l = 1:np
       logSum = logSum - log((eS - p(l)));
       derivSum = derivSum - eS./(eS - p(l)*onesVctr);
-      %gdV(l,:) = real(eS./(eS - p(l)*onesVctr));
+      gdV(l) = real(eS./(eS - p(l)*onesVctr));
       ddrvSum = ddrvSum - (eS.*p(l))./((eS - p(l)*onesVctr).^2);
   end
   phH = imag(logSum);

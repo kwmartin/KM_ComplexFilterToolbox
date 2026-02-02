@@ -2,7 +2,7 @@
 % movable loss-poles
 
 fltrNm = 'EqualFltr_1_6_0';
-N = 8;
+N = 64;
 delta_f = 1/N;
 %w_shift = pi*j;
 w_shift = 0.0j;
@@ -23,7 +23,7 @@ ONE_STP = 0;
 % [lgH, phH, gdH, dLdW, dTdW] = plot_am_ph_gd(Hbssl, [-1 1], [-10 10], 'b');
 
 Ap = 1.405;
-cscdFltr1 = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,'equiGD');
+cscdFltr1 = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,'equiGDLsPls');
 H1 = cscdFltr1.getSystem();
 plot_dam_ph_gd(H1, wp, ws, 'b');
 

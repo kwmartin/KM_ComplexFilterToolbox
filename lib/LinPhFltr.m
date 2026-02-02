@@ -20,12 +20,10 @@ function [H T0] = LinPhFltr(n, deltT, ap)
 %
   warning('off', 'Control:ltiobject:ZPKComplex');
 
-  options = optimoptions('fsolve','Display','none');
-  options.FunctionTolerance = 1e-16;
-  options.OptimalityTolerance = 1e-8;
-  options.StepTolerance = 1e-8;
-  options.MaxFunctionEvaluations = 5000;
-  options.MaxIterations = 1000;
+  options = optimoptions('fsolve','Display','iter');
+  options.TolFun = 1e-16;
+  options.TolX = 1e-8;
+  options.MaxIter = 1000;
 
   h1 = bessel_filt(n, [-1 1], 3.0103);
   [z1 p1 k] = zpkdata(h1,'vector');

@@ -20,9 +20,9 @@ function [apprxOid, noise, stdErr] = apprxCoid(freq, iDat)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
     iN = length(iDat);
-    iT = fix(1/freq);
+    iT = 1/freq;
     npts = iT*2;
-    nFrames = fix(iN/iT);
+    nFrames = floor(iN/iT);
 
     dwT = 2*pi*freq;
     npts = iT*2;

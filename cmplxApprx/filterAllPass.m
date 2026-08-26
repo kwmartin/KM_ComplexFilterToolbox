@@ -1,7 +1,6 @@
 function y = filterAllPass(fpT, data)
-%   y = filterAllPass(fpT, data) filters data with a first-order all-pass
-%   based on the bilinear approach. Set fpT equal to the desired frequency
-%   where -90 degrees is desired.
+%   h = ldiAllPass(k, w) calculates the frequency response of a first-order
+%   LDI all-pass having TF defined by k at w radians
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -19,7 +18,7 @@ function y = filterAllPass(fpT, data)
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
-    wpT = 2*tan(pi*fpT); % Apply frequency pre-distortion
+    wpT = 2*tan(pi*fpT);
     K = (1 - 2/wpT)/(1 + 2/wpT);
     A = [1, K];
     B = [K, 1];

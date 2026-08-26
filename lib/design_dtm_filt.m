@@ -1,7 +1,7 @@
 function H = design_dtm_filt(p,px,ni,wp,ws,as,ap,type)
 % H = design_dtm_filt(p,px,ni,wp,ws,as,ap,type) design discrete-time transfer function
 % This is a routine for designing discrete-time complex transfer functions
-% This has been replaced at 11/2018 by approach that does desing between +-1
+% This has been replaced at 11/2018 by approach that does design between +-1
 % p: initial guess at finite MOVEABLE loss poles, px is fixed poles
 % ni: number of loss poles at infinity, wp is pass-band, ws is stop-band
 % as is a vector specifying db loss at stop-band freqs, ap is pass-band ripple in dB

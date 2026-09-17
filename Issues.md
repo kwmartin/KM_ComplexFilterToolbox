@@ -56,8 +56,18 @@ unified repo's own `docs/` directory.
       lacked, incl. `Approximation_of_complex_IIR_bandpass_filters_without_
       arithmetic_symmetry.pdf`, the paper `SYMMETRIC_MODE.md` cites)
 - [x] Confirm nothing in the other clone's `doc/` is missing from the copy
-- [ ] Remove `doc/` from git tracking (actual history purge happens in
-      issue 7, alongside the rest of the exclusion list)
+- [x] Removed `doc/` from git tracking (history purge happened in issue 7,
+      alongside the rest of the exclusion list)
+- [x] **Follow-up (commit `15c0721`)**: re-added
+      `doc/Approximation_of_complex_IIR_bandpass_filters_without_arithmetic_
+      symmetry.pdf` per your direction. Unlike the other 36 files, it had
+      never actually been tracked in git, so issue 7's history rewrite never
+      touched it and it survived on disk through the branch switch (issue 8)
+      untracked. It's your own paper - the one `SYMMETRIC_MODE.md` and
+      `lib/place_polesdLP4.m`'s docstring already cite as the toolbox's core
+      reference - not third-party material, so back in the repo it goes. The
+      other 36 third-party PDFs stay out (still safe at
+      `/home/Dropbox/Matlab/Complex/docs`).
 
 ---
 
@@ -157,8 +167,8 @@ asking. None are committed yet.
 ### 3c. Two more items surfaced while sorting — resolved
 
 - [x] `multiRate/osc1.dat` (9.1MB, unreferenced by any `.m` file) - left
-      untracked for now per your call; revisit if/when something actually
-      consumes it.
+      untracked initially per your call; **deleted outright** in a later
+      follow-up once it was clear nothing would consume it.
 - [x] `examples/dig_equiGd_3_4_0_wrk.m` - deleted per your call; superseded
       by the already-committed `dig_equiGd_3_4_0.m` (only differed in a few
       plot y-axis limits).

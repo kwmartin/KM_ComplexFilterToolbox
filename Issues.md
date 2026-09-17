@@ -199,11 +199,13 @@ pattern the top-level `startup.m` already uses); verified with `matlab
 
 ---
 
-## 5. Verify `muller.m` and related lib fixes stay authoritative — verification only, autonomous
+## 5. Verify `muller.m` and related lib fixes stay authoritative — done
 
-Falls out naturally once `unlAdd` becomes the base branch — just confirm
-after issue 7's rewrite that `lib/muller.m` and the other fixed files still
-hold the `unlAdd` versions, not master's older ones.
+Confirmed `lib/muller.m` on `unlAdd` still carries all its fixes (raised
+`maxFun` to `1e40`, both `abs(h) < 1e-15`/`abs(h2+h1) < 1e-15` convergence
+guards) - `master` never touched this file, so there was never any risk of
+losing it. Will re-confirm once more after issue 7's history rewrite as a
+final sanity check, but there's no open question here.
 
 ---
 

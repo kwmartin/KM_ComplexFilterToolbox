@@ -291,12 +291,27 @@ final sanity check, but there's no open question here.
 
 ---
 
-## 9. Retire the second local clone — needs your decision
+## 9. Retire the second local clone — done
 
-- [ ] Now that `origin/master` carries everything `unlAdd` had (issue 4 is
-      done), decide: delete `/home/Dropbox/Matlab/KM_ComplexFilterToolbox`
-      (its master branch is now behind/superseded), or re-point it to track
-      the new cleaned `origin/master` as an ordinary second checkout?
+- [x] Re-pointed `/home/Dropbox/Matlab/KM_ComplexFilterToolbox` at the new
+      `origin/master` per your call, rather than deleting it.
+- [x] Before doing so, diffed its tracked tree against the new `origin/master`
+      to see exactly what the switch would remove from disk. Found one real
+      gap: `lib/ldiAllPass.m` (a general LDI all-pass helper) existed in this
+      clone's `lib/` but had only been recovered into `cmplxApprx/` during
+      issue 4, not `lib/` itself - added it back (identical content to
+      `cmplxApprx/ldiAllPass.m`, verified with `matlab -batch`) before
+      switching, so nothing unique was lost. Everything else in the diff was
+      the same already-excluded junk (`doc/`, `*.asv`, `commit.msg`, several
+      `*.m~` editor backups not previously seen in the other clone) - backed
+      up to `/home/Dropbox/Matlab/KM_ComplexFilterToolbox-pre-cleanup-junk`
+      (47MB) before the switch, same as issue 8's local repoint.
+- [x] Verified: working tree clean, tracks `origin/master`, `ldiAllPass`
+      runs correctly via `matlab -batch`.
+- Note: this clone's `.git` is still ~330MB (a local `backup-remote-master`
+  branch here still references the old junk-laden history, same situation
+  as the first clone's leftover local `unlAdd` branch in issue 8) - left
+  alone for the same reason.
 
 ---
 

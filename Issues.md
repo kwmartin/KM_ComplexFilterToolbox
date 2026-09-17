@@ -109,18 +109,13 @@ about the diff looked like it could be an unintentional bug rather than a
 deliberate change, and guessing wrong on filter-design math seemed worse than
 asking. None are committed yet.
 
-- [ ] **`lib/findLossEdges.m` and `lib/findLossMinima.m`** — both add a
-      helper `lgspc = @(x1,x2,N) log10(logspace(x1,x2,N))`. Verified in
-      MATLAB: `log10(logspace(a,b,N))` is *exactly* `linspace(a,b,N)` (the
-      `log10`/`logspace` cancel). `findLossMinima.m` then uses it as
-      `w = lgspc(0,100,10001)` in place of the old `logspace(-2,2,1000)` -
-      i.e. it switched from a **log-spaced** search grid (0.01 to 100) to a
-      **linear** one (0 to 100, including 0). Given the function's job is
-      finding stopband loss minima across frequency, a log grid seems like
-      the intended behavior and this looks like an accidental composition
-      bug rather than a deliberate switch to linear spacing. Does this match
-      what you intended, or should `lgspc(...)` calls just be `logspace(...)`
-      calls (dropping the redundant `log10`)?
+- [x] **`lib/findLossEdges.m` and `lib/findLossMinima.m`** — done (commit
+      `01331c08`). Resolved per your direction: since `lgspc(x1,x2,N)` ==
+      `linspace(x1,x2,N)` exactly, simplified both call sites to `linspace`
+      directly (dropping the redundant `log10(logspace(...))` composition),
+      and tagged each with a `REVIEW-LOGSPACE` comment noting that this
+      replaced genuinely log-spaced search grids - `grep -rn REVIEW-LOGSPACE`
+      finds them if this ever needs re-examining.
 - [ ] **`lib/place_polesdLP4.m` and `lib/place_polesdLP5.m`** — both define
       that same `lgspc` helper but never actually call it (dead code either
       way, harmless, but worth dropping either way once 3b is resolved).

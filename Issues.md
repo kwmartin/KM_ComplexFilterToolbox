@@ -154,20 +154,14 @@ asking. None are committed yet.
       actual equi-ripple behavior. Removed the line; `T0` and filter order
       were unaffected.
 
-### 3c. Two more items surfaced while sorting — need your call
+### 3c. Two more items surfaced while sorting — resolved
 
-- [ ] `multiRate/osc1.dat` (untracked, 9.1MB ASCII time/voltage data) - no
-      `.m` file anywhere in the repo reads it (grepped the whole tree).
-      Looks like it might be oscillator-simulation data meant to pair with
-      `dc_osc.m`/`sin_approx.m` but not wired up yet. Keep as a to-be-used
-      fixture, or hold off on committing something this large with no
-      current consumer?
-- [ ] `examples/dig_equiGd_3_4_0_wrk.m` (untracked) - a "_wrk" variant of
-      the already-committed `dig_equiGd_3_4_0.m`, differing only in a few
-      plot y-axis limits (e.g. `-40` vs `-200`, `-300` vs `-320`). Looks like
-      an earlier/alternate-parameter draft superseded by the committed
-      version rather than something distinct - discard, or is it worth
-      keeping as its own example?
+- [x] `multiRate/osc1.dat` (9.1MB, unreferenced by any `.m` file) - left
+      untracked for now per your call; revisit if/when something actually
+      consumes it.
+- [x] `examples/dig_equiGd_3_4_0_wrk.m` - deleted per your call; superseded
+      by the already-committed `dig_equiGd_3_4_0.m` (only differed in a few
+      plot y-axis limits).
 
 ---
 
@@ -213,13 +207,12 @@ hold the `unlAdd` versions, not master's older ones.
 
 ---
 
-## 6. Decide fate of two bulky-but-legitimate directories — needs your preference
+## 6. Decide fate of two bulky-but-legitimate directories — confirmed by user 2026-09-17
 
-- [ ] `goFiles/` (31MB: compiled Go binary `fltrBnk` + 28MB of `.dat`
-      fixtures) — keep as-is, or exclude the binary/data and document how to
-      regenerate them?
-- [ ] `examples/Figures/` (several PDFs/EPS per example, 3–9MB each) — keep
-      all tracked, or thin to one representative figure per example?
+- [x] `goFiles/` (31MB: compiled Go binary `fltrBnk` + 28MB of `.dat`
+      fixtures) — keep as-is.
+- [x] `examples/Figures/` (several PDFs/EPS per example, 3–9MB each) — keep
+      as-is.
 
 ---
 

@@ -278,16 +278,40 @@ final sanity check, but there's no open question here.
   `backup-remote-master` alone since the plan's original framing was to keep
   old branches "as history markers," not rewrite them too - say the word if
   you'd like those cleaned up as well later.
-- This local clone's `.git` is still ~849MB on disk - the local `unlAdd`
-  branch (this session's pre-rewrite commit sequence, `d43a9c14` etc., with
-  the original hashes) is still sitting there unrewritten and reachable, so
-  nothing was pruned locally. Its content is fully superseded by `master`
-  now; not deleted since its exact original commit hashes aren't preserved
-  anywhere else durable (the scratchpad mirror is ephemeral). Fine to leave
-  as-is, or delete once you're comfortable it's no longer needed.
+- ~~This local clone's `.git` is still ~849MB...~~ **Done, see below.**
 - Cloning printed a benign warning about `.gitmodules` having a duplicate
   submodule entry *at one historical commit* (not the current tree, which
   only has one clean entry) - cosmetic, no action needed.
+
+### Follow-up cleanup: origin/unlAdd, origin/backup-remote-master, and local bloat — done
+
+Per your follow-up request:
+
+- [x] Tagged the shared old tip (`590cc5bd`, `origin/unlAdd` ==
+      `origin/backup-remote-master`) as `pre-cleanup-unlAdd` and pushed it,
+      same pattern as `pre-cleanup-master` - permanently recoverable.
+- [x] Deleted both `origin/unlAdd` and `origin/backup-remote-master`
+      (`git push origin --delete`). They were identical to each other, so
+      this removed a fully redundant duplicate, not a second copy of
+      anything unique.
+- [x] Verified from a **third fresh clone**: `.git` **84MB** (both tags,
+      `master`), commit count on `master` still 41 (38 + the 3 follow-up
+      commits from issues 8/9), old history still reachable via
+      `pre-cleanup-unlAdd`/`pre-cleanup-master`.
+- Note on diminishing returns: measured object counts precisely -
+  `pre-cleanup-unlAdd` only contributes **~11MB** of content not already
+  reachable via `master`+`pre-cleanup-master` (their histories overlap
+  heavily). `pre-cleanup-master` (kept per your earlier call) is actually
+  the larger remaining factor at ~75MB. Deleting `pre-cleanup-unlAdd` too
+  would only shave a further ~11MB off an 84MB repo - didn't do this without
+  asking, since it's the one remaining safety net and the size upside is
+  modest.
+- [x] Local cleanup in both clones: deleted the now-fully-superseded local
+  `unlAdd` branch (first clone) and local `backup-remote-master` branch
+  (second clone), then `git reflog expire --expire=now --all` +
+  `git gc --prune=now --aggressive` in both. **First clone: 849MB -> 85MB.
+  Second clone: 330MB -> 85MB.** Verified both still build/run correctly
+  afterward (`LinPhFltr`/`ldiAllPass` sanity checks).
 
 ---
 

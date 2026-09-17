@@ -116,23 +116,22 @@ asking. None are committed yet.
       and tagged each with a `REVIEW-LOGSPACE` comment noting that this
       replaced genuinely log-spaced search grids - `grep -rn REVIEW-LOGSPACE`
       finds them if this ever needs re-examining.
-- [ ] **`lib/place_polesdLP4.m` and `lib/place_polesdLP5.m`** — both define
-      that same `lgspc` helper but never actually call it (dead code either
-      way, harmless, but worth dropping either way once 3b is resolved).
-      Separately, `place_polesdLP4.m` changes
-      `findLossEdges(Hy1,lssMin,wy1)` to
-      `findLossEdges(Hy1,lossMin(2),wy1)` - from "the minimum of all loss
-      minima" to specifically the *second* one. Note: `examples/dig_equiGd_
-      15_0_0.m` (already committed) independently switched from calling
-      `place_polesdLP4` to `place_polesdLP5` in this same area, which might
-      mean `place_polesdLP4.m`'s in-progress edit here was abandoned in
-      favor of LP5 rather than finished - do you still need this change, or
-      is `place_polesdLP4.m` effectively superseded by LP5 now?
-      `place_polesdLP5.m` also wraps its core Newton-step linear solve in a
-      `try/catch` that just `fprintf`s on failure and continues the loop
-      with the previous iteration's `X` - intentional robustness against
-      occasional singular systems, or should a failure here actually stop
-      the search?
+- [x] **`lib/place_polesdLP4.m` and `lib/place_polesdLP5.m`** — done (commit
+      `95d0ae79`). Reproduced end-to-end (the exact `H2` `examples/dig_equiGd_
+      15_0_0.m` builds) and confirmed `place_polesdLP4`'s uncommitted
+      `lssMin` -> `lossMin(2)` change was a real regression: it drove the
+      Newton-step solve to a singular matrix (RCOND=NaN) and crashed, while
+      reverting to `lssMin` converged cleanly in 18 iterations on the same
+      input. With that fixed, compared LP4 against LP5 directly (per your
+      follow-up): they converge to essentially the same filter (stopband-loss
+      max/mean/std match to displayed precision, min differs by ~0.5dB out
+      of -312dB) - LP4 in 18 iterations, LP5 in 222 (LP4's step size is 10x
+      larger: 0.5 vs 0.05). So `examples/dig_equiGd_15_0_0.m`'s earlier
+      switch to LP5 was most likely just working around this same bug, not
+      LP5 superseding LP4 - kept both, LP4 just converges faster. LP5's
+      try/catch never actually triggered in testing (can't confirm it's
+      needed, but it's not masking anything either) - left as-is. Also
+      dropped the dead, never-called `lgspc` helper in both files.
 - [x] **`lib/setK.m`** — done (commit `29f76cc6`). Instrumented setK.m and
       ran it across ~164 real setK calls (elliptic, symmetric-mode elliptic,
       partial monotonic designs): `imag(Ply.K)` was noise at the

@@ -5,3 +5,23 @@
 **/environments/
 **/conda/
 **/scratchspaces/
+
+# MATLAB editor autosave/backup droppings
+*.asv
+*~
+
+# machine-specific MATLAB path caches - never portable, regenerate locally
+/pathdef.m
+/pathdef_.m
+settings.mat
+
+# personal scratch files that have repeatedly ended up committed by accident
+/scatchsheet
+/scatchsheet~
+/worksheet.m~
+/afile.mat
+/filtOut.mat
+/commit.msg
+/history1.txt
+/BackUp/
+/tmp/

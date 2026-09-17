@@ -1,0 +1,149 @@
+aCircs:
+  addr_12_4:
+    updFn: addr_12_4
+    initFn: initAddr_12_4
+    nmbBits: inPrt
+    delay: 45
+  addr:
+    updFn: addr_
+    initFn: initAddr
+    nmbBits: inPrt
+    delay: 45
+  buf:
+    updFn: buf_
+    initFn: initBuf
+    nmbBits: inPrt
+    delay: 15
+  cmpl:
+    updFn: cmpl_
+    initFn: initCmpl
+    nmbBits: inPrt
+    delay: 25
+  rom4:
+    updFn: rom_
+    initFn: initRom
+    nmbBits: inPrt
+    fileNm: "rom4.dat"
+    delay: 50
+  rom12:
+    updFn: rom_
+    initFn: initRom
+    nmbBits: inPrt
+    fileNm: "rom12.dat"
+    delay: 55
+  and2PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 2
+    delay: 15
+  and3PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 3
+    delay: 20
+  and4PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 4
+    delay: 30
+  or2PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 2
+    delay: 15
+  or2PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 3
+    delay: 20
+  or2PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 4
+    delay: 30
+  nand2PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 2
+    delay: 15
+  nand3PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 3
+    delay: 20
+  nand4PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 4
+    delay: 30
+  nor2PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 2
+    delay: 15
+  nor2PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 3
+    delay: 20
+  nor2PLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 4
+    delay: 30
+  jkffPLA:
+    updFn: pla_
+    initFn: initPla
+    fileNm: "plaTbls.yml"
+    nmbBits: 2
+    delay: 20
+    inOrdr:
+    - J
+    - K
+    - QP
+sCircs:
+  rgstr:
+    updFn: updRgstr
+    initFn: initRgstr
+    nmbBits: inPrt
+    delay: 20
+    inOrdr:
+    - IN
+    - SET
+    - INIT
+    - CLK
+    - VDD
+    - VSS
+    outOrdr:
+    - QP
+  regstr:
+    updFn: updRegstr
+    initFn: initRegstr
+    nmbBits: inPrt
+    delay: 15
+    inOrdr:
+    - IN
+    - INIT
+    - CLK
+    - VDD
+    - VSS
+    outOrdr:
+    - QP
+  dly:
+    updFn: updDly
+    initFn: initDly
+    nmbBits: inPrt
+    nmbRgs: 4
+    delay: 15

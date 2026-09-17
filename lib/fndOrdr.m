@@ -18,6 +18,15 @@ function ord = fndOrdr(X)
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
+  if isa(X, 'zpk')
+    % We short circuited this function 9/13/2026 as it wasn't working
+    % properly. Note: line 31 implicitly assumes it's a 'zpk'
+    ordd = length(X.p{1});
+    ordn = length(X.z{1});
+    ord = [ordn, ordd];
+    return
+  end
+
   tol = 1e-7;
   [num, den] = tfdata(X, 'v');
   if ~isempty(num(num~=0))

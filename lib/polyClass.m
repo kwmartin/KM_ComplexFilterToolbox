@@ -108,6 +108,16 @@ classdef (ConstructOnLoad = true) polyClass < handle
       funAdd = @(s) (obj1.peval(s) + obj2.peval(s));
       Eadd = polyClass([],1);
 
+      if obj1.K == 0
+        Eadd = obj2;
+        return
+      end
+
+      if obj2.K == 0
+        Eadd = obj1;
+        return
+      end
+
       N = max([obj1.N obj2.N]);
       Init = [-1j 0.5j 0.75j];
       tol = 1e-10;
@@ -123,6 +133,17 @@ classdef (ConstructOnLoad = true) polyClass < handle
       funMinus = @(s) (obj1.peval(s) - obj2.peval(s));
       Eminus = polyClass([],1);
 
+      if obj1.K == 0
+        Eminus = obj2;
+        Eminus.K = - Eminus.K;
+        return
+      end
+
+      if obj2.K == 0
+        Eminus = obj1;
+        return
+      end
+      
       N = max([obj1.N obj2.N]);
       Init = [-1j 0.5j 0.75j];
       tol = 1e-12;
@@ -134,10 +155,13 @@ classdef (ConstructOnLoad = true) polyClass < handle
     end
 
     function Emlt = mtimes(obj1,obj2)
-      if isa(obj2,'double')
+      if isa(obj1,'polyClass') && isa(obj2,'double')
           Emlt = polyClass(obj1.rts,obj1.K);
           Emlt.K = obj1.K * obj2;
-      elseif isa(obj2,'polyClass')
+      elseif isa(obj1,'double') && isa(obj2,'polyClass')
+          Emlt = polyClass(obj2.rts,obj2.K);
+          Emlt.K = obj2.K * obj1;
+      elseif isa(obj1,'polyClass') && isa(obj2,'polyClass')
           Emlt = polyClass([],1);
           Emlt.rts = [obj1.rts; obj2.rts];
           Emlt.K = obj1.K*obj2.K;

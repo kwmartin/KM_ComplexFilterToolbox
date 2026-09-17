@@ -33,4 +33,4 @@ evalPts = (rts1 + rts2)/2;
 evalPly = ply.peval(evalPts);
 evalFun = fun(evalPts);
 div = evalPly./evalFun;
-isEqual = isempty(find((1 -abs(div)) > tol));
+isEqual = isempty(find(abs(1 - abs(div)) > tol));

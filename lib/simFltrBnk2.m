@@ -37,10 +37,6 @@ function Xout2 = simFltrBnk(A, B, C, D, xin, delta_f)
   X1 = zeros(nmbSctns, N);
   X2 = zeros(nmbSctns, N);
 
-  for i = 1:N
-    Xin(:,i) = xin;
-  end
-
   for i = 1:npts
     Xin(i, :) = xin(i);
     for k = 1:nmbSctns

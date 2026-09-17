@@ -26,7 +26,14 @@ function Hx = z2xSb(Hz,wp)
 
   %The only difference from z2x is the sign of the next function
   z2y = @(z,wi)(j.*(2.*(z - 1) - j.*wi(2).*(z + 1))./(2.*(z - 1) - j.*wi(1).*(z + 1)));
-  zx = z2y(Hz.z{1},wp);
+
+  try
+    zx = z2y(Hz.z{1},wp);
+  catch ME
+    fprintf('Filter design failed:\n%s\n', ME.message);
+    aa=0;
+  end  
+  
   px = z2y(Hz.p{1},wp);
   s = tf('s');
   nz = length(zx);

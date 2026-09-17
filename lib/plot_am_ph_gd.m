@@ -1,4 +1,4 @@
-function [lgH, phH, gdH, dLdW, dTdW] = plot_am_ph_gd(H,frng,ymin,colour)
+function [lgH, phH, gdH, dLdW, dTdW] = plot_am_ph_gd(H,wp,colour)
 %   [lgH, phH, gdH, dLdW, dTdW] = plot_am_ph_gd(H,wp,colour) is used to plot
 %   the amplitude, phase, and group-delay in the passband
 %   of a continuous tranfer function H. wp is the passband freqs. in rad.,

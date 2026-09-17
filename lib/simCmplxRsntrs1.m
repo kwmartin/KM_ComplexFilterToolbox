@@ -31,7 +31,7 @@ function [Xe, Xo2] = simCmplxRsntrs1(xin, rsntrs, G, Gis)
     Xe(i) = xe;
     Xo2(i) = xo2;
     for j = 1:N
-      rsntrs(j).updateState(xi);
+      rsntrs(j).updateState(xsts(j));
     end
     a = 1;
   end

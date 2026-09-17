@@ -32,7 +32,7 @@ function [ax1, ax2] = plot_drsps(H,fp,colour,lim)
     % h=kd.*freqz(b,a,s);
     % dbH = db(h);
     [dbH h] = log_rspsd(H,j*s);
-    fig = figure('Position',[500 300 500 600]);
+    fig = figure('Position',[500 300 800 1000]);
     ax1 = subplot(2,1,1);
     plot(s./(2*pi),dbH,colour,'LineWidth',1)
 

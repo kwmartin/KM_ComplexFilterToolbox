@@ -1,5 +1,5 @@
 function [lgH, phH, gdH, dLdW, dTdW, d2LdW] = AnlzDH(H, w)
-%   [lgH, phH, gdH, dHdW] = AnlzH(H, w) analyzes H and returns
+%   [lgH, phH, gdH, dHdW] = AnlzDH(H, w) analyzes H and returns
 %   the ln(abs(H)) (nepers), phH (radians), gdH (group delay in s),
 %   and d(abs(H))/dw at frequency or frequencies specified in w (in radians)
 %

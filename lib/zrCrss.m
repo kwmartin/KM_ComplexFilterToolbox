@@ -20,9 +20,12 @@ function zrcss = zrCrss(x,y)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
 
+    x = x(:);
     indx = find(y(1:end-1) <= 0 & y(2:end) > 0);
     deltY = y(indx+1) - y(indx);
+    deltY = deltY(:);
     deltX = x(indx+1) - x(indx);
+    deltX = deltX(:);
     m = deltY./deltX;
     zrcss = x(indx+1) - y(indx+1)./m;
 

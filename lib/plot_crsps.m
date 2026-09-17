@@ -49,7 +49,7 @@ n1 = int64(N*(wp(1) - x1)/(x2 - x1));
 n2 = int64(N*(wp(2) - x1)/(x2 - x1));
 pbMin = min(h(n1:n2));
 
-hndl = figure('Position',[800 100 600 600]);
+hndl = figure('Position',[800 100 1200 1200]);
 subplot(2,1,1)
 plot(s,h,colour)
 

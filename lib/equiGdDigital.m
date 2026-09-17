@@ -38,7 +38,7 @@ function H4 = equiGdDigital(p,px,ni,wp,ws,as,Ap,deltGD, useWs)
     Ordr = ni + np;
     [H1 T0] = LinPhFltr(Ordr, 0.01, Ap); % design continous prototype
     [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
-    H2 = adaptP2(H2,deltGD);
+    H2 = adaptP3(H2,deltGD);
     H2.k = H2.k/(abs(freqresp(H2,0)));
 
     p1 = H2.z{1};

@@ -24,7 +24,7 @@ function plotSimCscd(cscdFltr, wp, ws, minY, fShft, color)
   xin(1) = 1;
 
   xout = cscdFltr.sim(xin, fShft);
-  hndl = figure('Position',[800 100 600 600]);
+  hndl = figure('Position',[800 100 800 1000]);
   [ax1 ax2] = plotRspns(xout, wp + fShft, color, [minY, 2]);
 
   a=1;

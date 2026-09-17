@@ -1,9 +1,10 @@
 function xout1 = runMcCscd(cscdFltr, wp, std, fShft, nmbRuns, ylim, color)
-% runMcCscd(cscdFltr, wp, std, fShft, nmbRuns, ylim)
+% runMcCscd(cscdFltr, wp, std, fShft, nmbRuns, ylim, color)
 % run nmbRuns and plot FFTs of impulse responses of cascade filter
 % having randomly perturbed matrices. cscdFltr is object of cascadeClass,
 % std is standard deviation of perturbations, fShft is an optional
-% frequency shift of filters, and ylim is limits on y of plots
+% frequency shift of filters, ylim is limits on y of plots, and color
+% is an optional plot color that defaults to 'b' if omitted
 % A slower but cleaner alternative is runMcCscd2() that use the
 % cascadeClass.sim() function
 %   Toolbox for the Design of Complex Filters
@@ -22,6 +23,10 @@ function xout1 = runMcCscd(cscdFltr, wp, std, fShft, nmbRuns, ylim, color)
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
+
+  if nargin < 7
+    color = 'b';
+  end
 
   A_ = {};
   B_ = {};

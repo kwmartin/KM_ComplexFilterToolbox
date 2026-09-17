@@ -32,7 +32,7 @@ w = 2*pi*f2;
 [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H, w);
 dbH = lgH.*(20/log(10));
 
-fig = figure('Position',[800 100 400 500]);
+fig = figure('Position',[800 100 800 1000]);
 
 ax1 = subplot(3,1,1);
 plot(f2,dbH,colour);

@@ -37,10 +37,20 @@ function [K0, K1, K2, X5, fail] = rmvl4(X0, wp)
   n2 = poly(z2);
   ply4 = poly(p3);
   den4 = tf(ply4, [1]);
-  tf2 = tf(k2*n2, [1 0 wp*wp]);
-  tf3 = tf(k1*[ply4 0], [1 0 wp*wp]);
-  num4 = tf2 - tf3;;
-  X4 = simpl(num4/den4);
+  % Combine directly over the shared denominator [1 0 wp*wp]: computing
+  % tf2 and tf3 separately and subtracting (as before) does not cancel
+  % that common factor, needlessly squaring the denominator degree.
+  num4 = tf(k2*n2 - k1*[ply4 0], [1 0 wp*wp]);
+  X3raw = num4/den4;
+  % The K1/K2 extraction above is constructed so that X3raw has an exact
+  % pole/zero pair at +-wp (the resonance just removed) that must cancel
+  % for the order to drop by 2, but simpl() alone does not perform any
+  % pole/zero cancellation (its minreal call is disabled) -- so do that
+  % cancellation explicitly first. Converting to zpk via zpkdata before
+  % calling minreal matters: minreal on the tf-typed ratio directly does
+  % not reduce complex-coefficient systems correctly.
+  [zX, pX, kX] = zpkdata(X3raw, 'v');
+  X4 = simpl(minreal(zpk(zX, pX, kX), tol));
 
   %tf1 = tf([k1 0], [1, 0, wp*wp]);
   %X4 = zpk(z2, p3, k4);

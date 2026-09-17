@@ -1,9 +1,9 @@
-function [Xi, Xerr, Xout, Xsts, Xout2] = updateCmplxXi(xi, G, rsntrs, Gis)
-%   [Xi, Xerr, Xout] = updateCmplxXi(xi, G, rsntrs) updates resonator input when xin changes
-%   given current state
+function [Xout, Xerr, Xsen, deltw, w] = simCmplxRes(xin, rsntr, Gfb)
+%   [Xe, Xouts] = simCmplxRes(xin, rsntr, Gfb)
+%   simulates a singlecomplex resonator in a loop
 %
 %   Toolbox for the Design of Complex Filters
-%   Copyright (C) 2020  Kenneth Martin
+%   Copyright (C) 2018  Kenneth Martin
 %
 %   This program is free software: you can redistribute it and/or modify
 %   it under the terms of the GNU General Public License as published by
@@ -18,18 +18,25 @@ function [Xi, Xerr, Xout, Xsts, Xout2] = updateCmplxXi(xi, G, rsntrs, Gis)
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
-    N = length(rsntrs);
-    k = length(Gis) + 1;
-    xsum = 0.0;
-    Xout2 = 0.0;
-    Xsts = zeros(1, k - 1);
-    for j = 1:N
-        rsntrs(j).Xo = rsntrs(j).zp*rsntrs(j).X;
-        xsum = xsum + rsntrs(j).Xo;
-        Xsts(j) = rsntrs(j).Xo;
-        Xout2 = Xout2 + Xsts(j).*Gis(j);
-    end
-    Xout = xsum;
-    Xerr = xi - xsum;
-    Xi = G*Xerr;
+
+  npts = length(xin);
+  Xout = zeros(npts, 1);
+  Xsen = zeros(npts, 1);
+  Xerr = zeros(npts, 1);
+  Xi = zeros(npts, 1);
+  deltw = zeros(npts, 1);
+  w = zeros(npts, 1);
+  for i = 1:npts
+    Xout(i) = rsntr.getOut();
+    Xsen(i) = conj(Xout(i));
+
+    Xerr(i) = xin(i) - Xout(i);
+    Xi(i) = Gfb*Xerr(i);
+    deltw(i) = Xsen(i)*Xerr(i);
+    w(i) = rsntr.wi + 0.1*imag(deltw(i));
+    rsntr.setWi(w(i));
+
+    rsntr.updateState(Xi(i));
     a = 1;
+  end
+  a=1;

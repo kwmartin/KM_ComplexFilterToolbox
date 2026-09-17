@@ -25,31 +25,27 @@ classdef (ConstructOnLoad = true) cmplxRsntrClass < handle
     Xi = 0;
     X = 0;
     Xo = 0;
-    N = 64;
   end
 
   methods
-    function obj = cmplxRsntrClass(wi, Xinit, N)
+    function obj = cmplxRsntrClass(wi, Xinit)
       if nargin == 0
         obj.wi = 2*pi/16;
         obj.zp = exp(1j*2*pi/16);
         obj.X = 0;
-        obj.N = 64;
         Xi = 0;
         Xo = 0;
       elseif nargin == 1
         obj.wi = wi;
         obj.zp = exp(1j*obj.wi);
         obj.X = 0;
-        obj.N = 64;
         Xi = 0;
         Xo = 0;
         a = 1;
-      elseif nargin == 3
+      elseif nargin == 2
         obj.wi = wi;
         obj.zp = exp(1j*obj.wi);
         obj.X = Xinit;
-        obj.N = N;
         Xi = 0;
         obj.Xo = obj.zp .* obj.X;
         a = 1;
@@ -70,15 +66,21 @@ classdef (ConstructOnLoad = true) cmplxRsntrClass < handle
       a = 1;
     end
 
+    function Xo = getOut(obj) % Initialize States
+      obj.Xo = obj.zp .* obj.X;
+      Xo = obj.Xo;
+    end
+
     function Xo = updateState(obj, xin) % Initialize States
       obj.Xi = xin + obj.zp .* obj.X;
       obj.X = obj.Xi;
       obj.Xo = obj.zp .* obj.X;
+      Xo = obj.Xo;
     end
 
     function disp(obj) % display the section in a readable format
-      outStr = sprintf('wi: %0.5g, zp: %0.5g + %0.5gj, N: %u\n', ...
-          obj.wi, real(obj.zp), imag(obj.zp), obj.N);
+      outStr = sprintf('wi: %0.7g, zp: %0.7g + %0.7gj, X: %0.7g + %0.7 gj\n', ...
+          obj.wi, real(obj.zp), imag(obj.zp), real(obj.X), imag(obj.X));
       disp(outStr);
     end
   end

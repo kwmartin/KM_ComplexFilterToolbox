@@ -1,4 +1,4 @@
-function [Xi, Xerr, Xout, Xsts, Xout2] = updateCmplxXi(xi, G, rsntrs, Gis)
+function [Xi, Xerr, Xout, Xsts, Xout2] = updCmplxRes(xi, G, rsntrs, Gis)
 %   [Xi, Xerr, Xout] = updateCmplxXi(xi, G, rsntrs) updates resonator input when xin changes
 %   given current state
 %
@@ -23,13 +23,15 @@ function [Xi, Xerr, Xout, Xsts, Xout2] = updateCmplxXi(xi, G, rsntrs, Gis)
     xsum = 0.0;
     Xout2 = 0.0;
     Xsts = zeros(1, k - 1);
+
     for j = 1:N
         rsntrs(j).Xo = rsntrs(j).zp*rsntrs(j).X;
         xsum = xsum + rsntrs(j).Xo;
-        Xsts(j) = rsntrs(j).Xo;
-        Xout2 = Xout2 + Xsts(j).*Gis(j);
+        Xout2 = Xout2 + rsntrs(j).Xo*Gis(j);
     end
-    Xout = xsum;
     Xerr = xi - xsum;
     Xi = G*Xerr;
+    for j = 1:N
+        rsntrs(j).X = Xi + rsntrs(j).Xo;
+    end
     a = 1;

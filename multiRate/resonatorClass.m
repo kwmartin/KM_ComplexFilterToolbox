@@ -81,9 +81,9 @@ classdef (ConstructOnLoad = true) resonatorClass < handle
     end
 
     function disp(obj) % display the section in a readable format
-      outStr = sprintf('k: %0.5g, X1: %0.5g, X2: %0.5g\n', obj.k, obj.X1, obj.X2);
+      outStr = sprintf('k: %0.7g, X1: %0.7g, X2: %0.7g\n', obj.k, obj.X1, obj.X2);
       disp(outStr);
-      outStr = sprintf('Xfb: %0.5g, Xs: %0.5g\n', obj.Xfb, obj.Xs);
+      outStr = sprintf('Xfb: %0.7g, Xs: %0.7g\n', obj.Xfb, obj.Xs);
       disp(outStr);
     end
   end

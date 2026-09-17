@@ -1,9 +1,9 @@
-function [Xi, Xerr, Xout, Xsts, Xout2] = updateCmplxXi(xi, G, rsntrs, Gis)
-%   [Xi, Xerr, Xout] = updateCmplxXi(xi, G, rsntrs) updates resonator input when xin changes
-%   given current state
+function xout = dc_osc(a)
+%   y = y = dc_osc(a)
+%   sim of of noise in dc osc
 %
 %   Toolbox for the Design of Complex Filters
-%   Copyright (C) 2020  Kenneth Martin
+%   Copyright (C) 2018  Kenneth Martin
 %
 %   This program is free software: you can redistribute it and/or modify
 %   it under the terms of the GNU General Public License as published by
@@ -18,18 +18,15 @@ function [Xi, Xerr, Xout, Xsts, Xout2] = updateCmplxXi(xi, G, rsntrs, Gis)
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
-    N = length(rsntrs);
-    k = length(Gis) + 1;
-    xsum = 0.0;
-    Xout2 = 0.0;
-    Xsts = zeros(1, k - 1);
-    for j = 1:N
-        rsntrs(j).Xo = rsntrs(j).zp*rsntrs(j).X;
-        xsum = xsum + rsntrs(j).Xo;
-        Xsts(j) = rsntrs(j).Xo;
-        Xout2 = Xout2 + Xsts(j).*Gis(j);
+    N = 2048;
+    xin = zeros(N, 1);
+    xout = zeros(N, 1);
+    xin(1) = 1;
+    xs = 0;
+	for i = 1:N
+        xout(i) = xin(i) + xs;
+        xi = xs + a*(xout(i) - xs) + xout(i);
+        xs = xi;
+        aa = 0;
     end
-    Xout = xsum;
-    Xerr = xi - xsum;
-    Xi = G*Xerr;
-    a = 1;
+    aa=0;

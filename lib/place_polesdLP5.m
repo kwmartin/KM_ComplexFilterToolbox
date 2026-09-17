@@ -92,10 +92,15 @@ for i = 1:2000 % repeat enough times to guarantee success
     nz = length(zmin);
     
     Y = -mrgn;
-    
-    S = [dHy_dp2b(Hy,zmin) s2];
-    Pmin = 1e-6.*diag(ones(1,length(X)));
-    X = (S + Pmin)\(Y); % Calculate the changes in the pole frequencies
+
+    try
+        S = [dHy_dp2b(Hy,zmin) s2];
+        Pmin = 1e-6.*diag(ones(1,length(X)));
+        X = (S + Pmin)\(Y); % Calculate the changes in the pole frequencies
+    catch ME
+        fprintf('HCat failed:\n%s\n', ME.message);
+    end
+
     % X = (S)\(Y); % Calculate the changes in the pole frequencies
     py = py + 0.05.*X(1:np).'; % Calculate the new pole positions
     % p = sort(p)

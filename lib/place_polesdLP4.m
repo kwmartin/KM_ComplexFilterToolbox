@@ -42,14 +42,13 @@ z2y = @(z,wi)(j.*(2.*(z - 1) - j.*wi(2).*(z + 1))./(2.*(z - 1) - j.*wi(1).*(z + 
 w2x = @(w, wi) -((2.*tan(w./2) - wi(2))./(2.*tan(w./2) - wi(1)));
 y2z = @(y,wi)((2*j - wi(2) - y.*(2 + j*wi(1)))./(2*j + wi(2) - y.*(2 - j*wi(1))));
 x2w = @(x,wi)(2.*atan((wi(2)*ones(size(x)) - wi(1).*x)./(2*ones(size(x)) - 2.*x)));
-
 % We first transform to y ensuring we include the stop-band but not the
 % pass-band
-dWp = 0.2*(wp(2) - wp(1))/2;
+dWp = 0.05*(wp(2) - wp(1))/2;
 fsb1 = [wp(1)- dWp, wp(2) + dWp];
 Hy1 =  z2ySbTrnsf1(H,fsb1);
 Hy1 = 1/Hy1;
-% Now we find the edge frequencies have the same loss as the average of the
+% Now we find the edge frequencies that have the same loss as the average of the
 % stop-band loss minima
 wt1 = 2*pi*fsb1;
 wsy = [0, 0.9999, 1.00001, 1e6];

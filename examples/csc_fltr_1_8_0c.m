@@ -22,9 +22,9 @@ cscdFltr1 = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 H = cscdFltr1.getSystem();
 % if internal object update not needed just use H = cscdFltr1.sys
 toc
-cscdFltr1.plotGn(wp_, ws_, -160, 2);
+cscdFltr1.plotGn(wp_, -160, 2);
 tic
-runMcCscd(cscdFltr1, wp_, 2e-5, 0, 100, [-160, 2]);
+runMcCscd(cscdFltr1, wp_, 2e-5, 0, 100, [-160, 2], 'b');
 toc
 drawnow;
 cscdHndl = gcf;

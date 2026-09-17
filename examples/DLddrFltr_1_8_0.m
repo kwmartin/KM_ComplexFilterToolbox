@@ -91,9 +91,9 @@ cscdHndl = gcf;
 print('../examples/Figures/Lddr_1_8_0_MC','-dpng');
 
 H4 = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
-%[ax1, ax2] = plot_drsps(H4, wp_, ws_, 'b', [-0.5 0.5 -140 1]);
+%[ax1, ax2] = plot_drsps(H4, wp_, 'b', [-140 1]);
 cscdFltr1 = mkCscdFltrD(H4, wp_);
-%cscdFltr1.plotGn(wp_, ws_, -160, 2);
+%cscdFltr1.plotGn(wp_, -160, 2);
 tic
 outCscd = runMcCscd(cscdFltr1, wp_, 5e-5, 0, 2, [-150, 2]);
 toc

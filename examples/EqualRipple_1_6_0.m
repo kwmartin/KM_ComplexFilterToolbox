@@ -28,7 +28,7 @@ cscdFltr1 = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,'equiGDLsPls');
 H1 = cscdFltr1.getSystem();
 plot_dam_ph_gd(H1, [-0.5 0.5], -100, 'b');
 
-%cscdFltr1.plotGn(wp, ws, -80, 2);
+%cscdFltr1.plotGn(wp, -80, 2);
 
 cscd2Yml(cscdFltr1, strcat(fltrNm, '.yml'));
 
@@ -80,7 +80,7 @@ toc
 
 drawnow;
 cscdHndl = gcf;
-ExmplDir = '/home/martin/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox/examples/';
+ExmplDir = '/home/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox/examples/';
 FigDir = strcat(ExmplDir, 'Figures/');
 print(strcat(FigDir, fltrNm), '-dpng');
 

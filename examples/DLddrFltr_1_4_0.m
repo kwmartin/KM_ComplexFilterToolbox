@@ -87,9 +87,9 @@ cscdHndl = gcf;
 print('../examples/Figures/Lddr_1_4_0_MC','-dpng');
 
 H4 = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'monotonic');
-%[ax1, ax2] = plot_drsps(H4, wp_, ws_, 'b', [-0.5 0.5 -40 1]);
+%[ax1, ax2] = plot_drsps(H4, wp_, 'b', [-40 1]);
 cscdFltr1 = mkCscdFltrD(H4, wp_);
-%cscdFltr1.plotGn(wp_, ws_, -40, 2);
+%cscdFltr1.plotGn(wp_, -40, 2);
 tic
 runMcCscd(cscdFltr1, wp_, 2e-4, 0, 25, [-40, 2]);
 toc

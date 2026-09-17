@@ -23,7 +23,7 @@ svSpecs = {p, px, wp, ws};
 cscdFltr1 = dsgnCascadeFltr(p,px,ni,wp,ws,as,Ap,'monotonic');
 H1 = cscdFltr1.getSystem();
 plot_drsps(H1, wp, 'b', [-140 1]);
-%cscdFltr1.plotGn(wp, ws, -100, 2);
+%cscdFltr1.plotGn(wp, -100, 2);
 xin = zeros(8192,1);
 xin(1) = 1;
 ylim = [-200 2];

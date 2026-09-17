@@ -1,10 +1,12 @@
 % One of the early examples used in developing normalized design
 % Includes the first SFG ladder simulation
 
-p = [-0.3 -0.2 0.3 0.4]; % initial guess at finite loss poles
-px = [];
-wp = [0.05 0.1];
-ws = [-0.49999 -0.1 0.22 0.49999];
+p = [-0.15 -0.1 -0.06 0.06 0.1 0.15]; % initial guess at finite loss poles
+ni=1; % number of loss poles at infinity
+wp = []; ws = [];
+wp(1) = -0.025; % lower passband edge
+wp(2) = 0.025; % upper passband edge
+ws = [-0.49999 -0.05 0.05 0.49999];
 as = [20 20 20 20];
 ni = 1;
 % Ap=3.0103;

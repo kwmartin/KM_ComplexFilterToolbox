@@ -14,4 +14,4 @@ as = [0 10 20 30 20];
 Ap = 0.0025; % the passband ripple in dB
 ONE_STP = 1; % treat both stop-bands as a single stop-band
 H = design_dtm_filt(p,px,ni,wp,ws,as,Ap,'elliptic'); %This is a discrete-time design with a fixed loss-pole at dc.
-plot_drsps(H,wp,ws,'r',[-0.5 0.5 -120 1]); % Plot the response (with specified axis scaling)
+plot_drsps(H,wp,'r',[-120 1]); % Plot the response (with specified axis scaling)

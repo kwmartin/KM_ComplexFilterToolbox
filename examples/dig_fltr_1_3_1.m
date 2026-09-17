@@ -14,6 +14,6 @@ type = 'monotonic'
 
 H = design_dig_filt(p,px,ni,wp,ws,as,Ap,type);
 cscdFltr = mkCscdFltrD2(H, wp);
-plotSimCscd(cscdFltr, wpHz, ws, -160, 0);
+plotSimCscd(cscdFltr, wpHz, ws, -160, 0, 'b');
 
 a=1;

@@ -88,9 +88,9 @@ out = simLddrMC(lddr2, xin, wp_, 0, 5e-4, 100, [-60, 2]);
 toc
 
 H3 = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'monotonic');
-% [ax1, ax2] = plot_drsps(H3, wp_, ws_, 'b', [-0.5 0.5 -160 1]);
+% [ax1, ax2] = plot_drsps(H3, wp_, 'b', [-160 1]);
 cscdFltr1 = mkCscdFltrD(H3, wp_);
-%cscdFltr1.plotGn(wp_, ws_, -160, 2);
+%cscdFltr1.plotGn(wp_, -160, 2);
 tic
 runMcCscd(cscdFltr1, wp_, 5e-4, 0, 100, [-60, 1]);
 toc

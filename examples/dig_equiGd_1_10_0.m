@@ -13,12 +13,13 @@ np = length(p);
 ni = 1;
 
 deltGD=0.25;
-H = equiGdDigital(p,px,ni,wp,ws,as,Ap,deltGD);
+useWs = 1;
+H = equiGdDigital(p,px,ni,wp,ws,as,Ap,deltGD,useWs);
 figure
-[ax1, axq2] = plot_drsps(H,wp,'b',[-200 1]);
-plot_dam_ph_gd(H, [-0.5 0.5], -40, 'b');
+[ax1, axq2] = plot_drsps(H,wp,'b',[-130 1]);
+plot_dam_ph_gd(H, [-0.5 0.5], -130, 'b');
 cscdFltr = mkCscdFltrD2(H, wp);
-plotSimCscd(cscdFltr, wp, ws, -40, 0, 'b');
+plotSimCscd(cscdFltr, wp, ws, -130, 0, 'b');
 gdHs = hgdMake(H);
 gd = hzPlot(gdHs{2});
 

@@ -19,14 +19,19 @@ ONE_STP = 0; % treat both stop-bands as a single stop-band
 
 cscdFltr = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 % plot cascade filter using object function
-cscdFltr.plotGn(wp_, ws_, -40, 2);
+cscdFltr.plotGn(wp_, -40, 2);
 tic
 % simulate cascade filter 100 times with SS matrix elements
 % varying by 0.01%
-runMcCscd(cscdFltr, wp_, 1e-4, 0, 100, [-40 2]);
+runMcCscd(cscdFltr, wp_, 1e-4, 0, 100, [-40 2], 'b');
 toc
 drawnow;
 cscdHndl = gcf;
-print('../examples/Figures/csc_fltr_1_2_0','-dpng');
+% print('../examples/Figures/csc_fltr_1_2_0','-dpng');
+
+exportgraphics(gcf, ...
+    fullfile('..', 'examples', 'Figures', 'csc_fltr_1_2_0.png'), ...
+    'Resolution', 300, ...
+    'BackgroundColor', 'white');
 
 a=1;

@@ -30,7 +30,7 @@ cscdFltr1 = mkCscdFltrD2(H, wp);
 H1 = cscdFltr1.getSystem();
 plot_dam_ph_gd(H1, [-0.5 0.5], -100, 'b');
 
-%cscdFltr1.plotGn(wp, ws, -80, 2);
+%cscdFltr1.plotGn(wp, -80, 2);
 
 cscd2Yml(cscdFltr1, strcat(fltrNm, '.yml'));
 

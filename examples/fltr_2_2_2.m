@@ -14,7 +14,7 @@ ONE_STP = 1; % Assume we have two stop-bands with un-equal loss
 
 % A continuous-time filter with an equi-ripple pass-band
 [H, E, F, P] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,'monotonic');
-%plot_drsps(H3,wp,ws,'r');
+%plot_drsps(H3,wp,'r');
 plot_crsps(H,wp,ws,'b',[-1.5 1.5 -120 0.5]);
 [X1o, X1s, X2o, X2s, maxOrdr, indic] = mkXs(H, F, length(P), true);
 rts = imag(P);

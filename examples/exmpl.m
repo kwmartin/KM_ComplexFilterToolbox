@@ -19,7 +19,7 @@ ONE_STP = 0;
 % Design the normalized continuous-time filter
 % Return transfer functions for normalized filter, and
 % sclFctr, and shftFctr used to normalize so we can go back
-Fltr = dsgnAnalogFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
+Fltr = dsgnAnalogFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic', true);
 H = Fltr.H;
 E = Fltr.E;
 F = Fltr.F;

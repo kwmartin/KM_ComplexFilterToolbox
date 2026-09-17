@@ -89,9 +89,9 @@ cscdHndl = gcf;
 print('../examples/Figures/Cscd_1_6_0_MC','-dpng');
 
 H3 = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
-%[ax1, ax2] = plot_drsps(H3, wp_, ws_, 'b', [-0.5 0.5 -120 1]);
+%[ax1, ax2] = plot_drsps(H3, wp_, 'b', [-120 1]);
 cscdFltr1 = mkCscdFltrD(H3, wp_);
-% cscdFltr1.plotGn(wp_, ws_, -120, 2);
+% cscdFltr1.plotGn(wp_, -120, 2);
 tic
 runMcCscd(cscdFltr1, wp_, 2e-4, 0, 100, [-120, 2]);
 toc

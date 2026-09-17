@@ -102,15 +102,15 @@ KdMtrx1 = zeros(Nout, 1);
 % hndl(5) = figure('Position',[800 100 500 600]);
 % wp = svSpecs{3};
 % ws = svSpecs{4};
-% [ax1, ax2] = plot_drsps(H1,wp,ws,'b', [-0.5 0.5 -300 1]);
+% [ax1, ax2] = plot_drsps(H1,wp,'b', [-300 1]);
 
 % hold(ax1, 'on');
 % hold(ax2, 'on');
 % fshft = 0.05;
 % H2 = freq_shiftd(H1, fshft);
-% plot_drsps(H2, wp + fshft, ws + fshft, 'r', [-0.5 0.5 -300 1]);
+% plot_drsps(H2, wp + fshft, 'r', [-300 1]);
 % H3 = freq_shiftd(H1, 2*fshft);
-% plot_drsps(H3, wp + 2*fshft, ws + 2*fshft, 'c', [-0.5 0.5 -300 1]);
+% plot_drsps(H3, wp + 2*fshft, 'c', [-300 1]);
 
 xin = zeros(8192,1);
 xin(1) = 1;

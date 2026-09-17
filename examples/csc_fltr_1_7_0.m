@@ -12,11 +12,11 @@ as = [20 20];
 Ap = 0.025; % the passband ripple in dB
 
 cscdFltr = dsgnCscdFltr(p,px,ni,wp,ws,as,Ap,'elliptic');
-cscdFltr.plotGn(wp, ws, -160, 2);
+cscdFltr.plotGn(wp, -160, 2);
 
 freq_shtf = 0.0;
 tic
-runMcCscd(cscdFltr, wp, 5e-5, freq_shtf, 100, [-160, 2]);
+runMcCscd(cscdFltr, wp, 5e-5, freq_shtf, 100, [-160, 2], 'b');
 toc
 
 a=1;

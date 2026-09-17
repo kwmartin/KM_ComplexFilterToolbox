@@ -12,7 +12,7 @@ np = length(p);
 ni = 7;
 type = 'equiGD'
 % type = 'equiGDLsPls'
-Ordr = ni;
+Ordr = ni + np;
 
 H = dsgnDigitalFltr2(p,px,ni,wp,ws,as,Ap,type,Ordr);
 deltGD=0.25;
@@ -28,13 +28,14 @@ gd = hzPlot(gdHs{2});
 np = length(p);
 p1 = H.z{1};
 p1 = p1((p1 + 1) < 1e-7);
-if length(p1) ~= ni
-    error('There should be %d zeros',ni);
+if length(p1) ~= Ordr
+    error('There should be %d zeros',Ordr);
 end
-ni = ni - np;
+% ni = ni - np; % 2026, no idea why this was used?
+ni = Ordr - np;
 p2 = exp(2*pi*p*j);
 py = [-ones(ni,1); p2.'];
 py = sortImag(py);
 H2 = zpk(py, H.p{1}, H.k);
-H3= place_polesdLP4(H2,wp);
+H3= place_polesdLP5(H2,wp);
 a=1;

@@ -22,14 +22,14 @@ ONE_STP = 0; % treat both stop-bands as a single stop-band
 cscdFltr = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 H = cscdFltr.sys;
 % plot resulting transfer function
-[ax1, ax2] = plot_drsps(H, wp_, ws_, 'b', [-0.5 0.5 -100 1]);
+[ax1, ax2] = plot_drsps(H, wp_, 'b', [-100 1]);
 
 % plot cascade filter using object function
-cscdFltr.plotGn(wp_, ws_, -80, 2);
+cscdFltr.plotGn(wp_, -80, 2);
 tic
 % simulate cascade filter 100 times with SS matrix elements
 % varying by 0.01%
-runMcCscd(cscdFltr, wp_, 2e-5, 0, 100, [-80 2]);
+runMcCscd(cscdFltr, wp_, 2e-5, 0, 100, [-80 2], 'b');
 toc
 drawnow;
 cscdHndl = gcf;

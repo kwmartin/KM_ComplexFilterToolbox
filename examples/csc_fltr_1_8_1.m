@@ -22,7 +22,7 @@ ONE_STP = 0;
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.05);
 % The next few commented lines shows how to do design and return H
 % H = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
-% [ax1, ax2] = plot_drsps(H, wp_, ws_, 'b', [-0.5 0.5 -200 1]);
+% [ax1, ax2] = plot_drsps(H, wp_, 'b', [-200 1]);
 % cscdFltr1 = mkCscdFltrD(H, wp_);
 % This functionality has now been encapsulated in dsgnCascadeFltr()
 tic
@@ -30,9 +30,9 @@ cscdFltr1 = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 H = cscdFltr1.getSystem();
 % if internal object update not needed just use H = cscdFltr1.sys
 toc
-cscdFltr1.plotGn(wp_, ws_, -200, 2);
+cscdFltr1.plotGn(wp_, -200, 2);
 tic
-runMcCscd(cscdFltr1, wp_, 5e-6, 0, 100, [-200, 2]);
+runMcCscd(cscdFltr1, wp_, 5e-6, 0, 100, [-200, 2], 'b');
 toc
 drawnow;
 cscdHndl = gcf;

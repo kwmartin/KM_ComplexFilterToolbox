@@ -20,11 +20,11 @@ svSpecs = {p, px, wp, ws};
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.25);
 cscdFltr1 = dsgnCscdFltr(p_,px_,ni,wp_,ws_,as,Ap,'elliptic');
 H4 = cscdFltr1.getSystem();
-[ax1, ax2] = plot_drsps(H4, wp_, ws_, 'b', [-0.5 0.5 -200 1]);
+[ax1, ax2] = plot_drsps(H4, wp_, 'b', [-200 1]);
 cscdFltr1 = mkCscdFltrD(H4, wp_);
-cscdFltr1.plotGn(wp_, ws_, -160, 2);
+cscdFltr1.plotGn(wp_, -160, 2);
 tic
-runMcCscd(cscdFltr1, wp_, 2e-5, 0, 10, [-200, 2]);
+runMcCscd(cscdFltr1, wp_, 2e-5, 0, 10, [-200, 2], 'b');
 toc
 drawnow;
 cscdHndl = gcf;

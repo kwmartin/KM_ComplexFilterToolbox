@@ -18,9 +18,9 @@ px = [-delta_f*1.0 delta_f*1.0];
 ONE_STP = 0;
 
 H1 = dsgnDigitalFltr(p, px, ni, wp, ws, as, Ap, 'elliptic');
-plot_drsps(H1, wp, ws, 'b', [-0.5 0.5 -120 1]);
+plot_drsps(H1, wp, 'b', [-120 1]);
 cscdFltr1 = mkCscdFltrD(H1, wp);
-%cscdFltr1.plotGn(wp, ws, -100, 2);
+%cscdFltr1.plotGn(wp, -100, 2);
 xin = zeros(8192,1);
 xin(1) = 1;
 ylim = [-120 2];

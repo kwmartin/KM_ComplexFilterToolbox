@@ -15,7 +15,19 @@ ONE_STP = 0; % Assume we have two stop-bands with un-equal loss
 
 % A continuous-time filter with an equi-ripple pass-band
 [H, E, F, P] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,'elliptic');
-%plot_drsps(H3,wp,ws,'r');
+
+% Design the normalized continuous-time filter
+% Return transfer functions for normalized filter, and
+% sclFctr, and shftFctr used to normalize so we can transform back
+Fltr = dsgnAnalogFltr(p, px, ni, wp, ws, as, Ap, 'elliptic');
+H = Fltr.H;
+E = Fltr.E;
+F = Fltr.F;
+P = Fltr.P;
+sclFctr = Fltr.sclFctr;
+shftFctr = Fltr.shftFctr;
+
+%plot_drsps(H3,wp,'r');
 plot_crsps(H,wp,ws,'b',[-10 10 -140 2]);
 Porder = length(P) + length(px);
 [X1o, X1s, X2o, X2s, maxOrdr, indic] = mkXsCmplx2(H, F, length(P), true);

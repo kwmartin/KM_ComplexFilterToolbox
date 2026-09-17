@@ -57,12 +57,12 @@ Ap = 0.1; % the passband ripple in dB
 % A discrete-time filter with an equi-ripple pass-band
 H = design_dtm_filt(pd,px,ni,wp,ws,as,Ap,'elliptic');
 hndl(3) = figure('Position',[300 200 500 600]);
-plot_drsps(H,wp,ws,'r');
+plot_drsps(H,wp,'r', [-90 2]);
 
 % A discrete time filter with a monotonic pass-band
 H = design_dtm_filt(pd,px,ni,wp,ws,as,Ap,'monotonic');
 hndl(4) = figure('Position',[400 200 500 600]);
-plot_drsps(H,wp,ws,'b');
+plot_drsps(H, wp, 'b', [-90 2]);
 
 % The next example is a discrete-time filter without any loss-poles at
 % fs/2. In this case, it may be desirable to treat the upper and lower-stop
@@ -81,7 +81,7 @@ ws(2) = 0.3; % upper stopband edge
 Ap = 0.1; % the passband ripple in dB
 fig = figure('Position',[500 200 500 600]); % This places and sizes plot figure
 H = design_dtm_filt(p,px,ni,wp,ws,as,Ap,'monotonic'); %This is a discrete-time design with a fixed loss-pole at dc.
-plot_drsps(H,wp,ws,'r',[-0.5 0.5 -120 1]); % Plot the response (with specified axis scaling
+plot_drsps(H,wp,'r',[-120 1]); % Plot the response (with specified axis scaling
 
 % The next example is a discrete-time filter that is a positive-pass filter
 % over most of the positive frequencies and has stop-band attenuation
@@ -100,4 +100,6 @@ as = [0 60 60 20 20];
 Ap = 0.1; % the passband ripple in dB
 fig = figure('Position',[600 200 500 600]); % This places and sizes plot figure
 H = design_dtm_filt(p,px,ni,wp,ws,as,Ap,'monotonic'); %This is a discrete-time design with a fixed loss-pole at dc.
-plot_drsps(H,wp,ws,'r',[-0.5 0.5 -120 1]); % Plot the response (with specified axis scaling)
+plot_drsps(H,wp,'r',[-120 1]); % Plot the response (with specified axis scaling)
+
+aa=0;

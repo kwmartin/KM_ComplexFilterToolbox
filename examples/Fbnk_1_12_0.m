@@ -1,7 +1,7 @@
 % a filter-bank simulation based on monotonic filters having 4
 % movable loss-poles
 
-fltrNm = 'Fbnk_1_8_0';
+fltrNm = 'Fbnk_1_12_0';
 N = 64;
 delta_f = 1/N;
 %w_shift = pi*j;
@@ -33,7 +33,7 @@ cscdFltr1 = mkCscdFltrD2(H, wp);
 H1 = cscdFltr1.getSystem();
 plot_dam_ph_gd(H1, [-0.5 0.5], -100, 'b');
 
-%cscdFltr1.plotGn(wp, ws, -80, 2);
+%cscdFltr1.plotGn(wp, -80, 2);
 
 cscd2Yml(cscdFltr1, strcat(fltrNm, '.yml'));
 

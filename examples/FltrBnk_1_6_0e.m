@@ -29,7 +29,7 @@ cscdFltr1 = mkCscdFltrD2(H, wp);
 
 H1 = cscdFltr1.getSystem();
 plot_drsps(H1, fp, 'b', [-120 1]);
-%cscdFltr1.plotGn(fp, ws, -100, 2);
+%cscdFltr1.plotGn(fp, -100, 2);
 
 cscd2Yml(cscdFltr1, strcat(RootDir, '/examples/', fltrNm, '.yml'));
 

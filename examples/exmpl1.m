@@ -13,7 +13,8 @@ Ap = 0.1; % the passband ripple in dB
 px = [0];
 ONE_STP = 0;
 svSpecs = {p, px, wp, ws};
-[p, px, wp, ws, sclFctr, shftFctr] = trnsfrm(p, px, wp, ws);
+% [p, px, wp, ws, sclFctr, shftFctr] = trnsfrm(p, px, wp, ws);
+[p, px, wp, ws, as, sclFctr, shftFctr] = nrmlzSpecsA(p, px, wp, ws, as);
 % A positive-pass continuous-time filter with a monotonic pass-band
 [H, E, F, P] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,'elliptic');
 plot_crsps(H,wp,ws,'b',[-10 10 -160 0.5]);

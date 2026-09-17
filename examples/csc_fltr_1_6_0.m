@@ -24,7 +24,7 @@ H = cscdFltr1.getSystem();
 toc
 cscdFltr1.plotGn(wp_, -120, 2);
 tic
-runMcCscd(cscdFltr1, wp_, 2e-5, 0, 100, [-120, 2]);
+runMcCscd(cscdFltr1, wp_, 2e-5, 0, 100, [-120, 2], 'b');
 toc
 drawnow;
 cscdHndl = gcf;

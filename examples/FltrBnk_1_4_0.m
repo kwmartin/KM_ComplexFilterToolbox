@@ -29,7 +29,7 @@ cscdFltr1 = mkCscdFltrD2(H, wp);
 
 cscd2Yml(cscdFltr1, strcat(RootDir, '/examples/', fltrNm, '.yml'));
 
-%cscdFltr1.plotGn(wp, ws, -100, 2);
+%cscdFltr1.plotGn(wp, -100, 2);
 xin = zeros(8192,1);
 xin(1) = 1;
 ylim = [-60 2];

@@ -1,6 +1,8 @@
 warning('off', 'Control:ltiobject:TFComplex');
 warning('off', 'Control:ltiobject:ZPKComplex');
 exmpl;
+w_shift = 0.0j;
+wps = abs(imag(P));
 X0=X2o;
 rmvlOrdr = [1, -1];
 rmvlTypes = [8, 4];

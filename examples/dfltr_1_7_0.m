@@ -17,7 +17,7 @@ svSpecs = {p, px, wp, ws};
 tic
 H4 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,'elliptic');
 toc
-[ax1, ax2] = plot_drsps(H4, wp, ws, 'b', [-0.5 0.5 -160 1]);
+[ax1, ax2] = plot_drsps(H4, wp, 'b', [-160 1]);
 %[a, b, c, d] = ssdata(H4);
 %[sos,g] = ss2sos(a, b, c, d);
 
@@ -31,12 +31,12 @@ tic
 H3 = design_dtm_filt(p,px,ni,wp,ws,as,Ap,'elliptic');
 %[H, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,'monotonic');
 toc
-plot_drsps(H3,wp,ws,'r', [-0.5 0.5 -160 1]);
+plot_drsps(H3,wp,'r', [-160 1]);
 
 %[p, px, wp, ws, H2] = invrsTrnsfrmH(H, p, px, wp, ws, sclFctr, shftFctr);
 
 cscdFltr = dsgnCascadeFltr(p,px,ni,wp,ws,as,Ap,'elliptic');
-cscdFltr.plotGn(wp, ws, -160, 2);
+cscdFltr.plotGn(wp, -160, 2);
 
 freq_shtf = 0.0;
 tic

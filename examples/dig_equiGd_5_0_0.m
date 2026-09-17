@@ -13,10 +13,10 @@ Ordr = ni;
 
 H = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr)
 figure
-[ax1, ax2] = plot_drsps(H,wp,'b',[-40 1]);
-plot_dam_ph_gd(H, [-0.5 0.5], -40, 'b');
+[ax1, ax2] = plot_drsps(H,wp,'b',[-320 1]);
+plot_dam_ph_gd(H, [-0.5 0.5], -320, 'b');
 cscdFltr = mkCscdFltrD2(H, wp);
-plotSimCscd(cscdFltr, wp, ws, -40, 0, 'b');
+plotSimCscd(cscdFltr, wp, ws, -320, 0, 'b');
 gdHs = hgdMake(H);
 gd = hzPlot(gdHs{2});
 

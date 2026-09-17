@@ -52,13 +52,13 @@ KdMtrx1 = zeros(Nout, 1);
 [H1, KI, KF, KO, KD, SS1] = calcSFG_DFltr(KiMtrx1, KfMtrx1, OutMtrx1, KdMtrx1);
 wp = svSpecs{3};
 ws = svSpecs{4};
-[ax1, ax2] = plot_drsps(H1,wp,ws,'b', [-0.5 0.5 -70 1]);
+[ax1, ax2] = plot_drsps(H1,wp,'b', [-70 1]);
 
 % hold(ax1, 'on');
 % hold(ax2, 'on');
 % fshft = 0.03125;
 % H2 = freq_shiftd(H1, fshft);
-% plot_drsps(H2, [wp(1), wp(2) + fshft], ws, 'r', [-0.5 0.5 -70 1]);
+% plot_drsps(H2, [wp(1), wp(2) + fshft], 'r', [-70 1]);
 
 xin = zeros(1024,1);
 xin(1) = 1;
@@ -71,7 +71,7 @@ xout = simFltr(KI, KF, KO, xin, freq_shtf);
 
 Fltr2 = scaleFltr(Fltr, rvrsScl);
 cscdFltr2 = mkCscdFltr(Fltr2, wp, rvrsScl);
-cscdFltr2.plotGn(wp, ws, -70, 2);
+cscdFltr2.plotGn(wp, -70, 2);
 
 Ki3 = KiMtrx1;
 Kf3 = KfMtrx1;

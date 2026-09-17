@@ -11,8 +11,8 @@ type = 'equiGDLsPls'
 
 Ordr = 3;
 H = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr)
-[ax1, ax2] = plot_drsps(H,wpHz,'b',[-20 40]);
+[ax1, ax2] = plot_drsps(H,wp,'b',[-20 40]);
 cscdFltr = mkCscdFltrD2(H, wp);
-plotSimCscd(cscdFltr, wpHz, ws, -40, 0, 'b');
+plotSimCscd(cscdFltr, wp, ws, -40, 0, 'b');
 plot_dam_ph_gd(H, [-0.5 0.5], -40, 'b');
 a=1;

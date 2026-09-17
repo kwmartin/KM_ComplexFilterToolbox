@@ -14,7 +14,8 @@ Ap = 0.1; % the passband ripple in dB
 px = [];
 
 svSpecs = {p, px, wp, ws};
-[p, px, wp, ws, sclFctr, shftFctr] = trnsfrm(p, px, wp, ws);
+% [p, px, wp, ws, sclFctr, shftFctr] = trnsfrm(p, px, wp, ws);
+[p, px, wp, ws, as, sclFctr, shftFctr] = nrmlzSpecsA(p, px, wp, ws, as);
 
 % A positive-pass continuous-time filter with an equi-ripple pass-band
 [H, E, F, P] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,'elliptic');

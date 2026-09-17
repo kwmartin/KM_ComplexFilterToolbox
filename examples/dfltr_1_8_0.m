@@ -21,9 +21,9 @@ svSpecs = {p, px, wp, ws};
 
 [p_, px_, wp_, ws_] = shiftSpecs(p, px, wp, ws, 0.05);
 H4 = dsgnDigitalFltr(p_, px_, ni, wp_, ws_, as, Ap, 'elliptic');
-[ax1, ax2] = plot_drsps(H4, wp_, ws_, 'b', [-0.5 0.5 -160 1]);
+[ax1, ax2] = plot_drsps(H4, wp_, 'b', [-160 1]);
 cscdFltr1 = mkCscdFltrD(H4, wp);
-cscdFltr1.plotGn(wp_, ws_, -160, 2);
+cscdFltr1.plotGn(wp_, -160, 2);
 tic
 runMcCscd(cscdFltr1, wp_, 1e-4, 0, 100, [-160 2]);
 toc
@@ -109,17 +109,17 @@ KdMtrx2 = zeros(Nout, 1);
 [H1, KI, KF, KO] = calcSFG_DFltr(KiMtrx2, KfMtrx2, OutMtrx2, KdMtrx2);
 wp = svSpecs{3};
 ws = svSpecs{4};
-% [ax1, ax2] = plot_drsps(H1,wp,ws,'b', [-0.5 0.5 -120 1]);
+% [ax1, ax2] = plot_drsps(H1,wp,'b', [-120 1]);
 
 
 %hold(ax1, 'on');
 %hold(ax2, 'on');
 %fshft = 0.077;
 %H2 = freq_shiftd(H1, fshft);
-%plot_drsps(H2, wp + fshft, ws + fshft, 'r', [-0.5 0.5 -160 1]);
+%plot_drsps(H2, wp + fshft, 'r', [-160 1]);
 
 cscdFltr = mkCscdFltr(Fltr2, wp, rvrsScl);
-% cscdFltr.plotGn(wp, ws, -120, 2);
+% cscdFltr.plotGn(wp, -120, 2);
 
 Ki3 = KiMtrx2;
 Kf3 = KfMtrx2;

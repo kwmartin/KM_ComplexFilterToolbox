@@ -52,12 +52,12 @@ wp = svSpecs{3};
 ws = svSpecs{4};
 
 %fig(2) = figure('Position',[500 200 500 600]); % This places and sizes plot figure
-%[ax3, ax4] = plot_drsps(H1,wp,ws,'b', [-0.5 0.5 -70 1]);
+%[ax3, ax4] = plot_drsps(H1,wp,'b', [-70 1]);
 
 freq_shtf =0;
 cscdFltr = mkCscdFltr(Fltr, wp, 1);
 tic
-runMcCscd(cscdFltr, wp, -1e-4, freq_shtf, 100, [-60 2]);
+runMcCscd(cscdFltr, wp, -1e-4, freq_shtf, 100, [-60 2], 'b');
 toc
 
 tic

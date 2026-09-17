@@ -26,6 +26,7 @@ function [H T0] = LinPhFltr(n, deltT, ap)
   options.MaxFunEvals = 5000;
   options.MaxIter = 1000;
 
+  srt = @(p) conj(sort(p, 'ComparisonMethod', 'real'));
   h1 = bessel_filt(n, [-1 1], 3.0103);
   [z1 p1 k] = zpkdata(h1,'vector');
   Fctr = (n + 1.2)/3.2;
@@ -34,9 +35,10 @@ function [H T0] = LinPhFltr(n, deltT, ap)
   z2s = @(z)-1./sqrt(z.^2 - 1);
   Z1 = s2z(p1).';
   fndRts = @(x)besselRts(x, deltT);
-  rts = fsolve(fndRts,[Z1 n],options);
+  [rts, fval, exitflag, output] = fsolve(fndRts,[Z1 n],options);
   p2 = z2s(rts(1:end-1)).';
   p2 = cplxpair(p2, 1e-7);
+  p2 = sortReal(p2);
   T0 = rts(end);
   h2 = zpk(z1, p2, k);
   [lgH, phH, gdH, dLdW, dTdW] = AnlzH(h2, 0);
@@ -48,28 +50,31 @@ function [H T0] = LinPhFltr(n, deltT, ap)
     [lgH, phH, gdH, dLdW, dTdW] = AnlzH(h2, w);
     w = w - (lgH - ep)./dLdW;
   end
-  H = scaleFltr(h2, 1.0/w);
+  H = scaleZPK(h2, 1.0/w);
 
- for j = 1:5
-    fndRts = @(x)besselRts(x, deltT/w);
-    rts = fsolve(fndRts,rts,options);
-    p2 = z2s(rts(1:end-1)).';
-    p2 = cplxpair(p2, 1e-6);
-    T0 = rts(end);
-    h2 = zpk(z1, p2, k);
-    [lgH, phH, gdH, dLdW, dTdW] = AnlzH(h2, 0);
-    h2.k = h2.k/exp(lgH);
-    w = 1;
-    ep = -ap*log(10)/20; % desired loss in nepers
-    for i = 1:10
-      [lgH, phH, gdH, dLdW, dTdW] = AnlzH(h2, w);
-      w = w - (lgH - ep)./dLdW;
-    end
-  end
-  H = scaleFltr(h2, 1.0/w);
+% In 2026 I don't remember what the purpose of the following is. It does fsolve with deltT/w
+% but it ends with the same lgH = -0.346573595272 at w=1
+%  for j = 1:5
+%     fndRts = @(x)besselRts(x, deltT/w);
+%     [rts, fval, exitflag, output] = fsolve(fndRts,rts,options);
+%     p2 = z2s(rts(1:end-1)).';
+%     p2 = cplxpair(p2, 1e-7);
+%     p2 = sortReal(p2);
+%     T0 = rts(end);
+%     h2 = zpk(z1, p2, k);
+%     [lgH, phH, gdH, dLdW, dTdW] = AnlzH(h2, 0);
+%     h2.k = h2.k/exp(lgH);
+%     w = 1;
+%     ep = -ap*log(10)/20; % desired loss in nepers
+%     for i = 1:10
+%       [lgH, phH, gdH, dLdW, dTdW] = AnlzH(h2, w);
+%       w = w - (lgH - ep)./dLdW;
+%     end
+%   end
+  H = scaleZPK(h2, 1.0/w);
 
-  % plot_am_ph_gd(H, [-1.5 1.5], 'b');
-  % plot_crsps(H,wp,ws,'b',[-10 10 -120 1]);
+  plot_am_ph_gd(H, [-1.5 1.5], 'b');
+  plot_crsps(H,[-1 1],[-1.5 1.5],'b',[-10 10 -120 1]);
   [deltT deriv] = fnd_gd_ripple(H,[0 1]);
   
   a = 1;

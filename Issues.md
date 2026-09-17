@@ -61,27 +61,120 @@ unified repo's own `docs/` directory.
 
 ---
 
-## 3. Sort and commit the uncommitted work in `unlAdd` — needs your spot-check on results
+## 3. Sort and commit the uncommitted work in `unlAdd` — mostly done, 3b needs your decision
 
-125 modified + 41 untracked files are currently sitting uncommitted. Split
-into:
+125 modified + 41 untracked files were sitting uncommitted. Sorted and
+committed in stages, each verified with `checkcode` and/or `matlab -batch`
+runs rather than just read from the diff:
 
-- [ ] **Feature commit**: `lib/SYMMETRIC_MODE.md` + `place_poles_sym.m`,
-      `get_poles_sym.m`, `make_Kz_sym.m`, `find_minima_sym.m`,
-      `dlogKK_dp_sym.m` — a documented, additive pole-placement feature that
-      looks finished but was never committed.
-- [ ] **Fix commits**: genuine `lib/*.m` / `examples/*.m` diffs (same style
-      as the already-committed `muller.m` fix — tolerance/threshold tweaks,
-      convergence guards, plot-label corrections). Grouped logically, not
-      one giant commit.
-- [ ] **Discard, don't commit**: `*.asv` files, `examples/debug.txt`,
-      `lib/trnsfrm_scratch.m`, and similar scratch/dead-end files.
-- [ ] **Regenerated binaries**: `examples/Figures/*.png/.pdf` showing as
-      modified — commit as-is, expected output from re-running examples.
+- [x] **Feature commit** (`a79d89c7`): `lib/SYMMETRIC_MODE.md` +
+      `place_poles_sym.m`, `get_poles_sym.m`, `make_Kz_sym.m`,
+      `find_minima_sym.m`, `dlogKK_dp_sym.m`, plus the `design_ctm_filt.m`/
+      `dsgnAnalogFltr.m` wiring. Independently re-verified against
+      `SYMMETRIC_MODE.md`'s own example: 4.4e-16 max mirror-pole-pair error
+      in symmetric mode vs 0.10 for the non-symmetric baseline on the
+      identical spec — matches the doc's claim.
+- [x] **lib/ fix commit** (`b13d8f12`): 21 files - real bugs (`chckEqlOrdr.m`
+      missing `abs()`, `polyClass.m`'s one-sided `mtimes`, `rmvl4.m`'s
+      uncancelled pole/zero pair, `trnsfrm.m` being a dead script despite
+      every caller invoking it as a function), tuning changes, and cosmetic
+      fixes. Full list and rationale in the commit message.
+- [x] **multiRate/ commit** (`2e7e7bbe`): new resonator-simulation drivers
+      and a `cmplxRsntrClass` constructor cleanup - each new function called
+      directly via `matlab -batch` and checked against `testCmplxRsntrs.m`'s
+      actual (non-obvious) argument order.
+- [x] **examples/ commit** (`1d302e10`): 78 files - mostly call sites
+      catching up to already-committed lib signature changes (e.g.
+      `cascadeClass.plotGn` dropped its `ws` param back in 2020; many
+      examples still called the old 4-arg form and would have errored).
+      Caught and fixed one real bug in the process: `exmpl1.m` was capturing
+      only 6 of `nrmlzSpecsA`'s 7 outputs, silently shifting `sclFctr`/
+      `shftFctr` by one position - verified the fix end-to-end with
+      `matlab -batch`.
+- [x] **Figures commit** (`46d32419`): regenerated PNG/PDF output matching
+      the examples/ changes.
+- [x] **Remaining new files commit** (`d576106d`): `circFnDefs.yml`,
+      `examples/Fbnk_1_12_0.yml`, `examples/QuadDDFS.png`,
+      `examples/dig_equiGd_5_10_0.m`, `lib/goDbg.m`.
+- [x] **Discarded** (deleted, not committed): `examples/debug.txt` (a pasted
+      MATLAB console transcript) and `lib/trnsfrm_scratch.m` (a saved-off
+      copy of `trnsfrm.m`'s old, dead content, superseded by the rewrite in
+      `b13d8f12`). All `*.asv` files are now gitignored (issue 10) rather
+      than needing individual handling.
 
-MATLAB R2024b is available (`matlab -nodisplay -nosplash -batch "..."`). Each
-non-trivial algorithmic change will be run against its example before being
-proposed for commit, with actual output reported — not just the diff.
+### 3b. Six `lib/` files held back — need your call on each
+
+These didn't get the benefit of the doubt during sorting because something
+about the diff looked like it could be an unintentional bug rather than a
+deliberate change, and guessing wrong on filter-design math seemed worse than
+asking. None are committed yet.
+
+- [ ] **`lib/findLossEdges.m` and `lib/findLossMinima.m`** — both add a
+      helper `lgspc = @(x1,x2,N) log10(logspace(x1,x2,N))`. Verified in
+      MATLAB: `log10(logspace(a,b,N))` is *exactly* `linspace(a,b,N)` (the
+      `log10`/`logspace` cancel). `findLossMinima.m` then uses it as
+      `w = lgspc(0,100,10001)` in place of the old `logspace(-2,2,1000)` -
+      i.e. it switched from a **log-spaced** search grid (0.01 to 100) to a
+      **linear** one (0 to 100, including 0). Given the function's job is
+      finding stopband loss minima across frequency, a log grid seems like
+      the intended behavior and this looks like an accidental composition
+      bug rather than a deliberate switch to linear spacing. Does this match
+      what you intended, or should `lgspc(...)` calls just be `logspace(...)`
+      calls (dropping the redundant `log10`)?
+- [ ] **`lib/place_polesdLP4.m` and `lib/place_polesdLP5.m`** — both define
+      that same `lgspc` helper but never actually call it (dead code either
+      way, harmless, but worth dropping either way once 3b is resolved).
+      Separately, `place_polesdLP4.m` changes
+      `findLossEdges(Hy1,lssMin,wy1)` to
+      `findLossEdges(Hy1,lossMin(2),wy1)` - from "the minimum of all loss
+      minima" to specifically the *second* one. Note: `examples/dig_equiGd_
+      15_0_0.m` (already committed) independently switched from calling
+      `place_polesdLP4` to `place_polesdLP5` in this same area, which might
+      mean `place_polesdLP4.m`'s in-progress edit here was abandoned in
+      favor of LP5 rather than finished - do you still need this change, or
+      is `place_polesdLP4.m` effectively superseded by LP5 now?
+      `place_polesdLP5.m` also wraps its core Newton-step linear solve in a
+      `try/catch` that just `fprintf`s on failure and continues the loop
+      with the previous iteration's `X` - intentional robustness against
+      occasional singular systems, or should a failure here actually stop
+      the search?
+- [ ] **`lib/setK.m`** — changes the unconditional `Ply.K = real(Ply.K)`
+      (itself flagged with a pre-existing "this might be incorrect; needs to
+      be verified" comment) to `if real(Ply.K) > imag(Ply.K) ... else
+      Ply.K = imag(Ply.K); end`. That comparison isn't magnitude-aware
+      (e.g. real=-5, imag=1 takes the `imag` branch, even though `|real|` is
+      the bigger component) - is the intent `abs(real(Ply.K)) >
+      abs(imag(Ply.K))`, or something else entirely?
+- [ ] **`lib/LinPhFltr.m`** (plus its two new, otherwise-unused support
+      files `lib/scaleZPK.m` and `lib/sortReal.m`, currently untracked
+      pending this) — two adjacent lines:
+      `p2 = z2s(rts(1:end-1)).';` immediately followed by `p2 = p1;`. The
+      fsolve-refined pole positions computed on the first line are
+      discarded on the very next line in favor of the unrefined prototype
+      poles `p1` - `T0 = rts(end)` still uses the fsolve result, but the
+      pole placement itself doesn't. This looks like a debug leftover (a
+      "what if I skip the correction step" experiment) rather than an
+      intended simplification, especially paired with the block below it
+      being commented out with the note "I don't remember what the purpose
+      of the following is" - but if the equi-ripple group-delay correction
+      genuinely turned out to be unnecessary for this filter class, `p2 =
+      p1;` might be exactly right. Keep, revert to using the fsolve result,
+      or something else?
+
+### 3c. Two more items surfaced while sorting — need your call
+
+- [ ] `multiRate/osc1.dat` (untracked, 9.1MB ASCII time/voltage data) - no
+      `.m` file anywhere in the repo reads it (grepped the whole tree).
+      Looks like it might be oscillator-simulation data meant to pair with
+      `dc_osc.m`/`sin_approx.m` but not wired up yet. Keep as a to-be-used
+      fixture, or hold off on committing something this large with no
+      current consumer?
+- [ ] `examples/dig_equiGd_3_4_0_wrk.m` (untracked) - a "_wrk" variant of
+      the already-committed `dig_equiGd_3_4_0.m`, differing only in a few
+      plot y-axis limits (e.g. `-40` vs `-200`, `-300` vs `-320`). Looks like
+      an earlier/alternate-parameter draft superseded by the committed
+      version rather than something distinct - discard, or is it worth
+      keeping as its own example?
 
 ---
 

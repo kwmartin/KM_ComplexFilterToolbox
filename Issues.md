@@ -264,7 +264,8 @@ final sanity check, but there's no open question here.
       `scatchsheet`(`~`), `worksheet.m~`, `testjl.m`, `afile.mat`,
       `filtOut.mat`, `Good:`, `BackUp/`, `commit.msg`, `history1.txt`, and
       every tracked `*.asv`) *before* running `git checkout master`. Nothing
-      was lost.
+      was lost. **Deleted this backup folder** once the whole plan was
+      verified complete and nothing in it turned out to be needed.
 
 ### Loose ends from issue 8 — informational, no action needed unless you want it
 
@@ -329,7 +330,8 @@ Per your follow-up request:
       the same already-excluded junk (`doc/`, `*.asv`, `commit.msg`, several
       `*.m~` editor backups not previously seen in the other clone) - backed
       up to `/home/Dropbox/Matlab/KM_ComplexFilterToolbox-pre-cleanup-junk`
-      (47MB) before the switch, same as issue 8's local repoint.
+      (47MB) before the switch, same as issue 8's local repoint. **Deleted**
+      once confirmed unneeded (same as the other clone's backup folder).
 - [x] Verified: working tree clean, tracks `origin/master`, `ldiAllPass`
       runs correctly via `matlab -batch`.
 - Note: this clone's `.git` is still ~330MB (a local `backup-remote-master`

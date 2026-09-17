@@ -133,28 +133,27 @@ asking. None are committed yet.
       with the previous iteration's `X` - intentional robustness against
       occasional singular systems, or should a failure here actually stop
       the search?
-- [ ] **`lib/setK.m`** — changes the unconditional `Ply.K = real(Ply.K)`
-      (itself flagged with a pre-existing "this might be incorrect; needs to
-      be verified" comment) to `if real(Ply.K) > imag(Ply.K) ... else
-      Ply.K = imag(Ply.K); end`. That comparison isn't magnitude-aware
-      (e.g. real=-5, imag=1 takes the `imag` branch, even though `|real|` is
-      the bigger component) - is the intent `abs(real(Ply.K)) >
-      abs(imag(Ply.K))`, or something else entirely?
-- [ ] **`lib/LinPhFltr.m`** (plus its two new, otherwise-unused support
-      files `lib/scaleZPK.m` and `lib/sortReal.m`, currently untracked
-      pending this) — two adjacent lines:
-      `p2 = z2s(rts(1:end-1)).';` immediately followed by `p2 = p1;`. The
-      fsolve-refined pole positions computed on the first line are
-      discarded on the very next line in favor of the unrefined prototype
-      poles `p1` - `T0 = rts(end)` still uses the fsolve result, but the
-      pole placement itself doesn't. This looks like a debug leftover (a
-      "what if I skip the correction step" experiment) rather than an
-      intended simplification, especially paired with the block below it
-      being commented out with the note "I don't remember what the purpose
-      of the following is" - but if the equi-ripple group-delay correction
-      genuinely turned out to be unnecessary for this filter class, `p2 =
-      p1;` might be exactly right. Keep, revert to using the fsolve result,
-      or something else?
+- [x] **`lib/setK.m`** — done (commit `29f76cc6`). Instrumented setK.m and
+      ran it across ~164 real setK calls (elliptic, symmetric-mode elliptic,
+      partial monotonic designs): `imag(Ply.K)` was noise at the
+      1e-14..1e-16 relative level in all but 2 calls, where `real(Ply.K)`
+      was still correct - forcing the `imag` branch there left `exmpl.m`'s
+      reported stopband attenuation completely unchanged, so that term's
+      magnitude is just too small to matter either way. Kept
+      `Ply.K = real(Ply.K)` (empirically always right) and replaced the
+      unmotivated comparison with an actual runtime check: warn if
+      `imag(K)` is ever non-negligible relative to `real(K)`, instead of
+      silently mis-selecting.
+- [x] **`lib/LinPhFltr.m`** (plus `lib/scaleZPK.m`/`lib/sortReal.m`) — done
+      (commit `e2d06f16`), confirmed as a bug per your steer. Ran the
+      function both ways (with and without `p2 = p1;`) for n in {4,7,9} and
+      ap in {0.1, 3.0103}, measuring group-delay ripple over the passband:
+      with `p2 = p1` in place, ripple was ~1e-6 to 1e-15 (a plain scaled
+      Bessel response - `p2 = p1` bypassed the equi-ripple correction
+      entirely, defeating the function's stated purpose), while removing it
+      produced consistent, structured ripple (0.0006-0.0037) in every case -
+      actual equi-ripple behavior. Removed the line; `T0` and filter order
+      were unaffected.
 
 ### 3c. Two more items surfaced while sorting — need your call
 

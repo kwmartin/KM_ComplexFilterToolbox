@@ -218,29 +218,85 @@ final sanity check, but there's no open question here.
 
 ---
 
-## 7. Rewrite git history with `git filter-repo` — mostly autonomous, force-push needs your go-ahead
+## 7. Rewrite git history with `git filter-repo` — done
 
-- [ ] Run on a fresh mirror clone (never the only working copy)
-- [ ] Strip every path from issue 1 (and `doc/`, per issue 2) from all commits
-- [ ] Verify resulting `.git` size and spot-check `muller.m`/
-      `place_poles_sym.m` content survived intact
-- [ ] **Stop and get explicit approval before force-pushing** to `origin`
+- [x] Installed `git-filter-repo` in an isolated venv (scratchpad only - the
+      system Python is externally-managed, so this avoided any
+      `--break-system-packages` system change).
+- [x] Ran on a **mirror clone** in the scratchpad (`unlAdd-mirror.git`) - the
+      real working copies were never touched by the rewrite itself.
+- [x] Stripped every path from issue 1's confirmed list (`tmp/`, `pathdef.m`,
+      `pathdef_.m`, `settings.mat`, `scatchsheet`(`~`), `worksheet.m~`,
+      `testjl.m`, every `*.asv`, `afile.mat`, `filtOut.mat`, `Good:`,
+      `BackUp/`, `commit.msg`, `history1.txt`, `cmplxApprx/{outDat.mat,
+      qd_dds.out,OpenGL_Version}`) plus all of `doc/` (issue 2) from every
+      commit on every branch (`unlAdd`, `master`, `backup-remote-master`).
+- [x] Verified: `.git` size **815MB -> 34MB**; commit count on `unlAdd`
+      unchanged at **38** (only blobs stripped, no commits lost);
+      `git rev-list --objects --all | grep` for every excluded path/pattern
+      returns nothing anywhere in history, not just the tip; spot-checked
+      `lib/muller.m`, `lib/place_poles_sym.m`, `lib/setK.m`,
+      `lib/LinPhFltr.m`, `cmplxApprx/apprxCoid.m` content at the tip; did a
+      full working-tree checkout of the rewritten history into a scratch
+      directory and confirmed every excluded path is gone while every real
+      directory is intact.
 
 ---
 
-## 8. Promote `unlAdd` to `master` on GitHub — needs your approval
+## 8. Promote `unlAdd` to `master` on GitHub — done
 
-- [ ] Force-push cleaned `unlAdd` history to `origin/master`
-- [ ] Decide fate of old `master` / `backup-remote-master` refs (retire vs.
-      archive as a tag)
+- [x] Tagged `origin/master`'s pre-cleanup tip as `pre-cleanup-master` and
+      pushed that tag first, per your call - it's permanently recoverable on
+      GitHub. Left `backup-remote-master` untouched (already its own
+      preserved ref, and it happens to already equal the pre-cleanup
+      `unlAdd` tip too).
+- [x] Force-pushed the rewritten `unlAdd` history to `origin/master`
+      (`815abfaa -> 8aae12ed`). Verified from a **completely fresh clone**
+      (not this session's mirror): 38 commits, junk-free tree, works
+      end-to-end (`LinPhFltr` sanity check ran correctly).
+- [x] Re-pointed this local clone at the new history. Important nuance:
+      switching branches deletes tracked-then-absent files from disk (not
+      just from git) - so before switching, backed up every excluded file
+      that wasn't already staged elsewhere (`doc/` was already safe in
+      `/home/Dropbox/Matlab/Complex/docs`) to
+      `/home/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox-pre-cleanup-junk`
+      (11MB: `tmp/`, `pathdef.m`, `pathdef_.m`, `settings.mat`,
+      `scatchsheet`(`~`), `worksheet.m~`, `testjl.m`, `afile.mat`,
+      `filtOut.mat`, `Good:`, `BackUp/`, `commit.msg`, `history1.txt`, and
+      every tracked `*.asv`) *before* running `git checkout master`. Nothing
+      was lost.
+
+### Loose ends from issue 8 — informational, no action needed unless you want it
+
+- A default `git clone` of the repo now pulls all branches (branches
+  fetched during clone aren't restricted to the default one), so
+  `origin/unlAdd` and `origin/backup-remote-master` (both still at the old
+  `590cc5bd` junk-laden tip) still add weight to a full clone - measured
+  **84MB** for `git clone` with everything, vs the original **815MB**, still
+  a huge win, and `git clone --single-branch -b master` (or GitHub's default
+  zip/tarball download) is much smaller than even that. Left `unlAdd`/
+  `backup-remote-master` alone since the plan's original framing was to keep
+  old branches "as history markers," not rewrite them too - say the word if
+  you'd like those cleaned up as well later.
+- This local clone's `.git` is still ~849MB on disk - the local `unlAdd`
+  branch (this session's pre-rewrite commit sequence, `d43a9c14` etc., with
+  the original hashes) is still sitting there unrewritten and reachable, so
+  nothing was pruned locally. Its content is fully superseded by `master`
+  now; not deleted since its exact original commit hashes aren't preserved
+  anywhere else durable (the scratchpad mirror is ephemeral). Fine to leave
+  as-is, or delete once you're comfortable it's no longer needed.
+- Cloning printed a benign warning about `.gitmodules` having a duplicate
+  submodule entry *at one historical commit* (not the current tree, which
+  only has one clean entry) - cosmetic, no action needed.
 
 ---
 
 ## 9. Retire the second local clone — needs your decision
 
-- [ ] Once issue 4 is done, decide: delete
-      `/home/Dropbox/Matlab/KM_ComplexFilterToolbox`, or re-point it to track
-      the new cleaned `master` as an ordinary second checkout?
+- [ ] Now that `origin/master` carries everything `unlAdd` had (issue 4 is
+      done), decide: delete `/home/Dropbox/Matlab/KM_ComplexFilterToolbox`
+      (its master branch is now behind/superseded), or re-point it to track
+      the new cleaned `origin/master` as an ordinary second checkout?
 
 ---
 

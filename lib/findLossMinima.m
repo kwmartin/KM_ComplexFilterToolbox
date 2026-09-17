@@ -21,8 +21,13 @@ function zmin = findLossMinima(Hy,wsy,as)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
 
-NPTS = 1000;
-w = logspace(-2,2,NPTS).';
+NPTS = 10001;
+% REVIEW-LOGSPACE: was log10(logspace(0,100,NPTS)), which is exactly
+% linspace(0,100,NPTS) - simplified since they're equivalent (this also
+% replaced an original logspace(-2,2,1000) call, i.e. a genuinely
+% log-spaced 0.01-100 grid, with today's linear 0-100 grid). If this search
+% turns out to need log-spaced points instead, search for REVIEW-LOGSPACE.
+w = linspace(0,100,NPTS);
 [mrgn, phH, gdH, dLdW, dTdW, d2LdW] = getMarginLP(Hy,wsy,as,w);
 zmin = zrCrss(w,dLdW);
 for i=1:4 % Normally 3 iterations is more than adequate

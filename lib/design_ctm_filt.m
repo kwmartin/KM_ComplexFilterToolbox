@@ -1,5 +1,9 @@
-function [H, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,ap,type)
-%   [H, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,ap,type) cont. time filt.
+function [H, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,ap,type,symmetric)
+%   [H, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,ap,type,symmetric) cont. time filt.
+%   symmetric is an optional flag (default false); when true, p/wp/ws/as
+%   must be an exactly mirror-symmetric spec, and place_poles_sym is used
+%   instead of place_poles so the resulting loss poles are exactly (not
+%   just approximately) complex-conjugate symmetric. See place_poles_sym.m.
 %   Design a continuous-time IIR transfer function to meet specifications
 %   p: Initial guess at finite loss poles; actual values not important as
 %   long as they are in the stop; this spec is mostly used to decide the
@@ -68,8 +72,11 @@ function [H, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,ap,type)
 warning('off', 'Control:ltiobject:TFComplex');
 warning('off', 'Control:ltiobject:ZPKComplex');
 
-if nargin ~= 8
-    error('There should be 8 inputs: p (initial moveable pole vector), px (fixed poles), ni (number of poles at infinity), wp (pass-band frequencies), ws (stop-band frequencies), as (stop-band atten.), as (pass-band atten.) and type')
+if nargin < 8 || nargin > 9
+    error('There should be 8 or 9 inputs: p (initial moveable pole vector), px (fixed poles), ni (number of poles at infinity), wp (pass-band frequencies), ws (stop-band frequencies), as (stop-band atten.), as (pass-band atten.), type, and optionally symmetric')
+end
+if nargin < 9
+    symmetric = false;
 end
 
 % find the edges of the transition regions
@@ -102,7 +109,11 @@ as = [as(1) as as(length(as))];
 if length(p) >=1
   % place_poles is one of the most important functions used in approximation
   % Kz is K polynomial in z domain (note: this z is not e^(jwT))
-	Kz = place_poles(p,px,ni,wp,ws,as,e_,type);
+  if symmetric
+    Kz = place_poles_sym(p,px,ni,wp,ws,as,e_,type);
+  else
+    Kz = place_poles(p,px,ni,wp,ws,as,e_,type);
+  end
 else
     Kz = make_init2Kz(p,px,ni,wp,type);
 end

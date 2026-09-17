@@ -1,4 +1,4 @@
-function Fltr = dsgnAnalogFltr(p,px,ni,wp,ws,as,Ap,type)
+function Fltr = dsgnAnalogFltr(p,px,ni,wp,ws,as,Ap,type,symmetric)
 %   Design a continuous-time transfer function to meet specificatios
 %   ws (stop-band edge frequencies), as (relative loss at ws - only effects
 %   weighting of negative stop-band vs. positive stop-band, Ap (pass-band
@@ -11,6 +11,13 @@ function Fltr = dsgnAnalogFltr(p,px,ni,wp,ws,as,Ap,type)
 %   in the ladder filter (assuming a ladder filter is to be designed);
 %   otherwise it can be done on the transfer function using freqScale(H,
 %   1/sclFctr) and freq_shift(H2, -shftFctr).
+%
+%   symmetric is an optional flag (default false); when true, the spec must
+%   be exactly mirror-symmetric about its own passband center (any overall
+%   shift/scale the caller applies is undone by nrmlzSpecsA before this
+%   matters), and place_poles_sym is used so the resulting loss poles are
+%   exactly, not just approximately, complex-conjugate symmetric. See
+%   lib/SYMMETRIC_MODE.md.
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -34,10 +41,14 @@ function Fltr = dsgnAnalogFltr(p,px,ni,wp,ws,as,Ap,type)
   warning('off', 'Control:ltiobject:TFComplex');
   warning('off', 'Control:ltiobject:ZPKComplex');
 
+  if nargin < 9
+      symmetric = false;
+  end
+
   [p, px, wp, ws, as, sclFctr, shftFctr] = nrmlzSpecsA(p, px, wp, ws, as);
 
   ONE_STP = 0;
-  [H1, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,type);
+  [H1, E, F, P, e_] = design_ctm_filt(p,px,ni,wp,ws,as,Ap,type,symmetric);
   % Return a struct with important components to make life simpler
   Fltr = struct('H', H1, 'E', E, 'F', F, 'P', P, 'e_', e_, ...
     'sclFctr', sclFctr, 'shftFctr', shftFctr);

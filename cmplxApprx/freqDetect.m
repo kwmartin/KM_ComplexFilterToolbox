@@ -1,0 +1,18 @@
+mkCoid = @ (f, npts) exp(j*2*pi*(0:f:(npts-1)*f)).';
+pltarry = @(arry) plot(1:length(arry), arry);
+pltcoid = @(coid) pltarry([real(coid), imag(coid)])
+
+f = 1/20;
+coid1 = mkCoid(1/20,321);
+coid2 = mkCoid(-0.9/20, 321);
+coid3 = coid1.*coid2;
+slope = [0; diff(imag(coid3))]./f;
+dtct1 = slope.*real(coid3);
+figure
+plot(dtct1);
+hold
+coid2 = mkCoid(-1.1/20, 321);
+coid3 = coid1.*coid2;
+slope = [0; diff(imag(coid3))]./f;
+dtct2 = slope.*real(coid3);
+plot(dtct2);

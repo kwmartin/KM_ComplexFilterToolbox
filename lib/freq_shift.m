@@ -22,7 +22,7 @@ function H2 = freq_shift(H, delta_w)
 
     warning('off', 'Control:ltiobject:TFComplex');
     warning('off', 'Control:ltiobject:ZPKComplex');
-    if imag(delta_w) < 1e-5 delta_w = delta_w*j; end % assume delta_w is real
+    if abs(imag(delta_w)) < 1e-5 delta_w = delta_w*j; end % assume delta_w is real
     switch class(H)
         case 'zpk'
             [z,p,k] = zpkdata(H, 'v');

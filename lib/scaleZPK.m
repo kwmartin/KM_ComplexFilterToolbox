@@ -17,9 +17,9 @@ function H2 = scaleZPK(H, sclFctr)
 %   You should have received a copy of the GNU General Public License
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
-srt = @(p) conj(sort(p, 'ComparisonMethod', 'real'));
+srt = @(p) sort(p, 'ComparisonMethod', 'real');
 [z, p, k] = zpkdata(H, 'vector');
 z2 = srt(z)*sclFctr;
 p2 = srt(p)*sclFctr;
 k2 = k*(sclFctr^(length(p) - length(z)));
-H2 = zpk(z2, p2, k2);
+H2 = zpk(z2, p2, k2, H.Ts);

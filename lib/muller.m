@@ -91,7 +91,12 @@ function [val]= muller(fun,ply,N,Init,tol,maxIter,imagRoots)
 
       if abs(h) < 1e-15
         table = char(table);
-        root_ = p;
+        % p is only assigned later in this loop (line below); p2 already
+        % holds the most recently accepted candidate at this point (it gets
+        % carried into p at the bottom of the loop), so it's both the safe
+        % and the semantically-correct value when the step collapses to
+        % numerical zero before p is (re)computed this iteration.
+        root_ = p2;
         break
       end
 
@@ -233,7 +238,14 @@ function [val]= muller(fun,ply,N,Init,tol,maxIter,imagRoots)
         pl1 = poly(rts);
         [p pDer] = plyDer(pl1, rts);
         funRts = fun(rts);
-        rts = rts - funRts./pDer;
+        step = funRts./pDer;
+        % pDer vanishes exactly at a repeated root (multiplicity >= 2),
+        % giving 0/0 = NaN; poly() on NaN-valued roots then collapses to
+        % length 1, which crashes plyDer's own guard on the next
+        % iteration. Leave those entries' estimate unchanged this
+        % iteration rather than propagating NaN/Inf.
+        step(~isfinite(step)) = 0;
+        rts = rts - step;
       end
       ply.rts = rts;
   end

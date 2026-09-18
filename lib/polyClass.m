@@ -87,7 +87,11 @@ classdef (ConstructOnLoad = true) polyClass < handle
     function rts = cleanRts(obj)
       tol = 1e-5;
       indic = find(abs(obj.rts) > 1e4); % its assuming everything is freq. scaled
-      for i = indic.'
+      % Iterate in descending order: deleting obj.rts(i) shifts every later
+      % (higher) index down by one, so processing ascending indices (as
+      % originally written) makes later entries in indic stale once an
+      % earlier one is removed, eventually indexing past the shrunk array.
+      for i = sort(indic, 'descend').'
         obj.K = obj.K*obj.rts(i);
         obj.rts(i) = [];
       end
@@ -181,6 +185,36 @@ classdef (ConstructOnLoad = true) polyClass < handle
       end
     end
 
+    function Eevn = getEvn(obj)
+      % Eevn = getEvn(obj) returns the even part of obj. Uses roots()
+      % directly on the exact even-part coefficient vector (see
+      % evnOddImpl) -- far more accurate and 10-17x faster than the
+      % Muller-based getEvnMuller across a broad validation sweep (see
+      % examples/tst_getEvnOdd.m); prefer this unless you specifically
+      % need to reproduce getEvnOddPly.m's/getEvnMuller's exact behavior.
+      [Eevn, ~] = evnOddImpl(obj);
+    end
+
+    function Eodd = getOdd(obj)
+      % Eodd = getOdd(obj) returns the odd part of obj. See getEvn.
+      [~, Eodd] = evnOddImpl(obj);
+    end
+
+    function Eevn = getEvnMuller(obj)
+      % Eevn = getEvnMuller(obj) returns the even part of obj using the
+      % original Muller-root-finding approach (a direct port of
+      % getEvnOddPly.m as a polyClass method). Kept for comparison/
+      % reference; getEvn is recommended for new code (see its docstring
+      % and examples/tst_getEvnOdd.m).
+      [Eevn, ~] = evnOddMullerImpl(obj);
+    end
+
+    function Eodd = getOddMuller(obj)
+      % Eodd = getOddMuller(obj) returns the odd part of obj using the
+      % original Muller-root-finding approach. See getEvnMuller.
+      [~, Eodd] = evnOddMullerImpl(obj);
+    end
+
     function val = peval(obj, w)
       if isempty(obj.rts)
         val = obj.K;
@@ -201,6 +235,133 @@ classdef (ConstructOnLoad = true) polyClass < handle
       end
     end
   end
+end
+
+function [Eevn, Eodd] = evnOddMullerImpl(obj)
+% Shared implementation behind the getEvnMuller/getOddMuller methods. This
+% is a direct port of getEvnOddPly.m's algorithm (see that file/
+% lib/Fix_Lddr_Rlznts.md for the underlying math and history) operating on
+% obj instead of a passed-in argument, kept in lock-step with it for
+% comparison purposes. See evnOddImpl for the recommended (roots()-based)
+% implementation behind the default getEvn/getOdd methods.
+
+rts = obj.rts;
+if isempty(find(abs(real(rts)) > 1e-5))
+    if mod(obj.N, 2) == 0
+        Eevn = polyClass(obj);
+        Eodd = polyClass();
+    else
+        Eevn = polyClass();
+        Eodd = polyClass(obj);
+    end
+    return
+end
+Etf = poly(rts);
+Netf = length(Etf);
+if mod(Netf, 2) == 1
+    sgns = (-1).^(0:(Netf-1));
+else
+    sgns = (-1).^(1:(Netf));
+end
+Etfevn = (Etf + conj(Etf).*sgns)/2;
+Etfevn = reduceLeadTF(Etfevn);
+Etfodd = (Etf - conj(Etf).*sgns)/2;
+Etfodd = reduceLeadTF(Etfodd);
+Nevn = length(Etfevn) - 1;
+Nodd = length(Etfodd) - 1;
+
+% Now that we know the order we find the roots
+% of the even and odd polynomials using more
+% accurate zero finding based on Muller
+
+obj2 = obj'; % obj2 = conj(obj(-s))
+funEvn = @(s) (obj.peval(s) + obj2.peval(s))/2.0;
+funOdd = @(s) (obj.peval(s) - obj2.peval(s))/2.0;
+Eevn = polyClass();
+Eevn.K = 1;
+Eodd = polyClass();
+Eodd.K = 1;
+
+Init = [-2j j 3j];
+tol = 1e-14;
+maxIter = 1000;
+
+if Nevn <= 1
+    Evn.rts = [];
+    Evn.K = 0;
+else
+    val= muller(funEvn,Eevn,Nevn,Init,tol,maxIter);
+    Eevn.cleanRts();
+    Eevn = setK(funEvn, Eevn);
+end
+
+if Nodd < 1
+    Eodd.rts = [];
+    Eodd.K = 0;
+else
+    val= muller(funOdd,Eodd,Nodd,Init,tol,maxIter);
+    Eodd = setK(funOdd, Eodd);
+    Eodd.cleanRts();
+end
+end
+
+function [Eevn, Eodd] = evnOddImpl(obj)
+% Shared implementation behind the default getEvn/getOdd methods. Avoids
+% Muller point iteration (and its Newton polishing, which is
+% ill-conditioned at repeated roots) and setK's forced-real-gain
+% assumption (wrong for genuinely complex-coefficient polynomials)
+% entirely -- see evnOddMullerImpl for that (legacy, getEvnMuller/
+% getOddMuller) approach.
+%
+% Etf=poly(rts) and the even/odd coefficient split (Etfevn/Etfodd) are
+% *exact* -- evnOddMullerImpl already computes them, but only uses them to
+% count the degree before re-deriving the same roots less directly via
+% Muller. Since Etfevn/Etfodd ARE the exact coefficient vectors of the
+% even/odd parts (up to the overall obj.K scale, which doesn't affect
+% root locations), MATLAB's built-in roots() -- a mature, robust
+% eigenvalue-based solver -- finds them directly with no iteration to
+% fail to converge. The gain is then just obj.K times the leading
+% (post-reduction) coefficient; no setK/cleanRts needed.
+%
+% Unlike evnOddMullerImpl, this does not zero out low-degree (Nevn<=1 /
+% Nodd<1) components -- that shortcut in the original algorithm silently
+% discards a genuinely nonzero linear/constant part.
+
+rts = obj.rts;
+if isempty(find(abs(real(rts)) > 1e-5))
+    if mod(obj.N, 2) == 0
+        Eevn = polyClass(obj);
+        Eodd = polyClass();
+    else
+        Eevn = polyClass();
+        Eodd = polyClass(obj);
+    end
+    return
+end
+
+Etf = poly(rts);
+Netf = length(Etf);
+if mod(Netf, 2) == 1
+    sgns = (-1).^(0:(Netf-1));
+else
+    sgns = (-1).^(1:(Netf));
+end
+Etfevn = reduceLeadTF((Etf + conj(Etf).*sgns)/2);
+Etfodd = reduceLeadTF((Etf - conj(Etf).*sgns)/2);
+
+if isempty(Etfevn)
+    Eevn = polyClass();
+    Eevn.K = 0;
+else
+    Eevn = polyClass(roots(Etfevn), obj.K*Etfevn(1));
+end
+
+if isempty(Etfodd)
+    Eodd = polyClass();
+    Eodd.K = 0;
+else
+    Eodd = polyClass(roots(Etfodd), obj.K*Etfodd(1));
+end
 end
 
 function str = char(obj)

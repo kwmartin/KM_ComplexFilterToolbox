@@ -1,7 +1,8 @@
-function [lgH, phH, gdH, dLdW, dTdW, d2LdW] = AnlzH(H, w)
+function [lgH, phH, gdH, dLdW, dTdW, d2LdW, d2TdW] = AnlzH(H, w)
 %   [lgH, phH, gdH, dHdW] = AnlzH(H, w) analyzs H and returns
 %   the ln(abs(H)) (nepers), phH (radians), gdH (group delay in s),
 %   and d(abs(H))/dw at frequency or frequencis specified in w (in radians)
+%   d2TdW is the second derivative of group delay with respect to w
 %
 %   Toolbox for the Dsign of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -28,21 +29,25 @@ function [lgH, phH, gdH, dLdW, dTdW, d2LdW] = AnlzH(H, w)
   derivSum = zeros(size(w));
   logSum = zeros(size(w));
   ddrvSum = zeros(size(w));
+  dddrvSum = zeros(size(w));
   s = j.*w;
   for l = 1:nz
       logSum = logSum + log((s - z(l)));
       derivSum = derivSum + 1./(s - z(l)*onesVctr);
       ddrvSum = ddrvSum + 1./((s - z(l)*onesVctr).^2);
+      dddrvSum = dddrvSum + 1./((s - z(l)*onesVctr).^3);
   end
   for l = 1:np
       logSum = logSum - log((s - p(l)));
       derivSum = derivSum - 1./(s - p(l)*onesVctr);
       ddrvSum = ddrvSum - 1./((s - p(l)*onesVctr).^2);
+      dddrvSum = dddrvSum - 1./((s - p(l)*onesVctr).^3);
   end
-  phH = imag(logSum);
+  phH = angle(k) + imag(logSum);
   lgH = log(abs(k)) + real(logSum);
   gdH = -real(derivSum); % because we didn't multiply by j in finding first order derivatives
   dLdW = -imag(derivSum);
   dTdW = -imag(ddrvSum);
   d2LdW = real(ddrvSum);
+  d2TdW = 2*real(dddrvSum);
   a=1;

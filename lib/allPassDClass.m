@@ -1,21 +1,18 @@
 classdef (ConstructOnLoad = true) allPassDClass < handle
 %   classdef (ConstructOnLoad = true) allPassDClass < handle
 %   allPassDClass defines a single first-order discrete-time all-pass
-%   section, H(z) = (z^-1 - wi)/(1 - wi*z^-1), where wi IS the pole
-%   location directly. Rewritten in positive powers of z:
-%   H(z) = -wi*(z - 1/wi)/(z - wi), giving zero at 1/wi, pole at wi, and
-%   gain k = -wi (zero = 1/pole exactly, no conjugate -- the correct
-%   complex generalization of the classic real-filter all-pass zero/pole
-%   mirroring). wi may be complex; stability requires abs(wi) < 1. H
-%   always satisfies the paraconjugate all-pass property H(z)*H(1/z) = 1
-%   (holds for any wi); the classical magnitude response |H(e^jw)| is
-%   additionally exactly flat (=1) whenever wi is real (a complex wi with
-%   a nonzero phase gives genuine frequency-selective phase shaping but
-%   not exactly flat magnitude in the classical sense -- the
-%   paraconjugate property is the appropriate generalization for this
-%   toolbox's complex filters). Used as a building block for group-delay
-%   equalizers (see eqlzrDClass.m) that adjust a filter's phase without
-%   changing its magnitude response.
+%   section, H(z) = (z^-1 - conj(wi))/(1 - wi*z^-1), where wi IS the pole
+%   location directly and the zero is placed at its classical
+%   conjugate-mirror 1/conj(wi). Rewritten in positive powers of z:
+%   H(z) = -conj(wi)*(z - 1/conj(wi))/(z - wi), giving zero at 1/conj(wi),
+%   pole at wi, and gain k = -conj(wi). wi may be complex; stability
+%   requires abs(wi) < 1. This conjugate-based zero/pole mirroring gives
+%   an exactly flat magnitude response |H(e^jw)| = 1 for ANY complex wi
+%   (not just real wi): |k|/|wi| = |conj(wi)|/|wi| = 1 always, and the
+%   frequency-dependent terms cancel exactly (verified algebraically) --
+%   i.e. this genuinely adjusts phase/group-delay without changing
+%   magnitude, which is the whole point of an equalizer. Used as a
+%   building block for group-delay equalizers (see eqlzrDClass.m).
 %   wi: the all-pass parameter, i.e. the pole location (complex scalar)
 %   T: the sample time (default 1, matching this toolbox's convention)
 %   sys: the zpk system object, kept in sync with wi and T
@@ -78,7 +75,7 @@ classdef (ConstructOnLoad = true) allPassDClass < handle
         error('wi must be double');
       end
       obj.wi = wi;
-      obj.sys = zpk(1/wi, wi, -wi, obj.T);
+      obj.sys = zpk(1/conj(wi), wi, -conj(wi), obj.T);
       if abs(wi) >= 1
         warning('allPassDClass:unstablePole', ...
             'allPassDClass: pole at wi = %s has magnitude %0.5g >= 1 (need abs(wi) < 1)', ...
@@ -95,7 +92,7 @@ classdef (ConstructOnLoad = true) allPassDClass < handle
     end
 
     function disp(obj) % display the section in a readable format
-      outStr = sprintf('all-pass (discrete, T=%0.5g): wi = %0.5g + %0.5gj  (pole: wi, zero: 1/wi)', ...
+      outStr = sprintf('all-pass (discrete, T=%0.5g): wi = %0.5g + %0.5gj  (pole: wi, zero: 1/conj(wi))', ...
           obj.T, real(obj.wi), imag(obj.wi));
       disp(outStr);
     end

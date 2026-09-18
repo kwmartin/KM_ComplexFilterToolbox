@@ -1,17 +1,15 @@
 classdef (ConstructOnLoad = true) allPassClass < handle
 %   classdef (ConstructOnLoad = true) allPassClass < handle
 %   allPassClass defines a single first-order continuous-time all-pass
-%   section, H(s) = (s + wi)/(s - wi), where wi IS the pole location
-%   directly (zero is at -wi). wi may be complex; stability requires
-%   real(wi) < 0. H always satisfies the paraconjugate all-pass property
-%   H(s)*H(-s) = 1 (holds for any wi); the classical magnitude response
-%   |H(jw)| is additionally exactly flat (=1) whenever wi is real (a
-%   complex wi with a nonzero imaginary part gives genuine
-%   frequency-selective phase shaping but not exactly flat magnitude in
-%   the classical sense -- the paraconjugate property is the appropriate
-%   generalization for this toolbox's complex filters). Used as a
-%   building block for group-delay equalizers (see eqlzrClass.m) that
-%   adjust a filter's phase without changing its magnitude response.
+%   section, H(s) = (s + conj(wi))/(s - wi), where wi IS the pole
+%   location directly and the zero is placed at its classical
+%   conjugate-mirror -conj(wi). wi may be complex; stability requires
+%   real(wi) < 0. This conjugate-based zero/pole mirroring gives an
+%   exactly flat magnitude response |H(jw)| = 1 for ANY complex wi (not
+%   just real wi), verified via |jw+conj(wi)| = |jw-wi| for all real w --
+%   i.e. this genuinely adjusts phase/group-delay without changing
+%   magnitude, which is the whole point of an equalizer. Used as a
+%   building block for group-delay equalizers (see eqlzrClass.m).
 %   wi: the all-pass parameter, i.e. the pole location (complex scalar)
 %   sys: the zpk system object, kept in sync with wi
 %   obj = allPassClass(wi): make a new section with parameter wi; wi can
@@ -66,7 +64,7 @@ classdef (ConstructOnLoad = true) allPassClass < handle
         error('wi must be double');
       end
       obj.wi = wi;
-      obj.sys = zpk(-wi, wi, 1);
+      obj.sys = zpk(-conj(wi), wi, 1);
       if real(wi) >= 0
         warning('allPassClass:unstablePole', ...
             'allPassClass: pole at wi = %s is not strictly stable (need real(wi) < 0)', num2str(wi));
@@ -82,7 +80,7 @@ classdef (ConstructOnLoad = true) allPassClass < handle
     end
 
     function disp(obj) % display the section in a readable format
-      outStr = sprintf('all-pass (continuous): wi = %0.5g + %0.5gj  (pole: wi, zero: -wi)', ...
+      outStr = sprintf('all-pass (continuous): wi = %0.5g + %0.5gj  (pole: wi, zero: -conj(wi))', ...
           real(obj.wi), imag(obj.wi));
       disp(outStr);
     end

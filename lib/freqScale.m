@@ -36,8 +36,7 @@ function H2 = freqScale(H, scaleFctr)
             [z,p,k] = zpkdata(H, 'v');
             p2 = p*scaleFctr;
             z2 = z*scaleFctr;
-            H2 = zpk(z2, p2, k);
             M = length(z) - length(p);
             k = k/scaleFctr^M;
-            H2 = tf(H2);
+            H2 = tf(zpk(z2, p2, k));
     end

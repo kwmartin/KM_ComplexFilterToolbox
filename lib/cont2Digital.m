@@ -32,17 +32,22 @@ function [p, px, wp, ws, as, H4] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, 
   [p, px, wp, ws, as] = undistortSpecs(p, px, wp, ws, as);
   [p, px, wp, ws] = shiftSpecs(p, px, wp, ws, -shftFctr);
 
-  % Unscale continous-time filter
-  H2 = scaleFltr(H1, rvrsScl);
-
   % The bilinear function in the Control toolbox does not work with complex
   % systems; however, the bilinear function in the signal processing toolbox
   % works for complex transfer functions
 
-  % Extract zeros, poles, and k
-  [z p_ k] = zpkdata(H2, 'v');
+  % Extract zeros, poles, and k from the still-normalized analog prototype.
+  % The reverse-scale (rvrsScl) is folded directly into bilinear's sample
+  % rate rather than applied to H1 first via scaleFltr: bilinear's formula
+  % z=(1+p'T/2)/(1-p'T/2) with p'=rvrsScl*p, T=1 is algebraically identical
+  % to applying it to the unscaled p with fs=sclFctr (T=rvrsScl), so this
+  % is mathematically exact, not an approximation -- it just skips
+  % scaleFltr's zpk->ss->scale->ss->zpk round-trip and the eigendecomposition
+  % of the rescaled A matrix, which measurably loses accuracy for
+  % narrowband designs with tightly-clustered poles.
+  [z p_ k] = zpkdata(H1, 'v');
   % Transform to discrete-time system using bilinear transform
-  [zd pd kd] = bilinear(z,p_,k,1);
+  [zd pd kd] = bilinear(z,p_,k,sclFctr);
   kd = real(kd); % bilinear has kd with a small complex part; looks like a bug
 
   % Make control-system zpk model

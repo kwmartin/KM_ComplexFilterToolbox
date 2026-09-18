@@ -48,7 +48,7 @@ classdef (ConstructOnLoad = true) cascadeClass < handle
           obj.sctns = sctn.sctns;
           obj.size = sctn.size;
         else
-          obj.sctns(1).C = sctn; % a new object with the first section specified
+          obj.sctns(1) = cscFltrSctnClass(sctn); % a new object with the first section specified
           obj.size = 1;
         end
       end

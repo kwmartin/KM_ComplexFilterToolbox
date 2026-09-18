@@ -13,7 +13,7 @@ classdef (ConstructOnLoad = true) cascadeClass < handle
 %   gn = scaleFltr(obj, wp): scale gains of sections so gain peaks are all 1 (f-inf scaling)
 %   sys = getSystem(obj): update and return the overall system in a zpk system obj
 %   sys = fshftFltr(obj, fshft): freq shift cascade filter; returns shifted zpk obj
-%   sys = fsclFltr(obj, sclFctr): freq scale cascade filter using scaleFltrD.m
+%   sys = fsclFltr(obj, sclFctr): freq scale cascade filter using scaleZPK.m
 %   plotGn(obj, wp, ws, minY, maxY): plot the response of the cascade filter using plot_drsps.m
 %   out = sim(obj, xin, delta_f): simulate the cascade filter for complex input signal xin, after optionally frequency shifting filter (useful for filterbanks)
 %
@@ -111,10 +111,10 @@ classdef (ConstructOnLoad = true) cascadeClass < handle
     % freq scale cascade filter
     function sys = fsclFltr(obj, sclFctr)
       for i = 1:obj.size
-        obj.sctns(i).sys = scaleFltrD(obj.sctns(i).sys, sclFctr);
+        obj.sctns(i).sys = scaleZPK(obj.sctns(i).sys, sclFctr);
       end
       sys = getSystem(obj);
-    end      
+    end
 
     % update and return the overall system
     function plotGn(obj, wp, minY, maxY)

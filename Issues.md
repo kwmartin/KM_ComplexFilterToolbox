@@ -359,3 +359,44 @@ Per your follow-up request:
       `commit.msg`, `history1.txt`, `BackUp/`, `tmp/`). Those files stay
       tracked until issue 1/7's cleanup actually removes them — this only
       stops new instances from creeping back in.
+
+## 11. Sync getEvn/getOdd polyClass work from home — done
+
+Home added a roots()-based even/odd polynomial split to `polyClass.m`
+(`getEvn()`/`getOdd()`), kept the original Muller-based algorithm as
+`getEvnMuller()`/`getOddMuller()` for comparison, and fixed two `lib/
+muller.m` robustness bugs plus a `polyClass.cleanRts` index-invalidation
+bug uncovered while validating it. Synced and integrated here:
+
+- [x] Received via a targeted `rsync --files-from` list, filtered to just
+      the files whose *mtime* was actually after the agreed cutoff on the
+      sending machine (its own git history turned out not to be a reliable
+      proxy for "changed today" - it had several days of accumulated
+      uncommitted edits bundled into one commit) - only 4 files qualified:
+      `lib/getEvnOddPly.m` (a stray `function`-keyword corruption fix, since
+      fixed there), `lib/muller.m`, `lib/polyClass.m`, and
+      `examples/tst_getEvnOdd.m` (new 128-trial comparison harness spanning
+      degree 3-80).
+- [x] Committed here as `6575b04`, message amended to `474a6fb` (fixed a
+      backtick-quoting mishap in the original wording; content/diff
+      unchanged, confirmed via `git diff --stat HEAD~1 HEAD` before and
+      after). Pushed to `origin/master` (`99fd110..474a6fb`).
+- [x] Verified independently on this machine rather than trusting the
+      sending side's numbers: ran `tst_getEvnOdd.m` here and got matching
+      results - `getEvn`/`getOdd` at machine precision (~1e-14) across all
+      6 test families, vs `getEvnMuller`/`getOddMuller`/the original
+      `getEvnOddPly.m` free function reaching up to 1e+26 relative error or
+      outright `NaN` at degree 30-80, and 8-18x faster for every
+      non-trivial case. Also spot-checked the 3-root hand-check case
+      directly: `getEvn`/`getOdd` give 6.4e-14 reconstruction error vs
+      `getEvnMuller`'s 5.9e+04 on the identical input.
+- Note: `lib/Fix_Lddr_Rlznts.md` (the write-up of the `rmvl4.m`/`muller.m`/
+  `chckEqlOrdr.m` bug-hunt that led to this work) is home-only for now - its
+  mtime predates the sync cutoff, so it wasn't part of this pass. Everything
+  else from the sending machine's own recent commit (`rmvl4.m`,
+  `dsgnAnalogFltr.m`, `exmpl.m`, `tstTFops.m`, `setK.m`, `SYMMETRIC_MODE.md`,
+  and the small `findLossEdges.m`/`findLossMinima.m`/`place_polesdLP4.m`/
+  `place_polesdLP5.m`/`LinPhFltr.m`/`design_dtm_filt.m` fixes already
+  reflected in issues 3b/4 above) was confirmed byte-identical here already
+  (matching mtimes to the nanosecond and `md5sum`) before this sync, so none
+  of it was resent.

@@ -19,8 +19,12 @@ function H3= mult_zpk(H1, H2)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
 
-[z1, p1, k1] = zpkdata(H1, 'v');
-[z2, p2, k2] = zpkdata(H2, 'v');
+[z1, p1, k1, T1] = zpkdata(H1, 'v');
+[z2, p2, k2, T2] = zpkdata(H2, 'v');
+if T1 ~= T2
+  warning('mult_zpk:sampleTimeMismatch', ...
+      'mult_zpk: H1.Ts=%g and H2.Ts=%g do not match; using H1''s sample time', T1, T2);
+end
 
 mxOrd1 = mxOrdr(H1);
 mxOrd2 = mxOrdr(H2);
@@ -38,5 +42,5 @@ p3 = [p1; p2];
 [sorted, idx] = sort(-imag(p3));
 p3 = p3(idx);
 
-H3 = simpl(zpk(z3, p3, k1*k2));
+H3 = simpl(zpk(z3, p3, k1*k2, T1));
 H3 = minreal(H3, 1e-6);

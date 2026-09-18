@@ -1,0 +1,114 @@
+classdef (ConstructOnLoad = true) eqlzrClass < handle
+%   classdef (ConstructOnLoad = true) eqlzrClass < handle
+%   eqlzrClass defines a cascade of continuous-time all-pass sections
+%   (allPassClass objects), used as a group-delay equalizer: it can be
+%   cascaded onto an existing filter to adjust phase/group-delay without
+%   changing the magnitude response.
+%   sctns: an array of allPassClass objects, one per section
+%   size: the number of sections
+%   sys: the complete cascaded system object, kept in sync via getSystem
+%   obj = eqlzrClass(arg): make a new equalizer; arg can be omitted (empty
+%   object), an eqlzrClass obj (copied), an allPassClass obj (added as the
+%   first section), or a numeric wi value or vector of wi values (one
+%   section built per element).
+%   obj = addSctn(obj, wi): add another all-pass section with parameter wi
+%   sys = getSystem(obj): update and return the overall cascaded system
+%   Hout = applyTo(obj, H): cascade the equalizer onto filter H, returning
+%   H with its phase/group-delay adjusted and magnitude response unchanged
+%   [lgH,phH,gdH,dLdW,dTdW,d2LdW,d2TdW] = analyze(obj, w): analyze the
+%   composite equalizer at frequencies w (rad./s) using AnlzH.m
+%   plotResponse(obj, wp, colour): plot magnitude/phase/group-delay of the
+%   composite equalizer using plot_am_ph_gd.m
+%
+%   Toolbox for the Design of Complex Filters
+%   Copyright (C) 2026  Kenneth Martin
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+
+  properties
+    sctns = allPassClass(); % stores each all-pass section
+    size = 0; % the number of sections in the equalizer
+    sys = zpk([], [], 1); % the complete cascaded system object
+  end
+  methods
+    function obj = eqlzrClass(arg) % instantiate a new object
+      if nargin == 0
+        obj.size = 0; % return an empty object
+      else
+        if isa(arg,'eqlzrClass') % copy this equalizer
+          obj.sctns = arg.sctns;
+          obj.size = arg.size;
+        elseif isa(arg,'allPassClass') % a single section specified directly
+          obj.sctns(1) = arg;
+          obj.size = 1;
+        else % numeric wi, or a vector of wi values -- one section per element
+          wiVec = arg(:);
+          for i = 1:length(wiVec)
+            obj.sctns(i) = allPassClass(wiVec(i));
+          end
+          obj.size = length(wiVec);
+        end
+      end
+    end
+
+    % Add another all-pass section to the equalizer.
+    function obj = addSctn(obj, wi)
+      obj.size = obj.size + 1;
+      obj.sctns(obj.size) = allPassClass(wi);
+    end
+
+    % update and return the overall cascaded system in a zpk system obj
+    function sys = getSystem(obj)
+      sys = zpk([], [], 1);
+      for i = 1:obj.size
+        sys = sys * obj.sctns(i).sys;
+      end
+      obj.sys = sys;
+    end
+
+    % cascade the equalizer onto an existing filter H, returning the
+    % combined system (magnitude response of H is unchanged)
+    function Hout = applyTo(obj, H)
+      obj.sys = getSystem(obj);
+      Hout = mult_zpk(H, obj.sys);
+    end
+
+    % analyze the composite equalizer using AnlzH.m
+    function [lgH,phH,gdH,dLdW,dTdW,d2LdW,d2TdW] = analyze(obj, w)
+      obj.sys = getSystem(obj);
+      [lgH,phH,gdH,dLdW,dTdW,d2LdW,d2TdW] = AnlzH(obj.sys, w);
+    end
+
+    % plot mag/phase/group-delay of the composite equalizer
+    function plotResponse(obj, wp, colour)
+      obj.sys = getSystem(obj);
+      plot_am_ph_gd(obj.sys, wp, colour);
+    end
+
+    function disp(obj) % display the equalizer's sections in a readable format
+      if obj.size == 0
+        disp('equalizer (continuous): no sections');
+        return
+      end
+      lines = cell(obj.size, 1);
+      for i = 1:obj.size
+        wi = obj.sctns(i).wi;
+        lines{i} = sprintf('  section %d: wi = %0.5g + %0.5gj', i, real(wi), imag(wi));
+      end
+      disp(sprintf('equalizer (continuous), %d section(s):', obj.size));
+      disp(strjoin(lines, sprintf('\n')));
+    end
+  end
+end

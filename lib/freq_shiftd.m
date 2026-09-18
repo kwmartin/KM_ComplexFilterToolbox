@@ -31,16 +31,16 @@ function H2 = freq_shiftd(H, delta_f)
             p2 = p*eshft;
             z2 = z*eshft;
             M = length(z) - length(p);
-            k = k*eshft^M;
+            k = k*eshft^(-M);
             H2 = zpk(z2, p2, k, T);
         case 'tf'
             [z,p,k,T] = zpkdata(H, 'v');
             T = H.Ts;
-            eshft = exp(-j*2*pi*delta_f*T);
+            eshft = exp(j*2*pi*delta_f*T);
             p2 = p*eshft;
             z2 = z*eshft;
             M = length(z) - length(p);
-            k = k*eshft^M;
+            k = k*eshft^(-M);
             H2 = zpk(z2, p2, k, T);
             H2 = tf(H2);
     end

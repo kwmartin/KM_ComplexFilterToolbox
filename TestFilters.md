@@ -135,14 +135,30 @@ at a time:
 
 ### Watch for accidental output bloat
 
-Regenerating figures can occasionally produce a much larger file than the
-previously-committed one (a `-dpdf` render coming out ~100x larger has
-happened before, likely a renderer/version difference rather than a data
-change). Before committing regenerated `examples/Figures/*` output, check
-`git status` for surprising size deltas (`git diff --stat`) and investigate
-anything that jumped by more than roughly 2x — reverting the specific file
-to its previous committed version is a safe default if the underlying
-example's code/data didn't actually change.
+`print(fig, name, '-dpdf')` on a figure with many overlaid data points
+(e.g. a Monte-Carlo trace overlay from `runMcCscd`/`runMcCscd2`, which
+plots ~100 traces of an 8192-point FFT per figure) can be 100x+ larger than
+expected — 7.4MB instead of ~30-50KB, observed in `dig_fltr_2_7_1.m`,
+`dig_fltr_2_8_1.m`, and `dig_fltr_2_10_1.m`. Root cause: in a headless
+`-nodisplay` session (which this harness always uses), MATLAB has no
+OpenGL available for print rasterization, so `-dpdf` silently falls back
+to a full vector render regardless of renderer flags — confirmed `-opengl`
+and `exportgraphics(...,'ContentType','image')` both hit the same
+fallback, with MATLAB warning `cannot use OpenGL for printing when started
+with '-nodisplay'`. The small originals were almost certainly produced
+interactively, where OpenGL rasterization is available.
+
+Fix: use `lib/printRasterPdf.m` instead of `print(...,'-dpdf')` for any
+figure with a lot of overlaid trace data. It rasterizes via an
+intermediate PNG (which prints fine headless) and wraps that as the PDF
+page, so output size is small and reproducible in any environment. The
+three examples above already use it; apply it to any similar
+Monte-Carlo-overlay example that develops the same symptom.
+
+More generally: before committing regenerated `examples/Figures/*`
+output, check `git status`/`git diff --stat` for surprising size deltas
+and investigate anything that jumped by more than roughly 2x rather than
+committing it blindly.
 
 ## Related files
 

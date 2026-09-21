@@ -49,7 +49,7 @@ lddr = ladderClass();
 %[X9, elem14] = rmvSCmplx(X8, lddr);
 %[X10, elem15] = rmvSCmplx(X9, lddr);
 %lddr.addElem(elem9);
-lddr.R2 = X5.K;
+lddr.R2 = X4.K;
 %lddr.R2 = 269.1936;
 
 lddr2 = ladderClass(lddr);

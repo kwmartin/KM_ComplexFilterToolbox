@@ -7,6 +7,7 @@
 % ws = [-0.49999 -0.10 0.10 0.49999];
 
 p = [-0.1 -0.06 0.06 0.1]; % initial guess at finite loss poles
+px = [];
 ni=1; % number of loss poles at infinity
 wp = []; ws = [];
 wp(1) = -0.025; % lower passband edge

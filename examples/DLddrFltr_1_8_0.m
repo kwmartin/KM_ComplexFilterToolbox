@@ -74,6 +74,7 @@ dispLddr(lddr);
 % plot the transfer function and the ladder filter response
 % the plot of the transfer function has 0.001 dB added so it
 % can be visualized (by zooming in)
+lim = [-0.5 0.5 -140 1]; % matches this file's own as=[90 40 40 90] depth
 [gn, db] = plot_lddr(H2, lddr2, wp_*2*pi, ws_*2*pi, 'b', lim);
 xin = zeros(8192,1);
 xin(1) = 1;

@@ -1,4 +1,4 @@
- yaml_file = '/home/martin/Dropbox/programming/Python/DigitalFilters/BandPass_8thc.yaml';
+addpath(fullfile(getenv('CMPLXROOT'), 'lib', 'yamlmatlab'));
 yaml_file = 'test.yaml';
 YamlStruct = yaml.ReadYaml(yaml_file);
 tstStrct(1).COMPONENTS = cell(1,4);

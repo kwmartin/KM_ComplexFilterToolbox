@@ -2,6 +2,7 @@
 % Includes the first SFG ladder simulation
 
 p = [-0.2 0.2]; % initial guess at finite loss poles
+px = [];
 wp = [-0.05 0.05];
 ws = [-0.499 -0.1 0.1 0.499];
 as = [20 20 20 20];

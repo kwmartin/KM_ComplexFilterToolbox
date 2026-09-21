@@ -25,3 +25,6 @@ settings.mat
 /history1.txt
 /BackUp/
 /tmp/
+
+# point-in-time output from tools/run_all_examples.sh - not source
+/tools/reports/

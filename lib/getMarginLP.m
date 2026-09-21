@@ -2,7 +2,7 @@ function [mrgn, phH, gdH, dLdW, dTdW, d2LdW] = getMarginLP(Hy,wsy,as,w)
 %   [mrgn, phH, gdH, dLdW, dTdW, d2LdW] = getMarginLP(Hy,wsy,as,w) finds stop-band margins
 %   find_the differences between the stopband loss
 %   and the interpolated specs at the frequencies specified by the vector w. As
-%   should be in dB. The various derivatives are also return; for these,
+%   should be in dB. The various derivatives are also returned; for these,
 %   the specifications are ignored.
 %
 %   This program is free software: you can redistribute it and/or modify

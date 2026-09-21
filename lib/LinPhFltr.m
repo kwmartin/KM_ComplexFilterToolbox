@@ -101,11 +101,55 @@ function [H T0] = LinPhFltr(n, deltT, ap)
   % sits well inside that gap.
   resErr = max(abs(symFval));
   if resErr > 1e-3
-      error('LinPhFltr:unconvergedSolution', ...
-          ['LinPhFltr(n=%d, deltT=%.6g, ap=%.6g): fsolve could not find a ' ...
-          'conjugate-symmetric equi-ripple solution (best residual %.4g) ' ...
-          '- no valid real filter found for this spec'], ...
-          n, deltT, ap, resErr);
+      % The direct solve (above) landed on a genuinely bad root for this
+      % deltT - confirmed this happens for a narrow band (e.g. deltT in
+      % roughly [0.86, 0.9] at n=7) even across many random-restarted
+      % initial guesses, so retrying from another generic guess won't help.
+      % What does help: continuation. deltT=0.25 is a reliable anchor (the
+      % direct solve above is essentially always good there), and stepping
+      % from it to the target in small increments, reseeding the reduced
+      % (symmetric) solve from each previous step's result, tracks the
+      % solution through the hard region instead of asking fsolve to find
+      % it cold. Verified this converges (residual ~1e-8) for every
+      % problem deltT found so far. Only invoked as a fallback, not the
+      % default path, because it's ~10-40x more fsolve calls and isn't
+      % needed (or, checked separately, doesn't even work as well without
+      % a nearby anchor) for the common case.
+      deltTAnchor = 0.25;
+      if abs(deltT - deltTAnchor) < 1e-12
+          resErrCont = resErr; % already at the anchor; nothing to continue from
+      else
+          fndRtsAnchor = @(x)besselRts(x, deltTAnchor);
+          rtsAnchor = fsolve(fndRtsAnchor, [Z1 n], options);
+          seedAnchor = rtsAnchor(masterIdx);
+          seedAnchor(nonRealMaster) = 0.5*(rtsAnchor(masterIdx(nonRealMaster)) + conj(rtsAnchor(mirrorOf(nonRealMaster))));
+          fndRtsSymAnchor = @(xMaster) selectMasterResiduals( ...
+              besselRts([expandSymRoots(xMaster(1:end-1), n, masterIdx, mirrorOf, isRealMaster), xMaster(end)], deltTAnchor), ...
+              masterIdx);
+          xCont = fsolve(fndRtsSymAnchor, [seedAnchor, rtsAnchor(end)], options);
+
+          nSteps = max(10, ceil(abs(deltT - deltTAnchor)/0.03));
+          deltTPath = linspace(deltTAnchor, deltT, nSteps);
+          contFval = [];
+          for dTStep = deltTPath(2:end)
+              fndRtsSymStep = @(xMaster) selectMasterResiduals( ...
+                  besselRts([expandSymRoots(xMaster(1:end-1), n, masterIdx, mirrorOf, isRealMaster), xMaster(end)], dTStep), ...
+                  masterIdx);
+              [xCont, contFval] = fsolve(fndRtsSymStep, xCont, options);
+          end
+          xMasterSolved = xCont;
+          pFull = expandSymRoots(xMasterSolved(1:end-1), n, masterIdx, mirrorOf, isRealMaster);
+          rts = [pFull, xMasterSolved(end)];
+          resErrCont = max(abs(contFval));
+      end
+      if resErrCont > 1e-3
+          error('LinPhFltr:unconvergedSolution', ...
+              ['LinPhFltr(n=%d, deltT=%.6g, ap=%.6g): fsolve could not find a ' ...
+              'conjugate-symmetric equi-ripple solution, even via ' ...
+              'continuation from deltT=%.4g (best residual %.4g direct, ' ...
+              '%.4g via continuation) - no valid real filter found for ' ...
+              'this spec'], n, deltT, ap, deltTAnchor, resErr, resErrCont);
+      end
   end
 
   p2 = z2s(rts(1:end-1)).';

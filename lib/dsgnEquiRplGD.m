@@ -23,7 +23,7 @@ function [H, p, px, wp, ws, as] = dsgnEquiRplGD(p,px,wp,ws,as,Ap,Ordr,sclFctr,sh
 
     % First we find a continous-time prototype filter with pass-band at -1
     % to 1 rad having equi-ripple group delay and finite loss-poles
-    H1 = LinPh_LssPls(Ordr, 0.15, Ap, 3); % design continous prototype
+    H1 = LinPh_LssPls(Ordr, deltGD, Ap, 3); % design continous prototype
     % next we transform to a digital filter using the bilinear transform,
     % this distorts the equi-ripple group delay
     [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);

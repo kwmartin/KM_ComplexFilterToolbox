@@ -2,6 +2,7 @@
 % Includes the first SFG ladder simulation
 
 p = [-0.15 -0.1 -0.06 0.06 0.1 0.15]; % initial guess at finite loss poles
+px = [];
 ni=1; % number of loss poles at infinity
 wp = []; ws = [];
 wp(1) = -0.025; % lower passband edge

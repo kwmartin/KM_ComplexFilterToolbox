@@ -65,28 +65,17 @@ function H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr)
   elseif strcmp(type, 'equiGDLsPls')
     tic
     deltGD = 0.25;
-    Hz2 = dsgnEquiRplGD(p,px,wp,ws,as,Ap,Ordr,sclFctr,shftFctr,deltGD);
+    [H2, p, px, wp, ws, as] = dsgnEquiRplGD(p,px,wp,ws,as,Ap,Ordr,sclFctr,shftFctr,deltGD);
     toc
 
-    tic
-    H1 = LinPh_LssPls(Ordr, deltGD, Ap, 3); % design continous prototype
-    [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
-    H3 = freq_shiftd(H2, shftFctr);
-    H4 = adaptP3(H3,0.1);
-    H2 = freq_shiftd(H4, -shftFctr);
-    % H2 = adaptP(H2);
-    H2.k = H2.k/(abs(freqresp(H2,0)));
-    Hz = place_polesdLP3(H2,wp);
-    toc
-
-    plot_drsps(Hz,wp,'r',[-70 5]);
+    plot_drsps(H2,wp,'r',[-70 5]);
     f = -0.5:1e-4:0.5;
     w = 2*pi*f;
     s_ = j*w;
     figure;
     rdb = @(f,H)(db(rspsd(H,j*2*pi*f)));
-    plot(f,rdb(f,Hz));
-    [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(Hz, w(:));
+    plot(f,rdb(f,H2));
+    [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H2, w(:));
     axis([-0.5 0.5 -100 2]);
     indx = find(gdH > 100);
     gdH(indx) = gdH(indx+1);
@@ -95,7 +84,6 @@ function H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr)
     figure
     plot(f,gdH,'r','LineWidth',1);
 
-    H2 = Hz; % original Hz might have been better
     a = 1;
   end
   % plot_crsps(H1,wp,ws,'b',[-10 10 -100 1]);

@@ -1,0 +1,161 @@
+function [eq, info] = dsgnEqlzrD(H, wp, N, marginFrac, N_grid)
+%   [eq, info] = dsgnEqlzrD(H, wp, N, marginFrac, N_grid) designs an
+%   initial N-section discrete all-pass group-delay equalizer (an
+%   eqlzrDClass object) for filter H, targeting flat group delay across
+%   passband wp. This is a first-pass placement meant as a starting point
+%   to iterate an actual equalizer design from, not a finished result.
+%
+%   H is a (possibly complex) zpk system. wp = [wp1 wp2] is the passband,
+%   in the normalized cyclic frequency (Fs=1, f in [-0.5,0.5]) used
+%   throughout this toolbox. N is the number of all-pass sections
+%   (typically from estAllPassOrder.m). marginFrac and N_grid are passed
+%   straight through to estAllPassOrder.m (defaults 0.10 and 5000) to
+%   build the analysis grid.
+%
+%   Method: a section's own group delay is the exact closed form (a
+%   Poisson kernel centered at the pole's angle theta=angle(wi),
+%   r=abs(wi)):
+%     gd(w) = (1-r^2) / (1 - 2*r*cos(w-theta) + r^2)
+%   and group delay adds under cascade, so the combined delay is
+%   gdH0(f) + sum_i gd_i(f). The N pole locations (r_i, theta_i) AND a
+%   free flat-target level D are fit jointly with fminimax (Optimization
+%   Toolbox) to minimize the worst-case deviation
+%     max_f | gdH0(f) + sum_i gd_i(f) - D |
+%   i.e. an equi-ripple (minimax) fit, the same criterion classical
+%   equi-ripple/elliptic filter design uses -- NOT a least-squares fit:
+%   least-squares was tried first and, despite reducing the sum of
+%   squared error by 95%, left the peak-to-peak ripple WORSE than doing
+%   nothing (L2 doesn't control worst-case deviation, so it's happy to
+%   overshoot in places to average out an undershoot elsewhere).
+%   Least-squares closed-form heuristics that avoided fminimax entirely
+%   (equal-area slices sized by width, greedy matching pursuit, equal-
+%   width slices sized by average local deficit) were also tried and
+%   also made the ripple worse -- ignoring cross-section overlap causes
+%   each section, sized in isolation to hit a local target, to overshoot
+%   once its neighbors' contributions are added on top. All of this was
+%   verified empirically against examples/csc_fltr_1_6_0.m before
+%   settling on the joint minimax fit.
+%
+%   fminimax's cost surface has multiple local minima (confirmed: a
+%   shared starting radius of 0.5 or 0.95 converges to a mediocre point
+%   ~8% better than unequalized, while 0.75-0.85 finds one ~14% better,
+%   and 0.8 alone lands in a much WORSE one) so this function multi-
+%   starts fminimax from a small set of shared initial radii and keeps
+%   whichever run achieves the smallest worst-case residual. Each pole's
+%   starting angle is evenly spaced across the sub-band strictly between
+%   H's own two largest group-delay peaks (found via islocalmax),
+%   avoiding starting a pole exactly where gdH0 already equals D and
+%   needs no correction.
+%
+%   This is not cheap: expect on the order of 10-30 seconds wall time
+%   for a handful of multi-starts at N~5 (reported in info.wallTime).
+%   Given the local-minima behavior above, treat the result as a
+%   starting point for further iteration, not a converged final design.
+%
+%   info is a struct with fields: D_target, p2p_before, p2p_after,
+%   worstResidual, wallTime, nStarts.
+%
+%   Toolbox for the Design of Complex Filters
+%   Copyright (C) 2026  Kenneth Martin
+%
+%   This program is free software: you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation, either version 3 of the License, or
+%   (at your option) any later version.
+%
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+%
+%   You should have received a copy of the GNU General Public License
+%   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+
+  if nargin < 4 || isempty(marginFrac)
+    marginFrac = 0.10;
+  end
+  if nargin < 5 || isempty(N_grid)
+    N_grid = 5000;
+  end
+
+  tStart = tic;
+
+  [~, stats] = estAllPassOrder(H, wp, marginFrac, N_grid);
+  f = stats.f(:);
+  w = 2*pi*f;
+  gdH0 = stats.gdH(:);
+  p2p_before = max(gdH0) - min(gdH0);
+
+  pkMask = islocalmax(gdH0, 'MinProminence', 5);
+  f_peaks = f(pkMask);
+  if length(f_peaks) >= 2
+    f_pk1 = min(f_peaks);
+    f_pk2 = max(f_peaks);
+  else
+    f_pk1 = stats.wp_expanded(1);
+    f_pk2 = stats.wp_expanded(2);
+  end
+  gap = f_pk2 - f_pk1;
+  f_safe_lo = f_pk1 + 0.10*gap;
+  f_safe_hi = f_pk2 - 0.10*gap;
+
+  f_lo = stats.wp_expanded(1);
+  f_hi = stats.wp_expanded(2);
+  D_target0 = max(gdH0);
+
+  lb = [zeros(1,N), 2*pi*f_lo*ones(1,N), D_target0*0.8];
+  ub = [0.995*ones(1,N), 2*pi*f_hi*ones(1,N), D_target0*1.5];
+
+  opts = optimoptions('fminimax', 'Display', 'off', ...
+      'MaxIterations', 200, 'MaxFunctionEvaluations', 20000);
+
+  r0Candidates = [0.5, 0.75, 0.85, 0.95];
+  bestWorst = Inf;
+  xBest = [];
+  for r0val = r0Candidates
+    theta0 = 2*pi*linspace(f_safe_lo, f_safe_hi, N);
+    r0 = r0val*ones(1,N);
+    x0 = [r0, theta0, D_target0];
+    [xsol, fval] = fminimax(@(x) eqlzrMinimaxCost(x, w, gdH0), ...
+        x0, [],[],[],[],lb,ub,[],opts);
+    worst = max(fval);
+    if worst < bestWorst
+      bestWorst = worst;
+      xBest = xsol;
+    end
+  end
+
+  Nsec = (length(xBest)-1)/2;
+  r = xBest(1:Nsec);
+  theta = xBest(Nsec+1:2*Nsec);
+  D_target = xBest(end);
+  wiVec = r(:).*exp(1j*theta(:));
+
+  eq = eqlzrDClass(wiVec, 1);
+
+  bumpSum = zeros(size(w));
+  for i = 1:Nsec
+    bumpSum = bumpSum + (1-r(i)^2) ./ (1 - 2*r(i)*cos(w-theta(i)) + r(i)^2);
+  end
+  gdH1 = gdH0 + bumpSum;
+
+  info.D_target = D_target;
+  info.p2p_before = p2p_before;
+  info.p2p_after = max(gdH1) - min(gdH1);
+  info.worstResidual = bestWorst;
+  info.wallTime = toc(tStart);
+  info.nStarts = length(r0Candidates);
+end
+
+function res = eqlzrMinimaxCost(x, w, gdH0)
+  N = (length(x)-1)/2;
+  r = x(1:N);
+  theta = x(N+1:2*N);
+  D = x(end);
+  bumpSum = zeros(size(w));
+  for i = 1:N
+    bumpSum = bumpSum + (1-r(i)^2) ./ (1 - 2*r(i)*cos(w-theta(i)) + r(i)^2);
+  end
+  res = abs(gdH0 + bumpSum - D);
+end

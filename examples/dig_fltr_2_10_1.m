@@ -30,7 +30,7 @@ plotSimCscd(cscdFltr2, wpHz, ws, -300, 0, 'b');
 runMcCscd(cscdFltr2, wpHz, 1e-5, 0, 100, [-300, 10], 'b');
 drawnow;
 cscdHndl = gcf;
-print('../examples/Figures/dig_fltr_2_10_1','-dpdf');
+printRasterPdf(cscdHndl, '../examples/Figures/dig_fltr_2_10_1');
 print('../examples/Figures/dig_fltr_2_10_1/dig_fltr_2_10_1_mc','-dpng');
 toc
 

@@ -111,7 +111,14 @@ for i = 1:2000 % repeat enough times to guarantee success
             py(k) = 0.999*py(k+1);
         end
         if (py(k) <= wsy(1))
-            py(k) = 1.001*wsy(1);
+            % wsy(1) is always 0 here, so the old "1.001*wsy(1)" nudge was a
+            % no-op (1.001*0 == 0) - a clamped pole landed exactly on the
+            % wsy(1)=0 probe point zmin always includes, making dHy_dp2b's
+            % 1/(w - pole) divide by exact zero (Inf), which then makes the
+            % Newton-step sensitivity matrix singular. Use an absolute
+            % epsilon instead, matching this file's own 1e-4-scale
+            % boundary-avoidance convention (wsy = [0, 0.9999, 1.00001, 1e6]).
+            py(k) = wsy(1) + 1e-4;
         end
         if (py(k) >= wsy(ns))
             py(k) = 0.999*wsy(ns);

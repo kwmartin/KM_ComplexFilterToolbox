@@ -76,14 +76,25 @@ py = imag(py) % convert to real for adaptation; we'll convert back later
 Hy = Hy2;
 np = length(py);
 
-% set up the sensitivity matrix.
-s2 = -1*ones(np+1,1);
-
 X = [py(:); 0];
+
+% Some poles can converge to (nearly) the same position - the notch between
+% two adjacent poles that are essentially coincident vanishes, so
+% findLossMinima legitimately finds one fewer independent stop-band minimum
+% than there are movable poles. frozen tracks poles we've stopped updating
+% in response (so the sensitivity/Newton system shrinks to match), and
+% collisionIters counts iterations since the last freeze where the system is
+% still short a minimum - if that doesn't resolve within COLLISION_MAX_ITERS,
+% we give up with a clear error instead of crashing on a bare dimension
+% mismatch.
+COLLISION_TOL = 1e-3;
+COLLISION_MAX_ITERS = 5;
+frozen = false(1,np);
+collisionIters = 0;
 
 % Adapt the pole positions to equalize the stop-band loss minima
 % Note we have made the loss pole positions real
-for i = 1:2000 % repeat enough times to guarantee success 
+for i = 1:2000 % repeat enough times to guarantee success
     zmin = findLossMinima(Hy,wsy,asy); % find the minima of the stop-band loss
     % Augument with stop-band edge frequencies.
     zmin = [wsy(1); zmin; wsy(ns)];
@@ -92,21 +103,55 @@ for i = 1:2000 % repeat enough times to guarantee success
 
     [mrgn, phH, gdH, dLdW, dTdW, d2LdW] = getMarginLP(Hy,wsy,asy,zmin);
     [zmnSrt indxs] = sort(mrgn);
-    if length(indxs) > np + 1
-        zmin = zmin(indxs(1:np+1));
-        mrgn = mrgn(indxs(1:np+1));
+    freeIdx = find(~frozen);
+    npFree = length(freeIdx);
+    if length(indxs) > npFree + 1
+        zmin = zmin(indxs(1:npFree+1));
+        mrgn = mrgn(indxs(1:npFree+1));
     end
     % system is over-determined. Different approaches could be considered
     % here.
     nz = length(zmin);
-    
+
+    if nz < npFree + 1
+        % Too few independent minima for the current free-pole count. Look
+        % for a newly-collided pair among the still-free poles and freeze
+        % one of them (the linear system shrinks to match next iteration).
+        for m = 1:(length(freeIdx)-1)
+            k = freeIdx(m);
+            kNext = freeIdx(m+1);
+            if (abs(py(kNext) - py(k)) < COLLISION_TOL)
+                fprintf(['place_polesdLP3: poles %d and %d converged to ' ...
+                    'nearly the same position (%.6g, %.6g) - freezing ' ...
+                    'pole %d\n'], k, kNext, py(k), py(kNext), kNext);
+                frozen(kNext) = true;
+                break
+            end
+        end
+        collisionIters = collisionIters + 1;
+        if collisionIters > COLLISION_MAX_ITERS
+            error('place_polesdLP3:tooFewMinima', ...
+                ['place_polesdLP3: only found %d independent stop-band ' ...
+                'loss minima for %d free pole(s) after freezing colliding ' ...
+                'poles for %d iterations - pole placement halted'], ...
+                nz, npFree, COLLISION_MAX_ITERS);
+        end
+        % Whether or not a new collision was found to freeze this pass,
+        % retry next iteration rather than building an undersized system.
+        continue
+    end
+    collisionIters = 0;
+
     Y = -mrgn;
-    
-    S = [dHy_dp2(Hy,zmin) s2];
-    Pmin = 1e-6.*diag(ones(1,length(X)));
-    X = (S + Pmin)\(Y); % Calculate the changes in the pole frequencies
-    % X = (S)\(Y); % Calculate the changes in the pole frequencies
-    py = py + 1.0.*X(1:np).'; % Calculate the new pole positions
+    s2 = -1*ones(npFree+1,1);
+
+    Sfree = dHy_dp2(Hy,zmin);
+    S = [Sfree(:,freeIdx) s2];
+    Pmin = 1e-6.*diag(ones(1,npFree+1));
+    Xfree = (S + Pmin)\(Y); % Calculate the changes in the free pole frequencies
+    delta = zeros(1,np);
+    delta(freeIdx) = Xfree(1:npFree).';
+    py = py + 1.0.*delta; % Calculate the new pole positions
     % p = sort(p)
 
     % Check limits and make sure poles don't pass each other
@@ -115,19 +160,26 @@ for i = 1:2000 % repeat enough times to guarantee success
             py(k) = 0.999*py(k+1);
         end
         if (py(k) <= wsy(1))
-            py(k) = 1.001*wsy(1);
+            % wsy(1) is always 0 here, so the old "1.001*wsy(1)" nudge was a
+            % no-op (1.001*0 == 0) - a clamped pole landed exactly on the
+            % wsy(1)=0 probe point zmin always includes, making dHy_dp2's
+            % 1/(w - pole) divide by exact zero (Inf), which then makes the
+            % Newton-step sensitivity matrix singular. Use an absolute
+            % epsilon instead, matching this file's own 1e-4-scale
+            % boundary-avoidance convention (wsy = [0, 0.9999, 1.00001, 1e6]).
+            py(k) = wsy(1) + 1e-4;
         end
         if (py(k) >= wsy(ns))
             py(k) = 0.999*wsy(ns);
         end
     end
-    if max(abs(X(1:np))) < 1e-10
+    if max(abs(delta)) < 1e-10
         fprintf('Minima Iteration Terminated in %d iters, error: %d\n', ...
-            i, max(abs(X(1:np))));
+            i, max(abs(delta)));
         break
     end
-    
-    % max(abs(X(1:np)))
+
+    % max(abs(delta))
     Hy = zpk(ey,j*sort(py),ky);
 end
 

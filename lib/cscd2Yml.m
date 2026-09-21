@@ -20,7 +20,8 @@ function cscd2Yml(cscdFltr, fileNm) % output cascade filter to yaml file
 %
   RootDir = getenv('CMPLXROOT');
   if isempty(RootDir)
-    setenv('CMPLXROOT', '/home/martin/Dropbox_old/Matlab/Complex/KM_ComplexFilterToolbox');
+    setenv('CMPLXROOT', '/home/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox');
+    RootDir = getenv('CMPLXROOT');
   end
 
   path(path, strcat(RootDir, '/lib/yamlmatlab'));

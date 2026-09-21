@@ -86,7 +86,7 @@ toc
 
 drawnow;
 cscdHndl = gcf;
-ExmplDir = '/home/martin/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox/examples/';
+ExmplDir = '/home/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox/examples/';
 FigDir = strcat(ExmplDir, 'Figures/');
 print(strcat(FigDir, fltrNm), '-dpng');
 

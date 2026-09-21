@@ -3,7 +3,8 @@
 fltrNm = 'FltrBnk_1_4_0';
 RootDir = getenv('CMPLXROOT');
 if isempty(RootDir)
-    setenv('CMPLXROOT', '/home/martin/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox');
+    setenv('CMPLXROOT', '/home/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox');
+    RootDir = getenv('CMPLXROOT');
 end
 
 N = 256;

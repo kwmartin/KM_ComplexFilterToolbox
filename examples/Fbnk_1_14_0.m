@@ -1,7 +1,7 @@
 % a filter-bank simulation based on monotonic filters having 4
 % movable loss-poles
 
-fltrNm = 'Fbnk_1_8_0';
+fltrNm = 'Fbnk_1_14_0';
 N = 64;
 delta_f = 1/N;
 %w_shift = pi*j;
@@ -98,7 +98,7 @@ toc
 
 drawnow;
 cscdHndl = gcf;
-ExmplDir = '/home/martin/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox/examples/';
+ExmplDir = '/home/Dropbox/Matlab/Complex/KM_ComplexFilterToolbox/examples/';
 FigDir = strcat(ExmplDir, 'Figures/');
 print(strcat(FigDir, fltrNm), '-dpng');
 

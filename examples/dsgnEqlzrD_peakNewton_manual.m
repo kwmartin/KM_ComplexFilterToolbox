@@ -1,16 +1,18 @@
-% Interactive, one-iteration-at-a-time driver for
-% eqlzrD_peakNewtonStep.m. Starts from the 3-cluster (15%/54%/90%,
-% r=0.925, 5 stages each) configuration explored by hand in
+% Driver for eqlzrD_peakNewtonStep.m. Starts from the 3-cluster
+% (15%/54%/90%, r=0.925, 5 stages each) configuration explored by hand in
 % dsgnEqlzrD_manual.m, then repeatedly calls eqlzrD_peakNewtonStep to
 % adjust the three cluster angles (r held fixed) to drive ALL of the
 % current group delay's local extrema's gain-weighted deviation from the
 % anchor toward equality (not just the original two edge peaks -- see
 % eqlzrD_peakNewtonStep.m's own header for why that was wrong).
 %
-% Run this once to set up and take the FIRST step, inspect the plot and
-% "info" struct at the breakpoint, then repeat the call shown in the
-% fprintf message below as many times as you like -- each call takes
-% exactly one damped Newton step and returns updated diagnostics.
+% Runs automatically for up to MAX_ITERS (50) damped Newton steps, or
+% until convergence -- the weighted-deviation spread (info.spreadBefore)
+% changing by less than SPREAD_TOL (1e-4) from one step to the next, well
+% under the scale of any real remaining ripple -- then plots the result
+% and drops into a keyboard breakpoint. From there, take additional steps
+% by hand (the fprintf message at the breakpoint shows the exact call),
+% inspect "info", "clusterTheta", etc., or "dbcont"/"dbquit" to finish.
 
 addpath('../lib');
 warning('off', 'Control:ltiobject:TFComplex');
@@ -46,22 +48,39 @@ clusterR = [0.925, 0.925, 0.925];
 clusterCount = [5, 5, 5];
 
 plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);
-
 fprintf('\nInitial setup plotted. anchor=%.4f\n', anchor);
-fprintf('Taking the first Newton step now...\n');
 
 % eqlzrD_peakNewtonStep re-detects the FULL current extremum set (every
 % local max/min, not just the two original edge peaks) fresh every call,
-% via zero crossings of d2TdW on a 500-point grid over wp_ expanded 10%
-% each side -- see the function's own header for why this replaced the
-% earlier fixed-2-peak version.
-[clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);
-disp(info);
-plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);
+% via zero crossings of d2TdW on a 2000-point grid (median-filtered) over
+% wp_ expanded 10% each side -- see the function's own header for why
+% this replaced the earlier fixed-2-peak version.
+MAX_ITERS = 50;
+SPREAD_TOL = 1e-4;
 
-fprintf('\nStep 1 done. nExtrema=%d, weightedDev spread %.3f -> ~%.3f\n', ...
-    info.nExtrema, info.spreadBefore, info.spreadAfter);
-fprintf('To take another step, run at this prompt:\n');
+spreadPrev = Inf;
+converged = false;
+for iter = 1:MAX_ITERS
+    [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);
+    fprintf('step %2d: nExtrema=%2d  spread=%.6f\n', iter, info.nExtrema, info.spreadBefore);
+    if abs(info.spreadBefore - spreadPrev) < SPREAD_TOL
+        converged = true;
+        fprintf('Converged after %d step(s) (spread change < %.g).\n', iter, SPREAD_TOL);
+        break
+    end
+    spreadPrev = info.spreadBefore;
+end
+if ~converged
+    fprintf('Stopped at MAX_ITERS=%d without reaching the %.g convergence tolerance.\n', ...
+        MAX_ITERS, SPREAD_TOL);
+end
+
+plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);
+disp(info);
+
+fprintf('\nDone: %d step(s) taken. nExtrema=%d, weightedDev spread=%.6f\n', ...
+    iter, info.nExtrema, info.spreadBefore);
+fprintf('To take another step by hand, run at this prompt:\n');
 fprintf('  [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);\n');
 fprintf('  plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);\n');
 fprintf('Repeat as many times as you like. Type dbcont to finish, dbquit to abort.\n');

@@ -67,11 +67,37 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
 %
 %   stepSize (default 0.5): damping factor on the Newton step.
 %
-%   nGridPts (default 500): number of points in the uniform scan grid
-%   used to find d2TdW's zero crossings. Independent of, and deliberately
-%   not reusing, estAllPassOrder.m's own grid (which serves a different
-%   purpose and clamps to [1000,10000]) so this function's grid size is
-%   exactly what's requested here.
+%   nGridPts (default 2000, raised from an original 500 -- see below):
+%   number of points in the uniform scan grid used to find d2TdW's zero
+%   crossings. Independent of, and deliberately not reusing,
+%   estAllPassOrder.m's own grid (which serves a different purpose and
+%   clamps to [1000,10000]) so this function's grid size is exactly
+%   what's requested here.
+%
+%   d2TdW is median-filtered (medfilt1, window 5, 'truncate' padding)
+%   before the zero-crossing scan, to suppress spurious sign changes from
+%   d2TdW's own local wobble very close to a sharp (near-singular) peak --
+%   'truncate' padding (not medfilt1's default 'zeropad') avoids
+%   distorting the two boundary segments, which is how the outermost
+%   peaks get caught. Both this and the nGridPts increase from 500 to
+%   2000 were tried, per direct instruction, specifically to reduce
+%   reliance on the cruder de-duplication pass below. Tested against
+%   three scenarios (the original hand-tuned 3-cluster start; that same
+%   configuration after 15 and 40 Newton steps; and a deliberately
+%   sharper r=0.97 edge-cluster stress case) across all four combinations
+%   of {500,2000} x {filtered,unfiltered}: every combination gave
+%   identical results, matching ground truth (a 5000-8000 point
+%   findpeaks scan) in every case, so no deleterious effect was found --
+%   but also no case where either change visibly mattered on THIS
+%   reference filter, since the de-duplication pass already covered the
+%   spurious-adjacent-bracket failure mode this was meant to address.
+%   Kept anyway as defensive robustness for filters sharper or noisier
+%   than this one, where 500-point/unfiltered detection might not be
+%   enough (the original discovery of both problems -- a missed shallow
+%   interior extremum, and duplicate detections at a sharp peak -- came
+%   from an earlier, different Newton trajectory than the ones covered
+%   in this specific comparison, so absence of an effect here should not
+%   be read as proof neither change ever matters).
 %
 %   Method per call:
 %     1. Detect the CURRENT extremum set via the d2TdW-bracket scan
@@ -121,7 +147,7 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
     stepSize = 0.5;
   end
   if nargin < 8 || isempty(nGridPts)
-    nGridPts = 500;
+    nGridPts = 2000;
   end
 
   bw = wp(2) - wp(1);
@@ -209,6 +235,12 @@ end
 function [f_ext, isMax] = findAllExtrema(Heq, fScan)
   w = 2*pi*fScan;
   [~, ~, ~, ~, dTdW, ~, d2TdW] = AnlzDH(Heq, w);
+  d2TdW = medfilt1(d2TdW, 5, 'omitnan', 'truncate'); % suppress spurious
+  % zero crossings from d2TdW's own local wobble very close to a sharp
+  % (near-singular) peak, which otherwise produced two adjacent brackets
+  % for what was really one extremum -- 'truncate' (not the default
+  % 'zeropad') padding avoids distorting the two boundary segments, which
+  % is how the outermost peaks get caught.
 
   infIdx = find(d2TdW(1:end-1).*d2TdW(2:end) < 0);
   boundaryIdx = [1; infIdx; length(fScan)];

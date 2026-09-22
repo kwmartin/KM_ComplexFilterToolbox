@@ -306,10 +306,26 @@ Both return `eq` (an `eqlzrDClass`) and an `info` struct with
    ~10-15 samples above its neighbors) was invisible to the 500-point
    scan (confirmed present via `findpeaks` on a 2000-point local grid)
    and caused two adjacent detected minima with no maximum between them
-   in the reported list, which is not possible for a smooth curve. 500
-   points is what was specified and is kept as the default, but a design
-   with subtler interior ripple than this reference filter may need more
-   points, or an adaptive/multi-resolution scan, to catch everything.
+   in the reported list, which is not possible for a smooth curve. Also
+   found (same investigation): very sharp, near-singular peaks made the
+   coarse scan flag two adjacent brackets for what was really one
+   extremum, refining to nearly the same frequency.
+
+   Per direct instruction, both were addressed: `nGridPts` default raised
+   500 -> 2000, and d2TdW is now median-filtered (`medfilt1`, window 5,
+   `'truncate'` padding so the two boundary segments -- how the edge
+   peaks get caught -- aren't distorted by the default zero-padding)
+   before the zero-crossing scan, on top of the de-duplication pass
+   already in place. Tested across three scenarios (the original
+   3-cluster start; that configuration after 15 and 40 Newton steps; a
+   deliberately sharper r=0.97 edge-cluster stress case) and all four
+   combinations of {500,2000} x {filtered,unfiltered}: every combination
+   gave identical results matching a 5000-8000 point `findpeaks` ground
+   truth, so no deleterious effect was found -- but also no case where
+   either change visibly mattered on *this* reference filter, since
+   de-duplication already covered the specific failure mode both were
+   meant to address further. Kept anyway as defensive robustness; a
+   design sharper or noisier than this one could still need them.
 6. **Stopping criterion.** Iterations were run a fixed number of times by
    hand. A principled stopping rule (e.g. weighted-deviation spread below
    some tolerance, or step size below a threshold) would make the

@@ -2,8 +2,10 @@
 % eqlzrD_peakNewtonStep.m. Starts from the 3-cluster (15%/54%/90%,
 % r=0.925, 5 stages each) configuration explored by hand in
 % dsgnEqlzrD_manual.m, then repeatedly calls eqlzrD_peakNewtonStep to
-% adjust the three cluster angles (r held fixed) to drive the two edge
-% peaks' gain-weighted deviation from the anchor toward equality.
+% adjust the three cluster angles (r held fixed) to drive ALL of the
+% current group delay's local extrema's gain-weighted deviation from the
+% anchor toward equality (not just the original two edge peaks -- see
+% eqlzrD_peakNewtonStep.m's own header for why that was wrong).
 %
 % Run this once to set up and take the FIRST step, inspect the plot and
 % "info" struct at the breakpoint, then repeat the call shown in the
@@ -33,11 +35,8 @@ w = 2*pi*f;
 gdH0 = stats.gdH(:);
 
 % Fixed anchor: mean of H's own two edge peaks (unweighted, per this
-% session's discussion).
+% session's discussion). Never recomputed after this point.
 pkMask0 = islocalmax(gdH0, 'MinProminence', 5);
-f_peaks0 = f(pkMask0);
-f_pk1 = min(f_peaks0);
-f_pk2 = max(f_peaks0);
 anchor = mean(gdH0(pkMask0));
 
 % Starting configuration: three free interior clusters (all frequencies
@@ -46,21 +45,24 @@ clusterTheta = 2*pi*[wp_(1)+0.15*diff(wp_), wp_(1)+0.54*diff(wp_), wp_(1)+0.90*d
 clusterR = [0.925, 0.925, 0.925];
 clusterCount = [5, 5, 5];
 
-f_peak_guess = [f_pk1, f_pk2];
-
 plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);
 
-fprintf('\nInitial setup plotted. anchor=%.4f, tracking peaks near f=[%.4f %.4f]\n', anchor, f_pk1, f_pk2);
+fprintf('\nInitial setup plotted. anchor=%.4f\n', anchor);
 fprintf('Taking the first Newton step now...\n');
 
-[clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, f_peak_guess);
+% eqlzrD_peakNewtonStep re-detects the FULL current extremum set (every
+% local max/min, not just the two original edge peaks) fresh every call,
+% via zero crossings of d2TdW on a 500-point grid over wp_ expanded 10%
+% each side -- see the function's own header for why this replaced the
+% earlier fixed-2-peak version.
+[clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);
 disp(info);
 plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);
 
-fprintf('\nStep 1 done. weightedDev=[%.3f %.3f] (spread %.3f -> ~%.3f)\n', ...
-    info.weightedDev(1), info.weightedDev(2), info.spreadBefore, info.spreadAfter);
+fprintf('\nStep 1 done. nExtrema=%d, weightedDev spread %.3f -> ~%.3f\n', ...
+    info.nExtrema, info.spreadBefore, info.spreadAfter);
 fprintf('To take another step, run at this prompt:\n');
-fprintf('  [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, info.f_peaks);\n');
+fprintf('  [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);\n');
 fprintf('  plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);\n');
 fprintf('Repeat as many times as you like. Type dbcont to finish, dbquit to abort.\n');
 keyboard

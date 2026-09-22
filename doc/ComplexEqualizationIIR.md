@@ -218,12 +218,16 @@ weighted deviations, the Jacobian, the raw step), then drops into a
 `keyboard` breakpoint. From there, take additional steps by hand:
 
 ```matlab
-[clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, info.f_peaks);
+[clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);
 plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);
 ```
 
 Repeat as many times as desired, inspecting `info.weightedDev` and the
-plot after each call. `dbcont` to finish, `dbquit` to abandon.
+plot after each call. `dbcont` to finish, `dbquit` to abandon. (Note:
+`eqlzrD_peakNewtonStep` now re-detects the full extremum set from scratch
+every call from `wp_` alone -- it no longer takes or needs a peak-location
+guess to thread between calls; see item 5 under "Suggested next steps"
+below for why.)
 
 ### 3. Compute the figures of merit directly
 
@@ -278,14 +282,34 @@ Both return `eq` (an `eqlzrDClass`) and an `info` struct with
    equalizing strictly within the specified passband (in which case the
    expanded-band metric may simply be the wrong thing to optimize), or is
    there a real fix available?
-5. **Beyond two tracked peaks.** The current Newton scheme hardcodes
-   exactly two tracked peaks (the original edge peaks). A design with a
-   wider passband, more ripple, or more equalizer sections could
-   plausibly develop additional interior peaks that this scheme doesn't
-   currently account for. Generalizing Step A/B to track and equalize an
-   arbitrary number of peaks (while still never letting the peak *set*
-   itself become a free variable, per the earlier bug) is a natural
-   extension.
+5. ~~**Beyond two tracked peaks.**~~ **Done.** Confirmed by hand (10
+   iterations from the 3-cluster start grew 5 maxima + 4 minima, values
+   208-240, while the 2-peak version's tracked pair sat at 118.5/118.5
+   and reported spread=0.003 -- a false convergence). `eqlzrD_peakNewtonStep.m`
+   now re-detects the *entire* current extremum set every call: scan
+   d2TdW (group delay's second derivative) for zero crossings on a
+   500-point grid over wp expanded 10% each side; between two consecutive
+   inflection points d2TdW keeps one sign, so dTdW is monotonic there and
+   crosses zero at most once, giving every bracket at most one genuine
+   extremum (checked via a dTdW sign test at each bracket's endpoints,
+   including the two boundary segments, which is what catches the edge
+   peaks). No tunable prominence threshold. Re-detecting the set fresh
+   each call is safe against the *earlier* bug (unanchored, self-
+   referential peak matching) because the anchor here is fixed once,
+   outside this function, from the unequalized filter -- growing the
+   tracked set only ever adds constraints against that fixed external
+   target, never something to game.
+
+   One real limitation found while verifying this: the 500-point scan can
+   miss a genuine but *shallow* interior extremum. Checked directly for
+   the reference filter -- a real local max at f≈0.034 (gd≈222, only
+   ~10-15 samples above its neighbors) was invisible to the 500-point
+   scan (confirmed present via `findpeaks` on a 2000-point local grid)
+   and caused two adjacent detected minima with no maximum between them
+   in the reported list, which is not possible for a smooth curve. 500
+   points is what was specified and is kept as the default, but a design
+   with subtler interior ripple than this reference filter may need more
+   points, or an adaptive/multi-resolution scan, to catch everything.
 6. **Stopping criterion.** Iterations were run a fixed number of times by
    hand. A principled stopping rule (e.g. weighted-deviation spread below
    some tolerance, or step size below a threshold) would make the

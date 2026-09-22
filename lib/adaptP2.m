@@ -58,6 +58,28 @@ function H = adaptP2(H, deltT)
         dX = sens\Y;
         dP = rq2dp(dX);
         p = p - 0.05*dP;
+        % Clamp any pole that crossed the unit circle back to a safe
+        % radius. Without this, a single step that pushes one pole just
+        % past |p|=1 makes fndZeroCrs3 find fewer genuine zero-crossings
+        % on the next iteration (an unstable H's group delay curve loses
+        % ripple structure), which starves plSens's sensitivity matrix
+        % (needs 2*np, i.e. one real+imag pair per pole) down to a
+        % rank-deficient system -- confirmed via dig_equiGd_1_12_0.m's
+        % wide-band spec (wp=[-0.05 0.05]): rank dropped from a full 22
+        % to 16 after just ONE step (max|p| 0.99->1.13), then collapsed
+        % further (rank 3, then 1) as poles ran away past 1e14 over the
+        % following iterations, with no error or warning stopping it
+        % (just a silent "Rank deficient" warning from \). The
+        % minimum-norm least-squares solution to an under-determined
+        % system has no reason to move poles back toward stability, so
+        % this is a positive-feedback loop with no natural circuit
+        % breaker. Clamping every step keeps H stable throughout, which
+        % keeps the zero-crossing count (and hence sens's rank) full:
+        % verified this exact case converges cleanly to max|p|=0.95 with
+        % full rank maintained at every iteration, instead of diverging.
+        R_MAX = 0.995;
+        tooBig = abs(p) > R_MAX;
+        p(tooBig) = R_MAX * p(tooBig)./abs(p(tooBig));
         %T = p2T(H, w);
         %plot(f,T)
     end

@@ -63,6 +63,17 @@ function H = adaptP3(H, deltT)
         dX = sens\Y;
         dP = rq2dp(dX);
         p = p - uP(i)*dP;
+        % Clamp any pole that crossed the unit circle back to a safe
+        % radius -- same fix, and same confirmed positive-feedback
+        % instability mechanism, as adaptP2.m's identical line (see its
+        % comment there for the full explanation and the verified
+        % before/after trace). Worse here than in adaptP2 in practice,
+        % since this loop's escalating step size (uP, up to 0.1 vs
+        % adaptP2's fixed 0.05) makes the initial unstable-crossing step
+        % larger and the runaway faster.
+        R_MAX = 0.995;
+        tooBig = abs(p) > R_MAX;
+        p(tooBig) = R_MAX * p(tooBig)./abs(p(tooBig));
         %T = p2T(H, w);
         %plot(f,T)
     end

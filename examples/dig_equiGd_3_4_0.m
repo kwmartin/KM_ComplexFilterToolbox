@@ -1,5 +1,4 @@
 % One of the early examples used in developing normalized design
-% Includes the first SFG ladder simulation
 
 p = [-0.4 -0.3 -0.25 -0.2 -0.15 0.15 0.2 0.25 0.3 0.4]; % initial guess at finite loss poles
 px = [];

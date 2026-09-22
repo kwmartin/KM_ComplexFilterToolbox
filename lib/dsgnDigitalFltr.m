@@ -58,10 +58,19 @@ function H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr)
     [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
   elseif strcmp(type, 'equiGD')
     deltT = 0.25;
-    [H1 T0] = LinPhFltr(Ordr, 0.01, Ap); % design continous prototype
+    [H1 T0] = LinPhFltr(Ordr, 0.02, Ap); % design continous prototype
     [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
-    % H2 = adaptP2(H2,deltT);
-    H2 = adaptP3(H2,deltT); % Need to look into difference of adaptP3: 2026
+    H2 = adaptP2(H2,deltT);
+    % H2 = adaptP3(H2,deltT); % Intermittent "HCat failed" crash in
+    % dig_equiGd_1_12_0.m traced to adaptP3's moving-target (recomputed
+    % from mean(Tz) every iteration, vs adaptP2's fixed target) plus its
+    % escalating step size (logspace(-2,-1,200) vs adaptP2's fixed 0.05)
+    % -- a plausible source of occasional divergence in a fixed-point
+    % Newton loop. adaptP2 is what dsgnDigitalFltr2.m already uses here
+    % and was confirmed reliable; could not get a live repro of the
+    % adaptP3 crash (0/83 trials) to pin down the exact failing line, so
+    % adaptP3 itself is unfixed -- revisit if its moving-target approach
+    % is ever needed for a case adaptP2 handles poorly.
     H2.k = H2.k/(abs(freqresp(H2,0)));
   elseif strcmp(type, 'equiGDLsPls')
     tic

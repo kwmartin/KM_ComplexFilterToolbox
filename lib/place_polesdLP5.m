@@ -67,9 +67,6 @@ ni = length(py_(abs(py_ - 1) <= 1e-7));
 Hy = Hy2;
 np = length(py);
 
-% set up the sensitivity matrix.
-s2 = -1*ones(np+1,1);
-
 X = [py(:); 0];
 
 % Adapt the pole positions to equalize the stop-band loss minima
@@ -87,19 +84,29 @@ for i = 1:2000 % repeat enough times to guarantee success
         zmin = zmin(indxs(1:np+1));
         mrgn = mrgn(indxs(1:np+1));
     end
-    % system is over-determined. Different approaches could be considered
-    % here.
+    % The system is generally NOT exactly np+1 equations: findLossMinima
+    % can return fewer than np+1 minima (nz < np+1, under-determined) as
+    % well as more (clamped to np+1 above, over-determined only when
+    % length(indxs) > np+1 exactly). s2 used to be a fixed np+1-row
+    % column built once before this loop, on the implicit assumption
+    % nz==np+1 always; whenever nz was actually smaller, concatenating it
+    % onto dHy_dp2b's nz-row sensitivity block (S = [dHy_dp2b(...) s2])
+    % failed with a dimension mismatch (silently caught below, printed as
+    % "HCat failed", and this iteration's Newton step skipped/stale) --
+    % confirmed the actual trigger via dig_equiGd_1_12_0.m. Fixed by
+    % sizing s2 to the CURRENT nz every iteration, and solving the
+    % regularized normal equations (S'*S + Pmin)\(S'*Y) instead of
+    % (S+Pmin)\Y directly: S'*S is always (np+1)x(np+1) -- square --
+    % regardless of nz, so this is well-defined whether the system is
+    % under-, exactly, or over-determined, and needs no try/catch.
     nz = length(zmin);
-    
+    s2 = -1*ones(nz,1);
+
     Y = -mrgn;
 
-    try
-        S = [dHy_dp2b(Hy,zmin) s2];
-        Pmin = 1e-6.*diag(ones(1,length(X)));
-        X = (S + Pmin)\(Y); % Calculate the changes in the pole frequencies
-    catch ME
-        fprintf('HCat failed:\n%s\n', ME.message);
-    end
+    S = [dHy_dp2b(Hy,zmin) s2];
+    Pmin = 1e-6.*diag(ones(1,length(X)));
+    X = (S.'*S + Pmin)\(S.'*Y); % Calculate the changes in the pole frequencies
 
     % X = (S)\(Y); % Calculate the changes in the pole frequencies
     py = py + 0.05.*X(1:np).'; % Calculate the new pole positions

@@ -11,7 +11,7 @@ as = [20 20 20 20];
 Ap=3.0103;
 % Ap=1.0;
 np = length(p);
-ni = 1;
+ni = 3;
 
 deltGD=0.25;
 useWs = 1;

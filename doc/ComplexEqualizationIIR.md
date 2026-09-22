@@ -27,6 +27,217 @@ Two mathematical facts anchor everything below:
    into the pre-existing peaks, and poles placed *at* a peak only make
    that peak worse, never better.
 
+## Design Procedure
+
+*This section states the complete equalizer design procedure on its own,
+independent of the exploration that produced it, in a form intended to be
+reusable close to verbatim in a paper. The sections that follow
+("Initial approaches and how they failed" onward) document the
+exploratory work, failed alternatives, bugs, and empirical findings that
+led to it, and are retained as supporting material and implementation
+history.*
+
+### A. Filter model and all-pass building block
+
+Let $H(z)$ be a (possibly complex, non-conjugate-symmetric) discrete-time
+IIR filter with passband $[f_{p1}, f_{p2}]$ in normalized cyclic
+frequency ($F_s = 1$), and let $\tau_H(f)$ denote its group delay.
+Complex IIR filters designed without an arithmetic-symmetry constraint
+typically exhibit a markedly non-flat, "bathtub"-shaped group delay: two
+peaks near the passband edges bridged by a lower floor across the
+interior. The goal is a cascaded all-pass equalizer that flattens
+$\tau_H$ across the passband without altering $|H(e^{j\omega})|$.
+
+The equalizer is a cascade of $N$ first-order discrete all-pass
+sections. Each section is parameterized by a single complex pole
+$p_i = r_i e^{j\theta_i}$, $0 < r_i < 1$:
+
+$$
+A_i(z) \;=\; \frac{z^{-1} - \overline{p_i}}{1 - p_i\, z^{-1}}. \tag{1}
+$$
+
+This construction is magnitude-preserving for any complex $p_i$:
+$|A_i(e^{j\omega})| = 1$ for all real $\omega$, so cascading $A_i$ onto
+$H$ leaves $|H(e^{j\omega})|$ unchanged and only modifies phase/group
+delay. The group-delay contribution of a single section is the Poisson
+kernel
+
+$$
+\tau_i(\omega) \;=\; \frac{1 - r_i^2}{1 - 2 r_i \cos(\omega - \theta_i) + r_i^2},
+\qquad \tau_i(\omega) > 0 \ \ \forall\, \omega. \tag{2}
+$$
+
+Because $\tau_i(\omega) > 0$ everywhere, an all-pass cascade can only
+*add* delay: it can raise a low floor toward the level of existing
+peaks, but it cannot directly lower a peak, and a section placed too
+close to an existing peak only adds to it.
+
+For implementation convenience, sections are grouped into $M$
+*clusters*: cluster $i$ consists of $c_i$ identical stacked sections
+sharing one pole $(r_i, \theta_i)$, so $N = \sum_i c_i$, and the total
+equalizer delay is
+
+$$
+\tau_{eq}(\omega; \boldsymbol\theta, \mathbf r) \;=\; \sum_{i=1}^{M} c_i\, \tau_i(\omega; r_i, \theta_i),
+\qquad
+\tau(\omega) \;=\; \tau_H(\omega) + \tau_{eq}(\omega). \tag{3}
+$$
+
+### B. Design objective: anchored, gain-weighted equi-ripple balance
+
+Fix an **anchor** level once, from the *unequalized* filter alone:
+
+$$
+D_0 \;=\; \operatorname{mean}\Big(\tau_H(f) : f \text{ a local extremum of } \tau_H\Big), \tag{4}
+$$
+
+in practice the mean of the filter's own two edge-of-passband peaks.
+$D_0$ is never recomputed once fixed, which keeps the objective anchored
+to an external, fixed target rather than to the equalizer's own
+(evolving) output — an unanchored objective was found in practice to let
+the optimizer invent new peaks and match them to each other at an
+arbitrarily poor common level (§Objective, below).
+
+For a given $(\boldsymbol\theta, \mathbf r)$, let $\{f_k\}_{k=1}^K$ be the
+frequencies of *every* local extremum (maxima and minima) of
+$\tau(\cdot)$ over the passband expanded by a margin fraction $\mu$ on
+each side (default $\mu=0.10$), redetected from scratch at every
+iteration (§C). Define the gain-weighted deviation from the anchor at
+each extremum:
+
+$$
+w_k \;=\; \big|\tau(f_k) - D_0\big| \cdot |H(f_k)|, \qquad k = 1, \dots, K. \tag{5}
+$$
+
+The design goal is the classical Chebyshev equi-ripple condition: choose
+$(\boldsymbol\theta, \mathbf r)$ so that all $w_k$ are equal. Weighting
+by the filter's own gain $|H(f_k)|$ allows an extremum sitting where
+$|H|$ has already rolled off to carry a proportionally larger raw delay
+deviation without violating equality of the weighted terms — the
+deviation that matters is the one seen at the filter's output, not the
+raw group-delay number.
+
+### C. One Newton/least-squares iteration
+
+Given a current configuration $(\boldsymbol\theta, \mathbf r)$, one
+iteration proceeds in two steps.
+
+**Step 1 — extremum detection and refinement.** Evaluate $\tau''(\omega)$
+on a uniform grid over the expanded band and locate its zero crossings
+(each pair of consecutive crossings, plus the two boundary segments,
+brackets at most one true extremum of $\tau$, since $\tau'$ is monotonic
+wherever $\tau''$ keeps one sign). Within each occupied bracket, confirm
+the extremum type from the sign of $\tau'$ at the bracket's endpoints,
+then refine its location with one Newton step:
+
+$$
+f_k \;\leftarrow\; f_k \;-\; \frac{\tau'(f_k)}{\tau''(f_k)}. \tag{6}
+$$
+
+**Step 2 — parameter update.** Because cluster $i$'s contribution
+depends only on its own $(r_i,\theta_i)$, the Jacobian of $\tau$ with
+respect to each cluster parameter is available in closed form:
+
+$$
+\frac{\partial \tau(\omega)}{\partial \theta_i} \;=\; c_i\,\frac{2 r_i (1-r_i^2)\sin(\omega-\theta_i)}{D_i(\omega)^2}, \tag{7}
+$$
+
+$$
+\frac{\partial \tau(\omega)}{\partial r_i} \;=\; c_i\left(\frac{-2 r_i}{D_i(\omega)} \;-\; \frac{2(1-r_i^2)\big(r_i - \cos(\omega-\theta_i)\big)}{D_i(\omega)^2}\right), \tag{8}
+$$
+
+$$
+D_i(\omega) \;=\; 1 - 2 r_i \cos(\omega-\theta_i) + r_i^2. \tag{9}
+$$
+
+Assemble the Jacobian $J \in \mathbb{R}^{K \times M}$ (angle-only) or
+$J \in \mathbb{R}^{K \times 2M}$ (joint angle+radius) of the weighted
+deviations, row $k$ given by
+$J_{k,i} = \operatorname{sign}\big(\tau(f_k)-D_0\big)\,|H(f_k)|\,\partial\tau(f_k)/\partial\theta_i$
+(and analogously for $\partial/\partial r_i$). Solve, via the
+Moore-Penrose pseudoinverse (the system is neither reliably square nor
+consistently over/under-determined, since $K$ changes call to call),
+
+$$
+\Delta \;=\; J^{+}\big(\bar w \,\mathbf 1 - \mathbf w\big), \qquad \bar w = \frac1K \sum_{k=1}^K w_k, \tag{10}
+$$
+
+the least-squares parameter step that drives every $w_k$ toward their
+common mean, then apply a damped update
+
+$$
+\boldsymbol\theta \leftarrow \boldsymbol\theta + \alpha\, \Delta_\theta, \qquad
+\mathbf r \leftarrow \mathbf r + \alpha\, \Delta_r \ \ (\text{if radii are free}), \tag{11}
+$$
+
+with damping factor $\alpha \in (0,1]$, and radii clamped to
+$[r_{\min}, r_{\max}] = [0.3, 0.995]$ after the update.
+
+### D. Two-phase iteration schedule
+
+**Phase 1 (angle-only).** Radii held fixed; repeat §C with damping
+$\alpha = \alpha_1$ until the ripple spread $S = \max_k w_k - \min_k w_k$
+changes by less than a tolerance $\epsilon$ between consecutive
+iterations, or a maximum iteration budget is reached. This phase
+converges monotonically in practice.
+
+**Phase 2 (joint angle + radius).** Continuing from the Phase 1 result,
+free the radii and repeat §C with damping $\alpha = \alpha_2$, now
+updating $J$'s $r$-columns as well. This phase does *not* converge
+monotonically: $S$ reaches a minimum after a small number of steps, then
+drifts upward again while flatness just outside the nominal passband
+continues to improve — a genuine trade-off, not simple convergence to a
+fixed point. Accordingly, Phase 2 tracks the best (smallest) $S$ seen so
+far and stops after $P$ consecutive non-improving iterations,
+**returning the best configuration found**, not the final iterate.
+
+### E. Starting configuration and step-size selection
+
+The iteration is initialized with $M$ clusters of $c$ stacked sections
+each, pole angles spread across the passband (evenly, or symmetrically
+if the filter's own specification is symmetric), and a common starting
+radius $r_0$. Two empirical rules govern the free parameters:
+
+- **Damping must shrink as $M$ grows relative to $K$.** With more free
+  angle/radius parameters against roughly the same number of tracked
+  extrema, the pseudoinverse step becomes more aggressive per unit
+  residual; the default $\alpha=0.5$, stable at $M=3$, produces outright
+  divergence at $M=5$ (oscillating extremum count, radii pinned at their
+  clamp bounds) unless $\alpha_1,\alpha_2$ are reduced (e.g. to
+  $0.2/0.1$, or smaller still when perturbing a starting point that is
+  already known to be reasonable).
+- **Lower $r_0$ suits wider passbands.** A single section's own peak
+  height $(1+r_i)/(1-r_i)$ grows far faster with $r_i$ than its
+  fractional leakage to distant frequencies shrinks; for a passband
+  spanning a large fraction of the full cycle, a lower, broader starting
+  radius blends clusters into a smooth correction rather than a sequence
+  of narrow, high-$Q$ bumps.
+
+### Algorithm summary
+
+> **Given:** $H(z)$, passband $[f_{p1},f_{p2}]$, expansion margin $\mu$,
+> cluster count $M$, stages per cluster $c_i$, starting angles
+> $\boldsymbol\theta^{(0)}$ and radius $r_0$, damping $\alpha_1,\alpha_2$,
+> tolerance $\epsilon$, patience $P$.
+>
+> 1. Compute $\tau_H$ over the expanded band; set the anchor $D_0$ from
+>    $\tau_H$'s own extrema (Eq. 4).
+> 2. Initialize $\boldsymbol\theta \leftarrow \boldsymbol\theta^{(0)}$,
+>    $\mathbf r \leftarrow r_0\mathbf 1$.
+> 3. **Phase 1:** repeat the update of §C with radii fixed and damping
+>    $\alpha_1$ until $|S^{(t)}-S^{(t-1)}| < \epsilon$.
+> 4. **Phase 2:** repeat the update of §C with radii free and damping
+>    $\alpha_2$; track the best $S$ seen; stop after $P$ non-improving
+>    steps; keep the best $(\boldsymbol\theta,\mathbf r)$.
+> 5. Return the equalizer $\big\{(r_i,\theta_i,c_i)\big\}_{i=1}^M$ and the
+>    resulting $\tau(\omega) = \tau_H(\omega)+\tau_{eq}(\omega)$.
+
+Implementation: Step C is `examples/eqlzrD_peakNewtonStep.m`; the
+two-phase schedule of §D is driven by
+`dsgnEqlzrD_peakNewton_manual.m`/`eqlz_csc_newton_1_8_0.m` (one per
+reference filter). See "How to evaluate this, exactly, in MATLAB" below
+to reproduce a result end to end.
+
 ## Initial approaches and how they failed
 
 ### Automated joint optimization — `lib/dsgnEqlzrD.m`
@@ -398,11 +609,27 @@ Both return `eq` (an `eqlzrDClass`) and an `info` struct with
    halve the step and retry if a step increases spread, rather than a
    fixed constant chosen up front) would remove the need to re-tune by
    hand every time cluster count or the reference filter changes.
-3. **Generalization to a different filter.** Still open. Every result in
-   this document uses the same one reference filter. Does this same
-   procedure work comparably well on a different passband or filter
-   order, or is it implicitly tuned (anchor definition, step sizes,
-   cluster placement) to this specific filter's shape?
+3. **Generalization to a different filter.** *Partially answered.* The
+   procedure was applied to a second reference filter,
+   `examples/csc_fltr_1_8_0.m` — passband `[0.025, 0.475]`, ~9x wider
+   than the original `[0.025, 0.075]` case and spanning almost all
+   positive frequencies (`examples/eqlz_csc_1_8_0.m`,
+   `examples/eqlz_csc_newton_1_8_0.m`). The same anchor definition and
+   Newton update carried over unchanged; the only refit needed was the
+   starting radius (a much lower $r_0 \approx 0.82$, vs. $0.925$ for the
+   narrow-band filter — consistent with §E's rule that wider passbands
+   need broader starting bumps) and correspondingly smaller step sizes
+   ($\alpha_1=0.1$, $\alpha_2=0.05$). With that adjustment, 5 clusters
+   took nominal p2p from 35.90 (unequalized) to 23.80, and 7 clusters
+   (r=0.78) reached 12.54 — both phases converged cleanly with no
+   clamping or oscillation, at the cost of a larger expanded-band
+   penalty (66.34 at 7 clusters) than the narrow-band case ever showed.
+   So the procedure itself generalizes without modification; only the
+   starting-point hyperparameters ($r_0$, $\alpha_1$, $\alpha_2$) need
+   re-tuning per filter. Still open: whether that re-tuning can be made
+   automatic (e.g. $r_0$ set from passband width directly), and whether
+   a filter with a different *shape* of asymmetry (not just a wider
+   version of the same bathtub) behaves the same way.
 4. **The expanded-band trade-off.** Still open, and now has a sharper
    data point: going from 3 to 5 clusters made the *nominal* result
    better (16.73 -> 13.94) but the *expanded*-band result worse (117.6

@@ -1,0 +1,221 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{hyperref}
+
+\title{Group-Delay Equalization for Complex IIR Filters:\\ Design Procedure}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent This section states the complete equalizer design procedure on
+its own, in a form intended to be reusable close to verbatim in a paper.
+
+\section{Filter model and all-pass building block}
+
+Let $H(z)$ be a (possibly complex, non-conjugate-symmetric) discrete-time
+IIR filter with passband $[f_{p1}, f_{p2}]$ in normalized cyclic
+frequency ($F_s = 1$), and let $\tau_H(f)$ denote its group delay.
+Complex IIR filters designed without an arithmetic-symmetry constraint
+typically exhibit a markedly non-flat, ``bathtub''-shaped group delay:
+two peaks near the passband edges bridged by a lower floor across the
+interior. The goal is a cascaded all-pass equalizer that flattens
+$\tau_H$ across the passband without altering $|H(e^{j\omega})|$.
+
+The equalizer is a cascade of $N$ first-order discrete all-pass
+sections. Each section is parameterized by a single complex pole
+$p_i = r_i e^{j\theta_i}$, $0 < r_i < 1$:
+\begin{equation}
+A_i(z) \;=\; \frac{z^{-1} - \overline{p_i}}{1 - p_i\, z^{-1}}.
+\label{eq:allpass}
+\end{equation}
+This construction is magnitude-preserving for any complex $p_i$:
+$|A_i(e^{j\omega})| = 1$ for all real $\omega$, so cascading $A_i$ onto
+$H$ leaves $|H(e^{j\omega})|$ unchanged and only modifies phase/group
+delay. The group-delay contribution of a single section is the Poisson
+kernel
+\begin{equation}
+\tau_i(\omega) \;=\; \frac{1 - r_i^2}{1 - 2 r_i \cos(\omega - \theta_i) + r_i^2},
+\qquad \tau_i(\omega) > 0 \ \ \forall\, \omega.
+\label{eq:poisson}
+\end{equation}
+Because $\tau_i(\omega) > 0$ everywhere, an all-pass cascade can only
+\emph{add} delay: it can raise a low floor toward the level of existing
+peaks, but it cannot directly lower a peak, and a section placed too
+close to an existing peak only adds to it.
+
+For implementation convenience, sections are grouped into $M$
+\emph{clusters}: cluster $i$ consists of $c_i$ identical stacked
+sections sharing one pole $(r_i, \theta_i)$, so $N = \sum_i c_i$, and the
+total equalizer delay is
+\begin{equation}
+\tau_{eq}(\omega; \boldsymbol\theta, \mathbf r) \;=\; \sum_{i=1}^{M} c_i\, \tau_i(\omega; r_i, \theta_i),
+\qquad
+\tau(\omega) \;=\; \tau_H(\omega) + \tau_{eq}(\omega).
+\label{eq:total}
+\end{equation}
+
+\section{Design objective: anchored, gain-weighted equi-ripple balance}
+
+Fix an \textbf{anchor} level once, from the \emph{unequalized} filter
+alone:
+\begin{equation}
+D_0 \;=\; \operatorname{mean}\Big(\tau_H(f) : f \text{ a local extremum of } \tau_H\Big),
+\label{eq:anchor}
+\end{equation}
+in practice the mean of the filter's own two edge-of-passband peaks.
+$D_0$ is never recomputed once fixed, which keeps the objective anchored
+to an external, fixed target rather than to the equalizer's own
+(evolving) output -- an unanchored objective was found in practice to
+let the optimizer invent new peaks and match them to each other at an
+arbitrarily poor common level.
+
+For a given $(\boldsymbol\theta, \mathbf r)$, let $\{f_k\}_{k=1}^K$ be
+the frequencies of \emph{every} local extremum (maxima and minima) of
+$\tau(\cdot)$ over the passband expanded by a margin fraction $\mu$ on
+each side (default $\mu=0.10$), redetected from scratch at every
+iteration (Section~\ref{sec:iteration}). Define the gain-weighted
+deviation from the anchor at each extremum:
+\begin{equation}
+w_k \;=\; \big|\tau(f_k) - D_0\big| \cdot |H(f_k)|, \qquad k = 1, \dots, K.
+\label{eq:wk}
+\end{equation}
+The design goal is the classical Chebyshev equi-ripple condition: choose
+$(\boldsymbol\theta, \mathbf r)$ so that all $w_k$ are equal. Weighting
+by the filter's own gain $|H(f_k)|$ allows an extremum sitting where
+$|H|$ has already rolled off to carry a proportionally larger raw delay
+deviation without violating equality of the weighted terms -- the
+deviation that matters is the one seen at the filter's output, not the
+raw group-delay number.
+
+\section{One Newton/least-squares iteration}
+\label{sec:iteration}
+
+Given a current configuration $(\boldsymbol\theta, \mathbf r)$, one
+iteration proceeds in two steps.
+
+\paragraph{Step 1 -- extremum detection and refinement.} Evaluate
+$\tau''(\omega)$ on a uniform grid over the expanded band and locate its
+zero crossings (each pair of consecutive crossings, plus the two
+boundary segments, brackets at most one true extremum of $\tau$, since
+$\tau'$ is monotonic wherever $\tau''$ keeps one sign). Within each
+occupied bracket, confirm the extremum type from the sign of $\tau'$ at
+the bracket's endpoints, then refine its location with one Newton step:
+\begin{equation}
+f_k \;\leftarrow\; f_k \;-\; \frac{\tau'(f_k)}{\tau''(f_k)}.
+\label{eq:newtonrefine}
+\end{equation}
+
+\paragraph{Step 2 -- parameter update.} Because cluster $i$'s
+contribution depends only on its own $(r_i,\theta_i)$, the Jacobian of
+$\tau$ with respect to each cluster parameter is available in closed
+form:
+\begin{align}
+\frac{\partial \tau(\omega)}{\partial \theta_i} &= c_i\,\frac{2 r_i (1-r_i^2)\sin(\omega-\theta_i)}{D_i(\omega)^2}, \label{eq:jactheta}\\[4pt]
+\frac{\partial \tau(\omega)}{\partial r_i} &= c_i\left(\frac{-2 r_i}{D_i(\omega)} \;-\; \frac{2(1-r_i^2)\big(r_i - \cos(\omega-\theta_i)\big)}{D_i(\omega)^2}\right), \label{eq:jacr}\\[4pt]
+D_i(\omega) &= 1 - 2 r_i \cos(\omega-\theta_i) + r_i^2. \label{eq:Di}
+\end{align}
+Assemble the Jacobian $J \in \mathbb{R}^{K \times M}$ (angle-only) or
+$J \in \mathbb{R}^{K \times 2M}$ (joint angle+radius) of the weighted
+deviations, row $k$ given by
+$J_{k,i} = \operatorname{sign}\big(\tau(f_k)-D_0\big)\,|H(f_k)|\,\partial\tau(f_k)/\partial\theta_i$
+(and analogously for $\partial/\partial r_i$). Solve, via the
+Moore--Penrose pseudoinverse (the system is neither reliably square nor
+consistently over/under-determined, since $K$ changes call to call),
+\begin{equation}
+\Delta \;=\; J^{+}\big(\bar w \,\mathbf 1 - \mathbf w\big), \qquad \bar w = \frac1K \sum_{k=1}^K w_k,
+\label{eq:lstsq}
+\end{equation}
+the least-squares parameter step that drives every $w_k$ toward their
+common mean, then apply a damped update
+\begin{equation}
+\boldsymbol\theta \leftarrow \boldsymbol\theta + \alpha\, \Delta_\theta, \qquad
+\mathbf r \leftarrow \mathbf r + \alpha\, \Delta_r \ \ (\text{if radii are free}),
+\label{eq:damped}
+\end{equation}
+with damping factor $\alpha \in (0,1]$, and radii clamped to
+$[r_{\min}, r_{\max}] = [0.3, 0.995]$ after the update.
+
+\section{Two-phase iteration schedule}
+
+\textbf{Phase 1 (angle-only).} Radii held fixed; repeat
+Section~\ref{sec:iteration} with damping $\alpha = \alpha_1$ until the
+ripple spread $S = \max_k w_k - \min_k w_k$ changes by less than a
+tolerance $\epsilon$ between consecutive iterations, or a maximum
+iteration budget is reached. This phase converges monotonically in
+practice.
+
+\textbf{Phase 2 (joint angle + radius).} Continuing from the Phase~1
+result, free the radii and repeat Section~\ref{sec:iteration} with
+damping $\alpha = \alpha_2$, now updating $J$'s $r$-columns as well.
+This phase does \emph{not} converge monotonically: $S$ reaches a minimum
+after a small number of steps, then drifts upward again while flatness
+just outside the nominal passband continues to improve -- a genuine
+trade-off, not simple convergence to a fixed point. Accordingly, Phase~2
+tracks the best (smallest) $S$ seen so far and stops after $P$
+consecutive non-improving iterations, \textbf{returning the best
+configuration found}, not the final iterate.
+
+\section{Starting configuration and step-size selection}
+
+The iteration is initialized with $M$ clusters of $c$ stacked sections
+each, pole angles spread across the passband (evenly, or symmetrically
+if the filter's own specification is symmetric), and a common starting
+radius $r_0$. Two empirical rules govern the free parameters:
+
+\begin{itemize}
+\item \textbf{Damping must shrink as $M$ grows relative to $K$.} With
+  more free angle/radius parameters against roughly the same number of
+  tracked extrema, the pseudoinverse step becomes more aggressive per
+  unit residual; the default $\alpha=0.5$, stable at $M=3$, produces
+  outright divergence at $M=5$ (oscillating extremum count, radii
+  pinned at their clamp bounds) unless $\alpha_1,\alpha_2$ are reduced
+  (e.g.\ to $0.2/0.1$, or smaller still when perturbing a starting point
+  that is already known to be reasonable).
+\item \textbf{Lower $r_0$ suits wider passbands.} A single section's own
+  peak height $(1+r_i)/(1-r_i)$ grows far faster with $r_i$ than its
+  fractional leakage to distant frequencies shrinks; for a passband
+  spanning a large fraction of the full cycle, a lower, broader starting
+  radius blends clusters into a smooth correction rather than a
+  sequence of narrow, high-$Q$ bumps.
+\end{itemize}
+
+\section{Algorithm summary}
+
+\begin{algorithm}[h]
+\caption{Anchored equi-ripple group-delay equalization}
+\begin{algorithmic}[1]
+\Require $H(z)$; passband $[f_{p1},f_{p2}]$; expansion margin $\mu$;
+  cluster count $M$; stages per cluster $c_i$; starting angles
+  $\boldsymbol\theta^{(0)}$ and radius $r_0$; damping $\alpha_1,\alpha_2$;
+  tolerance $\epsilon$; patience $P$.
+\State Compute $\tau_H$ over the expanded band; set anchor $D_0$ from
+  $\tau_H$'s own extrema (Eq.~\ref{eq:anchor}).
+\State $\boldsymbol\theta \gets \boldsymbol\theta^{(0)}$; \quad
+  $\mathbf r \gets r_0\mathbf 1$.
+\Statex \textbf{Phase 1 (angle-only):}
+\Repeat
+  \State Update $\boldsymbol\theta$ via Section~\ref{sec:iteration} with
+    radii fixed, damping $\alpha_1$.
+\Until{$|S^{(t)}-S^{(t-1)}| < \epsilon$}
+\Statex \textbf{Phase 2 (joint angle+radius):}
+\State $S_{\text{best}} \gets S$; \quad $(\boldsymbol\theta_{\text{best}}, \mathbf r_{\text{best}}) \gets (\boldsymbol\theta, \mathbf r)$; \quad $\text{noImprove} \gets 0$
+\Repeat
+  \State Update $(\boldsymbol\theta,\mathbf r)$ via
+    Section~\ref{sec:iteration} with radii free, damping $\alpha_2$.
+  \If{$S < S_{\text{best}}$}
+    \State $S_{\text{best}} \gets S$; \quad $(\boldsymbol\theta_{\text{best}}, \mathbf r_{\text{best}}) \gets (\boldsymbol\theta, \mathbf r)$; \quad $\text{noImprove} \gets 0$
+  \Else
+    \State $\text{noImprove} \gets \text{noImprove} + 1$
+  \EndIf
+\Until{$\text{noImprove} \geq P$}
+\State \Return equalizer $\{(r_i,\theta_i,c_i)\}_{i=1}^M = (\boldsymbol\theta_{\text{best}}, \mathbf r_{\text{best}}, \mathbf c)$
+\end{algorithmic}
+\end{algorithm}
+
+\end{document}

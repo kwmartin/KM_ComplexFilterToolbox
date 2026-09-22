@@ -1,18 +1,39 @@
 % Driver for eqlzrD_peakNewtonStep.m. Starts from the 3-cluster
 % (15%/54%/90%, r=0.925, 5 stages each) configuration explored by hand in
-% dsgnEqlzrD_manual.m, then repeatedly calls eqlzrD_peakNewtonStep to
-% adjust the three cluster angles (r held fixed) to drive ALL of the
-% current group delay's local extrema's gain-weighted deviation from the
-% anchor toward equality (not just the original two edge peaks -- see
-% eqlzrD_peakNewtonStep.m's own header for why that was wrong).
+% dsgnEqlzrD_manual.m, then runs TWO phases:
 %
-% Runs automatically for up to MAX_ITERS (50) damped Newton steps, or
-% until convergence -- the weighted-deviation spread (info.spreadBefore)
-% changing by less than SPREAD_TOL (1e-4) from one step to the next, well
-% under the scale of any real remaining ripple -- then plots the result
-% and drops into a keyboard breakpoint. From there, take additional steps
-% by hand (the fprintf message at the breakpoint shows the exact call),
-% inspect "info", "clusterTheta", etc., or "dbcont"/"dbquit" to finish.
+%   Phase 1 (angle-only): repeatedly calls eqlzrD_peakNewtonStep with
+%   freeR=false to adjust the three cluster angles (r held fixed) to
+%   drive ALL of the current group delay's local extrema's gain-weighted
+%   deviation from the anchor toward equality (not just the original two
+%   edge peaks -- see eqlzrD_peakNewtonStep.m's own header for why that
+%   was wrong). Runs up to PHASE1_MAX_ITERS (50) steps, or stops early
+%   once the weighted-deviation spread changes by less than SPREAD_TOL
+%   (1e-4) between consecutive steps -- angle-only convergence is clean
+%   and monotonic, so a simple small-delta check is appropriate here.
+%
+%   Phase 2 (angle+radius, freeR=true): from the phase-1-converged point,
+%   also lets the three cluster radii move, jointly with the angles, in
+%   the same least-squares Newton step. Tried per direct instruction
+%   after phase-1-only convergence left visibly unequal peaks; a NAIVE
+%   standalone radius tweak (just shrinking the center cluster, even with
+%   angles fully re-optimized around the new radius) made things WORSE,
+%   not better -- see eqlzrD_peakNewtonStep.m's own header for the
+%   verified numbers. Solving jointly genuinely helps (confirmed: nominal
+%   p2p ~22.9 -> ~16.7, roughly 27% better, within a few steps) but does
+%   NOT converge cleanly to a fixed point the way phase 1 does: spread
+%   bottoms out early, then slowly drifts back up over further
+%   iterations while p2p on the wider expanded band keeps improving (a
+%   real nominal-vs-expanded trade-off, not simple convergence). So phase
+%   2 uses a "best spread seen so far, stop after PATIENCE consecutive
+%   non-improving steps" rule instead of phase 1's small-delta check, and
+%   reverts to the BEST configuration found, not whatever the last step
+%   happened to land on.
+%
+% Plots the final (best) result and drops into a keyboard breakpoint.
+% From there, take additional manual steps (the fprintf message at the
+% breakpoint shows the exact call, freeR included), inspect "info",
+% "clusterTheta", "clusterR", etc., or "dbcont"/"dbquit" to finish.
 
 addpath('../lib');
 warning('off', 'Control:ltiobject:TFComplex');
@@ -42,7 +63,7 @@ pkMask0 = islocalmax(gdH0, 'MinProminence', 5);
 anchor = mean(gdH0(pkMask0));
 
 % Starting configuration: three free interior clusters (all frequencies
-% adjustable, r fixed).
+% adjustable; radii start shared and fixed for phase 1).
 clusterTheta = 2*pi*[wp_(1)+0.15*diff(wp_), wp_(1)+0.54*diff(wp_), wp_(1)+0.90*diff(wp_)];
 clusterR = [0.925, 0.925, 0.925];
 clusterCount = [5, 5, 5];
@@ -50,40 +71,72 @@ clusterCount = [5, 5, 5];
 plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);
 fprintf('\nInitial setup plotted. anchor=%.4f\n', anchor);
 
-% eqlzrD_peakNewtonStep re-detects the FULL current extremum set (every
-% local max/min, not just the two original edge peaks) fresh every call,
-% via zero crossings of d2TdW on a 2000-point grid (median-filtered) over
-% wp_ expanded 10% each side -- see the function's own header for why
-% this replaced the earlier fixed-2-peak version.
-MAX_ITERS = 50;
+%% Phase 1: angle-only, small-delta convergence
+PHASE1_MAX_ITERS = 50;
 SPREAD_TOL = 1e-4;
 
+fprintf('\n--- Phase 1: angle-only ---\n');
 spreadPrev = Inf;
 converged = false;
-for iter = 1:MAX_ITERS
-    [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);
+for iter = 1:PHASE1_MAX_ITERS
+    [clusterTheta, clusterR, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);
     fprintf('step %2d: nExtrema=%2d  spread=%.6f\n', iter, info.nExtrema, info.spreadBefore);
     if abs(info.spreadBefore - spreadPrev) < SPREAD_TOL
         converged = true;
-        fprintf('Converged after %d step(s) (spread change < %.g).\n', iter, SPREAD_TOL);
+        fprintf('Phase 1 converged after %d step(s) (spread change < %.g).\n', iter, SPREAD_TOL);
         break
     end
     spreadPrev = info.spreadBefore;
 end
 if ~converged
-    fprintf('Stopped at MAX_ITERS=%d without reaching the %.g convergence tolerance.\n', ...
-        MAX_ITERS, SPREAD_TOL);
+    fprintf('Phase 1 stopped at PHASE1_MAX_ITERS=%d without reaching the %.g tolerance.\n', ...
+        PHASE1_MAX_ITERS, SPREAD_TOL);
 end
 
+%% Phase 2: joint angle+radius, best-so-far with patience
+PHASE2_MAX_ITERS = 50;
+PATIENCE = 5;
+
+fprintf('\n--- Phase 2: joint angle+radius ---\n');
+bestSpread = info.spreadBefore;
+bestTheta = clusterTheta;
+bestR = clusterR;
+bestInfo = info;
+noImprove = 0;
+for iter = 1:PHASE2_MAX_ITERS
+    [clusterTheta, clusterR, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_, [], [], true);
+    fprintf('step %2d: nExtrema=%2d  spread=%.6f  r=%s  rClamped=%d\n', ...
+        iter, info.nExtrema, info.spreadBefore, mat2str(clusterR,4), info.rClamped);
+    if info.spreadBefore < bestSpread
+        bestSpread = info.spreadBefore;
+        bestTheta = clusterTheta;
+        bestR = clusterR;
+        bestInfo = info;
+        noImprove = 0;
+    else
+        noImprove = noImprove + 1;
+        if noImprove >= PATIENCE
+            fprintf('Phase 2 stopped after %d step(s) without improvement (best spread=%.6f at an earlier step).\n', ...
+                PATIENCE, bestSpread);
+            break
+        end
+    end
+end
+clusterTheta = bestTheta;
+clusterR = bestR;
+info = bestInfo;
+
 plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);
+fprintf('\nUsing BEST phase-2 configuration found (spread=%.6f), not necessarily the last step.\n', bestSpread);
 disp(info);
 
-fprintf('\nDone: %d step(s) taken. nExtrema=%d, weightedDev spread=%.6f\n', ...
-    iter, info.nExtrema, info.spreadBefore);
+fprintf('\nDone. Final: nExtrema=%d, weightedDev spread=%.6f, r=%s\n', ...
+    info.nExtrema, bestSpread, mat2str(clusterR,4));
 fprintf('To take another step by hand, run at this prompt:\n');
-fprintf('  [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);\n');
+fprintf('  [clusterTheta, clusterR, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_, [], [], true);\n');
 fprintf('  plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);\n');
-fprintf('Repeat as many times as you like. Type dbcont to finish, dbquit to abort.\n');
+fprintf('(drop the trailing "true" for an angle-only step.) Repeat as many times as you like.\n');
+fprintf('Type dbcont to finish, dbquit to abort.\n');
 keyboard
 
 a = 1; % execution resumes here after "dbcont"
@@ -97,6 +150,7 @@ function plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor)
   w = 2*pi*f;
   [~, ~, gdH0] = AnlzDH(H, w);
   [~, ~, gdH1] = AnlzDH(Heq, w);
+  idx_nom = f >= wp_(1) & f <= wp_(2);
 
   fig = figure('Position', [100 100 900 500]);
   plot(f, gdH0, 'b', 'LineWidth', 1.2); hold on;
@@ -108,7 +162,8 @@ function plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor)
   end
   legend('unequalized gdH', 'equalized gdH', 'anchor', 'nominal wp edges', 'cluster angles', 'Location', 'best');
   xlabel('f (cycles)'); ylabel('group delay (samples)');
-  title(sprintf('%d clusters, r=[%s]: p2p before=%.2f after=%.2f (expanded)', ...
-      length(clusterTheta), mat2str(clusterR,3), max(gdH0)-min(gdH0), max(gdH1)-min(gdH1)));
+  title(sprintf('%d clusters, r=[%s]: p2p nominal=%.2f expanded=%.2f', ...
+      length(clusterTheta), mat2str(clusterR,3), ...
+      max(gdH1(idx_nom))-min(gdH1(idx_nom)), max(gdH1)-min(gdH1)));
   grid on;
 end

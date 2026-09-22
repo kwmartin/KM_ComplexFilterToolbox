@@ -1,12 +1,39 @@
-function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp, stepSize, nGridPts)
-%   [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta,
-%   clusterR, clusterCount, anchor, wp, stepSize, nGridPts) performs ONE
-%   Newton iteration adjusting the free interior cluster angles
-%   (clusterTheta) to drive ALL of the CURRENT equalized group delay's
+function [clusterTheta, clusterR, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp, stepSize, nGridPts, freeR)
+%   [clusterTheta, clusterR, info] = eqlzrD_peakNewtonStep(H, clusterTheta,
+%   clusterR, clusterCount, anchor, wp, stepSize, nGridPts, freeR) performs
+%   ONE Newton iteration adjusting the free interior cluster angles
+%   (clusterTheta), and optionally also the cluster radii (clusterR, if
+%   freeR is true), to drive ALL of the CURRENT equalized group delay's
 %   local extrema (maxima and minima, gain-weighted, re-detected fresh
 %   from scratch every call) toward an equal deviation from a fixed
-%   anchor. clusterR is held fixed throughout (only frequencies move,
-%   per this session's exploration: r stays fixed).
+%   anchor. clusterR is now always returned (whether or not freeR is
+%   true -- unchanged when false) so callers have a consistent signature
+%   whether or not they use the radius freedom.
+%
+%   freeR (default false): when true, jointly solves for both angle AND
+%   radius updates in one least-squares step, using the exact closed-form
+%   d(gd(w))/dr_i alongside the existing d(gd(w))/d(theta_i) (see below).
+%   Added and tested per direct instruction after angle-only convergence
+%   plateaued with visibly unequal peaks (verified numerically against
+%   the reference filter's 3-cluster case): a NAIVE standalone tweak --
+%   just shrinking the center cluster's radius, even followed by fully
+%   re-converging the angles around it -- made nominal p2p WORSE, not
+%   better (22.9 -> 25.1 at r=0.90, -> 40-42 at r=0.85/0.80), the same
+%   "leaky overlapping tails" lesson as everywhere else in this
+%   exploration: a bump doesn't just support its own peak, it also props
+%   up its neighboring valleys, so changing it in isolation (even with
+%   angles re-optimized around the NEW radius) doesn't correctly explore
+%   the joint trade-off. Solving jointly does: from the same starting
+%   point, spread dropped from 23.11 to a low of 17.40 within 3 steps
+%   (nominal p2p 22.9 -> ~16.7, roughly 27% better) before slowly
+%   drifting back up over further iterations while p2p on the WIDER
+%   expanded band kept improving -- a real nominal-vs-expanded trade-off,
+%   not simple convergence to a fixed point. This means, when freeR is
+%   used, callers should track the BEST spread seen so far rather than
+%   running to a fixed iteration count or a small-delta "convergence"
+%   check (which assumes monotonic improvement -- true for angle-only,
+%   false here); see dsgnEqlzrD_peakNewton_manual.m's patience-based
+%   stopping loop for the pattern.
 %
 %   THIS REPLACES an earlier version of this file that hardcoded exactly
 %   two tracked peaks (the filter's own original two edge peaks), passed
@@ -129,24 +156,31 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
 %        see above), get dTdW/d2TdW from AnlzDH, bracket the dTdW sign
 %        change appropriate to a max (+ to -) or min (- to +), then take
 %        one Newton step f <- f - dTdW(f)/d2TdW(f).
-%     3. Step B -- Newton/least-squares update on cluster angles: with
-%        the refined extremum frequencies/values, compute the
-%        gain-weighted deviations w_k = |gd(f_k)-anchor|*gain(f_k) for
-%        every k, and the closed-form Jacobian
+%     3. Step B -- Newton/least-squares update on cluster angles (and, if
+%        freeR, radii): with the refined extremum frequencies/values,
+%        compute the gain-weighted deviations w_k = |gd(f_k)-anchor| *
+%        gain(f_k) for every k, and the closed-form Jacobian column(s)
 %          d(gd(w))/d(theta_i) = count_i * 2*r_i*(1-r_i^2)*sin(w-theta_i)
 %                                 / (1-2*r_i*cos(w-theta_i)+r_i^2)^2
-%        (exact, from the Poisson-kernel formula). Solve, via
-%        pseudoinverse (the K-extrema-by-nClusters system is generally
+%          d(gd(w))/d(r_i) = count_i * ( -2*r_i/D
+%                             - 2*(1-r_i^2)*(r_i-cos(w-theta_i))/D^2 ),
+%                             D = 1-2*r_i*cos(w-theta_i)+r_i^2
+%        (both exact, from the Poisson-kernel formula; the r-derivative
+%        verified against a central finite difference, relative error
+%        ~3e-11). Solve, via pseudoinverse (the system is generally
 %        neither square nor consistently over/under-determined as K
-%        changes call to call; pinv handles both), for the cluster-angle
+%        changes call to call; pinv handles both), for the parameter
 %        step that drives every w_k toward their mean, then apply
-%        stepSize*step.
+%        stepSize*step. Updated radii are clamped to [R_MIN, R_MAX] =
+%        [0.3, 0.995] with a warning if clamping occurred (info.rClamped).
 %
 %   info is a struct with fields: f_peaks (refined, K-elem, sorted by
 %   frequency), gd_peaks, isMax (logical, K-elem), gainAtPeaks,
 %   weightedDev (w_k before the step), spreadBefore, spreadAfter
 %   (estimated, linearized), J (the Jacobian used), dtheta (the raw,
-%   undamped Newton step), nExtrema (=K).
+%   undamped Newton step on angles), dr (raw step on radii, zeros if
+%   freeR is false), rClamped (true if any updated radius was clamped),
+%   nExtrema (=K).
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2026  Kenneth Martin
@@ -171,6 +205,11 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
   if nargin < 8 || isempty(nGridPts)
     nGridPts = 2000;
   end
+  if nargin < 9 || isempty(freeR)
+    freeR = false;
+  end
+  R_MIN = 0.3;
+  R_MAX = 0.995;
 
   bw = wp(2) - wp(1);
   fScan = linspace(wp(1) - 0.10*bw, wp(2) + 0.10*bw, nGridPts).';
@@ -227,22 +266,53 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
   dev = gd_peaks - anchor;
   weightedDev = abs(dev) .* gainAtPeaks;
 
-  % Step B: closed-form Jacobian d(w_k)/d(theta_i), Newton/least-squares update.
+  % Step B: closed-form Jacobian d(w_k)/d(theta_i) (and d(w_k)/d(r_i) if
+  % freeR), Newton/least-squares update.
   nClusters = length(clusterTheta);
-  J = zeros(K, nClusters);
+  if freeR
+    nParams = 2*nClusters;
+  else
+    nParams = nClusters;
+  end
+  J = zeros(K, nParams);
   for k = 1:K
     wk = 2*pi*f_peaks(k);
     for i = 1:nClusters
       r_i = clusterR(i);
       th_i = clusterTheta(i);
-      dgd_dtheta = clusterCount(i) * 2*r_i*(1-r_i^2)*sin(wk-th_i) / (1 - 2*r_i*cos(wk-th_i) + r_i^2)^2;
+      Delta = wk - th_i;
+      D = 1 - 2*r_i*cos(Delta) + r_i^2;
+      dgd_dtheta = clusterCount(i) * 2*r_i*(1-r_i^2)*sin(Delta) / D^2;
       J(k,i) = sign(dev(k)) * gainAtPeaks(k) * dgd_dtheta;
+      if freeR
+        dgd_dr = clusterCount(i) * ( -2*r_i/D - 2*(1-r_i^2)*(r_i-cos(Delta))/D^2 );
+        J(k,nClusters+i) = sign(dev(k)) * gainAtPeaks(k) * dgd_dr;
+      end
     end
   end
 
   target = mean(weightedDev) - weightedDev; % desired change in each w_k
-  dtheta = (pinv(J) * target).';
+  dparam = (pinv(J) * target).';
+  dtheta = dparam(1:nClusters);
   clusterTheta = clusterTheta + stepSize*dtheta;
+
+  rClamped = false;
+  if freeR
+    dr = dparam(nClusters+1:end);
+    clusterR = clusterR + stepSize*dr;
+    tooLow = clusterR < R_MIN;
+    tooHigh = clusterR > R_MAX;
+    if any(tooLow) || any(tooHigh)
+      rClamped = true;
+      clusterR(tooLow) = R_MIN;
+      clusterR(tooHigh) = R_MAX;
+      warning('eqlzrD_peakNewtonStep:rClamped', ...
+          'clusterR clamped to [%.2g, %.2g] for %d cluster(s).', ...
+          R_MIN, R_MAX, sum(tooLow)+sum(tooHigh));
+    end
+  else
+    dr = zeros(1, nClusters);
+  end
 
   info.f_peaks = f_peaks.';
   info.gd_peaks = gd_peaks.';
@@ -250,10 +320,12 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
   info.gainAtPeaks = gainAtPeaks.';
   info.weightedDev = weightedDev.';
   info.spreadBefore = max(weightedDev) - min(weightedDev);
-  predictedWeightedDev = weightedDev + stepSize*(J*dtheta.');
+  predictedWeightedDev = weightedDev + stepSize*(J*dparam.');
   info.spreadAfter = max(predictedWeightedDev) - min(predictedWeightedDev);
   info.J = J;
   info.dtheta = dtheta;
+  info.dr = dr;
+  info.rClamped = rClamped;
   info.nExtrema = K;
 end
 

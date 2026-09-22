@@ -129,55 +129,167 @@ suggestion):
 Fix an **anchor** once: the unweighted mean of the *unequalized* filter's
 two edge-peak group-delay values. For a set of pole "clusters" (each
 cluster = `count_i` identical first-order all-pass stages stacked at one
-frequency `theta_i` and radius `r_i`), track the *same two* peaks
-iteration to iteration (never rediscovering an unconstrained peak set —
-that was the earlier bug) and drive
+frequency `theta_i` and radius `r_i`), track **every current local
+extremum** (not just the original two edge peaks — see "Multi-extremum
+tracking" below) and drive
 
 ```
-w_j = |gd(f_peak_j) - anchor| * |H(f_peak_j)|      (j = 1, 2)
+w_k = |gd(f_peak_k) - anchor| * |H(f_peak_k)|      (k = 1..K)
 ```
 
 toward equality via a damped Newton/least-squares iteration on the
-cluster angles, with **all radii held fixed**.
+cluster angles (and, now, optionally also the radii — see "Joint
+angle+radius" below).
 
 ### One iteration (`examples/eqlzrD_peakNewtonStep.m`)
 
-**Step A — refine peak locations.** On a small coarse grid around each
-tracked peak's previous location, call `AnlzDH` on the *current* equalized
-system to get `dTdW`/`d2TdW`. Bracket where `dTdW` crosses from `+` to `-`
-(a group-delay local max), then take one Newton step:
-`f_peak <- f_peak - dTdW(f_peak)/d2TdW(f_peak)`.
+**Step A — refine peak locations.** For each detected extremum, search
+*within its own detected bracket* (not a fixed-width window — see
+"Multi-extremum tracking" below for why that distinction matters), call
+`AnlzDH` on the *current* equalized system to get `dTdW`/`d2TdW`, bracket
+where `dTdW` crosses (`+` to `-` for a max, `-` to `+` for a min), then
+take one Newton step: `f_peak <- f_peak - dTdW(f_peak)/d2TdW(f_peak)`.
 
-**Step B — update the cluster angles.** With the refined peak
-frequencies/values, compute the *exact closed-form* Jacobian (no numerical
-differentiation needed, since only cluster `i`'s own bump depends on
-`theta_i`):
+**Step B — update the cluster angles (and, if `freeR`, radii).** With the
+refined peak frequencies/values, compute the *exact closed-form* Jacobian
+(no numerical differentiation needed, since only cluster `i`'s own bump
+depends on its own `theta_i`/`r_i`):
 
 ```
 d(gd(w))/d(theta_i) = count_i * 2*r_i*(1-r_i^2)*sin(w-theta_i)
                         / (1 - 2*r_i*cos(w-theta_i) + r_i^2)^2
+d(gd(w))/d(r_i)     = count_i * ( -2*r_i/D
+                       - 2*(1-r_i^2)*(r_i-cos(w-theta_i))/D^2 ),
+                       D = 1-2*r_i*cos(w-theta_i)+r_i^2
 ```
 
-Assemble the `2 x nClusters` Jacobian of the weighted deviations `w_j`
-with respect to each cluster's angle, and solve via pseudoinverse (there
-are generally more free clusters than the 2 tracked peaks, an
-underdetermined system) for the angle step that drives both `w_j` toward
-their mean. Apply a **damped** fraction of this step (default 0.5) rather
-than a full Newton step.
+(the `r` derivative verified against a central finite difference,
+relative error ~3e-11). Assemble the `K x nClusters` (or `K x
+2*nClusters` with `freeR`) Jacobian of the weighted deviations `w_k` with
+respect to each free parameter, and solve via pseudoinverse (`K` and
+`nClusters` relate differently call to call as the extremum count
+changes; `pinv` handles over- and under-determined alike) for the
+parameter step that drives every `w_k` toward their mean. Apply a
+**damped** fraction of this step (function default 0.5; see "Cluster
+count and step-size stability" below for why the driver script now uses
+smaller values) rather than a full Newton step. Updated radii are clamped
+to `[0.3, 0.995]`.
 
-### Result
+### Multi-extremum tracking (replaces the original fixed-2-peak version)
 
-Run interactively, one step at a time
-(`examples/dsgnEqlzrD_peakNewton_manual.m`), starting from the hand-tuned
-3-cluster configuration above (15%/54%/90%, `r=0.925`, 5 stages each).
-Convergence was clean: the weighted-deviation spread **halved every single
-step** (1.73 → 0.74 → 0.37 → 0.19 → 0.09 → 0.047 → 0.023 → 0.012 over 8
-steps), landing at:
+The version above (`w_j`, `j=1,2`) hardcoded exactly two tracked peaks —
+the filter's own original two edge peaks — refined iteration to
+iteration but never rediscovered. This was wrong: once the free clusters
+reshape the interior of the curve, new local extrema appear that the
+2-peak version never saw. Confirmed empirically: 10 iterations from the
+3-cluster start grew 5 maxima + 4 minima (values 208-240), while the
+2-peak version's tracked pair sat at 118.5/118.5 and reported
+`spread=0.003` — a false convergence.
 
-- `p2p_nominal = 27.6` — the best result of the entire exploration.
-- `p2p_expanded = 117.6` — the same persistent expanded-band trade-off
-  seen throughout (this metric has never been better than "unequalized"
-  in any approach that also achieves a good nominal-passband result).
+Fixed by re-detecting the *entire* current extremum set every call
+(the same way a Remez-exchange algorithm re-derives its extremal set
+each pass): scan `d2TdW` (group delay's second derivative, median-
+filtered — `medfilt1`, window 5, `'truncate'` padding) for zero
+crossings on a uniform grid (`nGridPts`, default 2000, raised from an
+original 500 after a shallow interior extremum was found to be missed
+at that resolution) over `wp` expanded 10% each side. Between two
+consecutive inflection points, `dTdW` is monotonic (since `d2TdW`
+doesn't change sign there), so it crosses zero *at most once* — every
+bracket (including the two boundary segments, which is what catches the
+edge peaks) contains at most one genuine extremum. No tunable
+prominence threshold. Re-detecting the set fresh each call is safe
+against the *earlier*, different bug (unanchored, self-referential peak
+matching, described above) because the anchor is fixed once, outside
+this function, from the unequalized filter — growing the tracked set
+only ever adds constraints against that fixed external target, never
+something to game.
+
+A **second, more serious bug** was found while re-confirming a
+40-iteration run with the above changes: Step A's refinement used to
+search a *fixed* +/-0.01 cycle window around each bracket's midpoint
+guess rather than the bracket itself. Once real extrema sit closer
+together than 0.01 apart (confirmed: adjacent brackets only ~0.003-0.007
+apart after the equalizer reshaped the curve), that fixed window reached
+past the intended bracket into a neighboring one and locked onto the
+wrong crossing — silently "refining" to the wrong extremum's location,
+which then collided with, and was discarded by, a de-duplication pass
+(added to handle a separate, legitimate issue: very sharp near-singular
+peaks making the coarse scan flag two adjacent brackets for what's
+really one extremum) as an apparent duplicate. This — not scan
+resolution — is what caused a 40-iteration run to report only 7 of 9
+true extrema, missing the second edge peak entirely. Fixed by having
+detection return each extremum's own bracket bounds and confining
+refinement to those bounds, guaranteed (by the same inflection-point
+argument) to contain at most one extremum regardless of how close
+neighboring brackets are. Re-verified: finds all 9 true extrema exactly,
+cross-checked against an 8000-point `findpeaks` scan with every value
+matching.
+
+### Joint angle+radius (`freeR` option)
+
+With only cluster angles free, the least-squares step can only *best
+fit* the tracked extrema to equal deviation, not force exact equality —
+there are typically ~9-11 extrema against only 3-5 free angle
+parameters, an overdetermined system. This shows up as visibly unequal
+peaks even after full angle-only convergence.
+
+The obvious fix — after angle convergence, shrink the tallest cluster's
+radius to lower its peak — was tried standalone first and made things
+**worse**, not better: nominal p2p went 22.9 -> 25.1 at r=0.90 (-> 40-42
+at r=0.85/0.80) even with the angles **fully re-optimized** around the
+new radius each time. Same lesson as the "leaky tails" problem
+throughout this exploration: a cluster's bump doesn't just support its
+own peak, it also props up its neighboring valleys, so changing one
+cluster in isolation — even with re-optimization — doesn't correctly
+explore the joint trade-off.
+
+Solving jointly (both angle and radius Jacobian columns in the same
+least-squares step, `freeR=true`) does help, substantially: from the
+same angle-converged 3-cluster starting point, spread dropped from 23.11
+to a low of 17.40 within 3 steps (nominal p2p 22.9 -> 16.7, ~27%
+better). It does **not** converge cleanly to a fixed point the way
+angle-only does: spread bottoms out early then *slowly drifts back up*
+over further iterations, while p2p on the wider expanded band keeps
+improving throughout — a real nominal-vs-expanded trade-off, not simple
+convergence. `dsgnEqlzrD_peakNewton_manual.m` now tracks the best spread
+seen so far and stops after 5 consecutive non-improving steps,
+**reverting to that best configuration**, not whatever the last step
+landed on.
+
+### Cluster count and step-size stability
+
+Increasing from 3 to 5 clusters (more angle DOF against the ~9-11
+tracked extrema — the direct lever on the overdetermined-system problem
+above) was tried next. At the function's default step size (0.5, tuned
+for 3 clusters), **5 clusters is unstable**: angle-only phase 1 showed
+the tracked extremum count itself oscillating wildly (3 to 11) and
+spread swinging between 13 and 300 for ~35 of 50 steps before finally
+settling; joint phase 2 was far worse, diverging outright by step 3 —
+radii pinned to their `[0.3, 0.995]` clamp bounds, spread exploding past
+1900 (p2p_nominal in the *thousands*). More free parameters against
+roughly the same extremum count makes the pinv least-squares step more
+aggressive per unit computed magnitude; smaller step sizes compensate.
+At `STEP1_SIZE=0.2` / `STEP2_SIZE=0.1`, both phases are smooth and
+well-behaved with no clamping.
+
+### Result (current best)
+
+Running the full pipeline — 5 clusters (evenly spaced 10-90% of the
+passband), phase 1 angle-only to convergence, phase 2 joint angle+radius
+with best-so-far tracking — via `dsgnEqlzrD_peakNewton_manual.m`:
+
+- `p2p_nominal = 13.94` — the best result of the entire exploration
+  (previous best, 3 clusters angle-only+joint-radius: 16.73; before that,
+  the original fixed-2-peak 8-step hand run: 27.6).
+- `p2p_expanded = 139.26` — the persistent expanded-band trade-off, now
+  *more* pronounced than with 3 clusters (117.6) — more free parameters
+  makes the nominal-vs-expanded trade-off worse, not just the nominal
+  result better. See "Suggested next steps" #4.
+- Visually, the equalized curve is now flat and genuinely equi-ripple
+  across the entire nominal passband `[0.025, 0.075]` (screenshot
+  reviewed directly during this session) — a clear qualitative jump from
+  the visibly-humped 3-cluster result. The steep excursions are confined
+  to the expanded-band margin outside the actual spec'd passband.
 
 ## How to evaluate this, exactly, in MATLAB
 
@@ -204,44 +316,53 @@ H = cscdFltr1.getSystem();
 % wp_ = [0.025 0.075] (normalized cyclic frequency, Fs=1)
 ```
 
-### 2. Run the current Newton procedure interactively
+### 2. Run the current Newton procedure
 
 ```matlab
 cd examples
 dsgnEqlzrD_peakNewton_manual
 ```
 
-This builds `H`, sets up the anchor and the starting 3-cluster
-configuration, plots the initial state, takes the **first** Newton step,
-plots again, prints `info` (peak locations/values, gain at each peak, the
-weighted deviations, the Jacobian, the raw step), then drops into a
-`keyboard` breakpoint. From there, take additional steps by hand:
+This builds `H`, sets up the anchor and the starting 5-cluster
+configuration, plots the initial state, then runs automatically:
+**phase 1** (angle-only, `STEP1_SIZE=0.2`) to small-delta convergence
+(up to `PHASE1_MAX_ITERS=100` steps, prints one line per step), then
+**phase 2** (joint angle+radius, `STEP2_SIZE=0.1`, `freeR=true`)
+tracking the best weighted-deviation spread seen and stopping after 5
+consecutive non-improving steps, reverting to that best configuration.
+Plots the final result, prints `info` for that best state, then drops
+into a `keyboard` breakpoint. From there, take additional steps by hand
+(shown at the breakpoint):
 
 ```matlab
-[clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_);
+[clusterTheta, clusterR, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR, clusterCount, anchor, wp_, [], [], true);
 plotCurrent(H, clusterTheta, clusterR, clusterCount, wp_, anchor);
 ```
 
-Repeat as many times as desired, inspecting `info.weightedDev` and the
-plot after each call. `dbcont` to finish, `dbquit` to abandon. (Note:
-`eqlzrD_peakNewtonStep` now re-detects the full extremum set from scratch
-every call from `wp_` alone -- it no longer takes or needs a peak-location
-guess to thread between calls; see item 5 under "Suggested next steps"
-below for why.)
+(drop the trailing `true` for an angle-only step). Repeat as many times
+as desired, inspecting `info.weightedDev` and the plot after each call.
+`dbcont` to finish, `dbquit` to abandon. `eqlzrD_peakNewtonStep` re-
+detects the full extremum set from scratch every call from `wp_` alone
+— it takes no peak-location guess to thread between calls (see
+"Multi-extremum tracking" above for why) — and always returns
+`clusterR` as a second output now, unchanged when `freeR` is omitted or
+false, so old 2-output call sites need updating to the 3-output form
+above.
 
 ### 3. Compute the figures of merit directly
 
 ```matlab
-[~, stats] = estAllPassOrder(H, wp_);
-f = stats.f(:); w = 2*pi*f;
+bw = wp_(2) - wp_(1);
+f = linspace(wp_(1)-0.10*bw, wp_(2)+0.10*bw, 2000);
+w = 2*pi*f;
 idx_nom = f >= wp_(1) & f <= wp_(2);
 
 wiVec = repelem(clusterR, clusterCount) .* exp(1j*repelem(clusterTheta, clusterCount));
 eq = eqlzrDClass(wiVec(:), 1);
 Heq = eq.applyTo(H);
 
-[~,~,gdH0] = AnlzDH(H, w);
-[~,~,gdH1] = AnlzDH(Heq, w);
+[~,~,gdH0] = AnlzDH(H, w(:));
+[~,~,gdH1] = AnlzDH(Heq, w(:));
 
 p2p_nominal = max(gdH1(idx_nom)) - min(gdH1(idx_nom));
 p2p_expanded = max(gdH1) - min(gdH1);
@@ -259,97 +380,67 @@ Both return `eq` (an `eqlzrDClass`) and an `info` struct with
 
 ## Suggested next steps
 
-1. **Robustness to starting point.** Does the Newton procedure converge
-   this cleanly from a different initial cluster configuration (different
-   angles, radii, or number of clusters), or was the hand-tuned starting
-   point already unusually favorable? Worth testing several starting
-   configurations and checking convergence behavior, not just the final
-   result.
-2. **Sensitivity to step size.** The damping factor (default 0.5) was
-   chosen per the "slowly adjust" instruction, not tuned. Does a larger
-   step (closer to a full Newton step) converge faster without
-   overshooting, given the clean halving-every-step behavior observed
-   suggests the local landscape may already be near-linear?
-3. **Generalization to a different filter.** Every result in this
-   document uses the same one reference filter. Does this same procedure
-   — same anchor definition, same two-peak tracking, same closed-form
-   Jacobian approach — work comparably well on a different passband or
-   filter order, or is it implicitly tuned to this specific filter's
-   shape?
-4. **The expanded-band trade-off.** Every approach that achieves a good
-   nominal-passband result is worse than doing nothing on the wider
-   expanded-band metric. Is this an acceptable, inherent cost of
-   equalizing strictly within the specified passband (in which case the
-   expanded-band metric may simply be the wrong thing to optimize), or is
-   there a real fix available?
-5. ~~**Beyond two tracked peaks.**~~ **Done.** Confirmed by hand (10
-   iterations from the 3-cluster start grew 5 maxima + 4 minima, values
-   208-240, while the 2-peak version's tracked pair sat at 118.5/118.5
-   and reported spread=0.003 -- a false convergence). `eqlzrD_peakNewtonStep.m`
-   now re-detects the *entire* current extremum set every call: scan
-   d2TdW (group delay's second derivative) for zero crossings on a
-   500-point grid over wp expanded 10% each side; between two consecutive
-   inflection points d2TdW keeps one sign, so dTdW is monotonic there and
-   crosses zero at most once, giving every bracket at most one genuine
-   extremum (checked via a dTdW sign test at each bracket's endpoints,
-   including the two boundary segments, which is what catches the edge
-   peaks). No tunable prominence threshold. Re-detecting the set fresh
-   each call is safe against the *earlier* bug (unanchored, self-
-   referential peak matching) because the anchor here is fixed once,
-   outside this function, from the unequalized filter -- growing the
-   tracked set only ever adds constraints against that fixed external
-   target, never something to game.
-
-   One real limitation found while verifying this: the 500-point scan can
-   miss a genuine but *shallow* interior extremum. Checked directly for
-   the reference filter -- a real local max at f≈0.034 (gd≈222, only
-   ~10-15 samples above its neighbors) was invisible to the 500-point
-   scan (confirmed present via `findpeaks` on a 2000-point local grid)
-   and caused two adjacent detected minima with no maximum between them
-   in the reported list, which is not possible for a smooth curve. Also
-   found (same investigation): very sharp, near-singular peaks made the
-   coarse scan flag two adjacent brackets for what was really one
-   extremum, refining to nearly the same frequency.
-
-   Per direct instruction, both were addressed: `nGridPts` default raised
-   500 -> 2000, and d2TdW is now median-filtered (`medfilt1`, window 5,
-   `'truncate'` padding so the two boundary segments -- how the edge
-   peaks get caught -- aren't distorted by the default zero-padding)
-   before the zero-crossing scan, on top of the de-duplication pass
-   already in place. Tested across three scenarios (the original
-   3-cluster start; that configuration after 15 and 40 Newton steps; a
-   deliberately sharper r=0.97 edge-cluster stress case) and all four
-   combinations of {500,2000} x {filtered,unfiltered}: every combination
-   gave identical results matching a 5000-8000 point `findpeaks` ground
-   truth, so no deleterious effect was found -- but also no case where
-   either change visibly mattered on *this* reference filter, since
-   de-duplication already covered the specific failure mode both were
-   meant to address further. Kept anyway as defensive robustness; a
-   design sharper or noisier than this one could still need them.
-
-   **A second, more serious bug was found re-confirming the 40-iteration
-   run with these changes**, and it explains what actually looked like a
-   missing-peak problem: Step A's refinement searched a fixed +/-0.01
-   cycle window around each bracket's midpoint guess rather than the
-   bracket itself. Once real extrema sit closer together than 0.01 apart
-   (confirmed: two adjacent brackets only ~0.003-0.007 apart after the
-   equalizer reshaped the curve), that fixed window reached past the
-   intended bracket into a neighboring one and locked onto the wrong
-   crossing -- silently "refining" to a nearby extremum's location, which
-   then collided with, and was discarded by, de-duplication as an
-   apparent duplicate. This -- not scan resolution -- is what caused the
-   40-iteration run to report only 7 of 9 true extrema, missing the
-   second edge peak (f≈0.076) entirely. Fixed by having the detection
-   step return each extremum's own bracket bounds and confining
-   refinement to those bounds, which are guaranteed (by the same
-   inflection-point argument) to contain at most one extremum regardless
-   of how close neighboring brackets are. Re-verified: the 40-iteration
-   run now finds all 9 true extrema exactly, cross-checked against an
-   8000-point `findpeaks` scan with every value matching. Convergence
-   behavior unaffected -- still 0.53s total for all 40 steps, spread
-   still plateaus (now at 23.1061, essentially the same as the 23.1747
-   seen before this fix) by roughly step 16.
-6. **Stopping criterion.** Iterations were run a fixed number of times by
-   hand. A principled stopping rule (e.g. weighted-deviation spread below
-   some tolerance, or step size below a threshold) would make the
-   procedure usable non-interactively once trusted.
+1. **Robustness to starting point.** *Partially answered.* Tested one
+   dimension of this directly: cluster *count* (3 -> 5) is NOT robust to
+   reusing the same step size — see "Cluster count and step-size
+   stability" above, where the 3-cluster-tuned default (0.5) diverges
+   outright at 5 clusters and needed hand-tuned smaller values
+   (0.2/0.1). Still untested: different starting *angles* or *radii* at a
+   fixed cluster count, and whether an even higher cluster count (7? 10?)
+   continues the same nominal-improves/expanded-worsens trend or breaks
+   down differently.
+2. **Sensitivity to step size.** *Partially answered, and reframed.* Not
+   just a speed question — step size is now known to be a *stability*
+   question that changes with cluster count (see above). The current
+   fix is hand-tuned constants (`STEP1_SIZE`/`STEP2_SIZE` in
+   `dsgnEqlzrD_peakNewton_manual.m`) chosen per configuration by trial.
+   A more principled fix (adaptive step size / backtracking line search:
+   halve the step and retry if a step increases spread, rather than a
+   fixed constant chosen up front) would remove the need to re-tune by
+   hand every time cluster count or the reference filter changes.
+3. **Generalization to a different filter.** Still open. Every result in
+   this document uses the same one reference filter. Does this same
+   procedure work comparably well on a different passband or filter
+   order, or is it implicitly tuned (anchor definition, step sizes,
+   cluster placement) to this specific filter's shape?
+4. **The expanded-band trade-off.** Still open, and now has a sharper
+   data point: going from 3 to 5 clusters made the *nominal* result
+   better (16.73 -> 13.94) but the *expanded*-band result worse (117.6
+   -> 139.26) — more free parameters doesn't just improve the nominal
+   fit, it actively trades away expanded-band flatness for it. Is this
+   an acceptable, inherent cost of equalizing strictly within the
+   specified passband (in which case the expanded-band metric may simply
+   be the wrong thing to optimize), or is there a real fix — e.g.
+   including a few expanded-band points in the tracked extremum set, or
+   a weighted objective that penalizes expanded-band excursions too?
+5. ~~**Beyond two tracked peaks.**~~ **Done** — see "Multi-extremum
+   tracking" above (includes two real bugs found and fixed along the
+   way: a false-convergence bug from only ever tracking 2 of 9 extrema,
+   and a fixed-width refinement window locking onto the wrong nearby
+   extremum once real extrema sat closer together than that window).
+6. **Stopping criterion.** *Done, in two different forms because
+   angle-only and joint angle+radius behave differently.* Phase 1
+   (angle-only) converges monotonically, so a small-delta check
+   (`SPREAD_TOL=1e-4`) is correct and sufficient. Phase 2 (joint) does
+   NOT converge monotonically (see "Joint angle+radius" above — spread
+   bottoms out early then drifts back up), so a small-delta check would
+   silently run past the best point; phase 2 instead tracks the best
+   spread seen and stops after a patience window (5 non-improving
+   steps), reverting to that best configuration. Both are implemented in
+   `dsgnEqlzrD_peakNewton_manual.m` and run automatically now (no manual
+   single-stepping needed to reach a good result) with a `keyboard`
+   breakpoint only at the very end for further manual exploration.
+7. **Joint angle+radius (`freeR`).** **Done** — see "Joint angle+radius"
+   above. Kept after confirming it clears the "improve or revert" bar
+   (27% better nominal p2p on the 3-cluster case). Not yet explored:
+   whether letting `clusterCount` itself vary (currently fixed integers,
+   chosen by hand) as a further free "parameter" — e.g. via a relaxed
+   continuous formulation, or a discrete search — could help further,
+   and whether a bigger patience window or different `STEP2_SIZE` finds
+   an even better point than the current best (~13.94).
+8. **More clusters.** **Done for 5** — see "Cluster count and step-size
+   stability" and "Result (current best)" above (13.94 nominal, up from
+   16.73 at 3 clusters, at the cost of a worse 139.26 expanded metric).
+   Not yet tried: 7 or more clusters, or a principled way to choose
+   cluster count (e.g. tied to `estAllPassOrder`'s own order estimate,
+   or increased adaptively until nominal p2p stops improving).

@@ -47,6 +47,19 @@ function [eq, info] = dsgnEqlzrD(H, wp, N, marginFrac, N_grid)
 %   avoiding starting a pole exactly where gdH0 already equals D and
 %   needs no correction.
 %
+%   One additional candidate start is included: the staged constructive
+%   heuristic (evenly-spaced angles, then a 1-D shared-radius fminbnd
+%   search, then a per-angle coordinate-descent refinement -- see
+%   examples/dsgnEqlzrD_staged.m for the standalone version and its own
+%   exploration notes) is run first and its result added as one more
+%   fminimax starting point alongside the shared-radius candidates above.
+%   This is additive, not a replacement: the staged result was found (see
+%   examples/dsgnEqlzrD_staged.m and friends) to be a decent standalone
+%   result on its own but not reliably a better SEED for fminimax than
+%   the existing candidates -- per-section refinement of it and blind
+%   multi-start from it were both tried and neither consistently beat
+%   just keeping it in the pool as one more option alongside the rest.
+%
 %   This is not cheap: expect on the order of 10-30 seconds wall time
 %   for a handful of multi-starts at N~5 (reported in info.wallTime).
 %   Given the local-minima behavior above, treat the result as a
@@ -126,6 +139,18 @@ function [eq, info] = dsgnEqlzrD(H, wp, N, marginFrac, N_grid)
     end
   end
 
+  % One more candidate start: the staged heuristic's own result
+  [r_staged, theta_staged] = stagedStartCandidate(gdH0, D_target0, w, N, f_safe_lo, f_safe_hi);
+  x0_staged = [r_staged, theta_staged, D_target0];
+  [xsol, fval] = fminimax(@(x) eqlzrMinimaxCost(x, w, gdH0), ...
+      x0_staged, [],[],[],[],lb,ub,[],opts);
+  worst = max(fval);
+  if worst < bestWorst
+    bestWorst = worst;
+    xBest = xsol;
+  end
+  nStarts = length(r0Candidates) + 1;
+
   Nsec = (length(xBest)-1)/2;
   r = xBest(1:Nsec);
   theta = xBest(Nsec+1:2*Nsec);
@@ -145,7 +170,7 @@ function [eq, info] = dsgnEqlzrD(H, wp, N, marginFrac, N_grid)
   info.p2p_after = max(gdH1) - min(gdH1);
   info.worstResidual = bestWorst;
   info.wallTime = toc(tStart);
-  info.nStarts = length(r0Candidates);
+  info.nStarts = nStarts;
 end
 
 function res = eqlzrMinimaxCost(x, w, gdH0)
@@ -158,4 +183,37 @@ function res = eqlzrMinimaxCost(x, w, gdH0)
     bumpSum = bumpSum + (1-r(i)^2) ./ (1 - 2*r(i)*cos(w-theta(i)) + r(i)^2);
   end
   res = abs(gdH0 + bumpSum - D);
+end
+
+function [r, theta] = stagedStartCandidate(gdH0, D_target, w, N, f_safe_lo, f_safe_hi)
+% Staged heuristic (evenly-spaced angles, 1-D shared-radius fminbnd
+% search, per-angle coordinate-descent refinement), used to generate one
+% additional fminimax starting point -- see examples/dsgnEqlzrD_staged.m
+% for the standalone version this mirrors.
+  theta = 2*pi*linspace(f_safe_lo, f_safe_hi, N);
+  theta_lo = 2*pi*f_safe_lo;
+  theta_hi = 2*pi*f_safe_hi;
+
+  worstCost = @(rr) max(abs(gdH0 + bumpSumLocal(rr*ones(1,N), theta, w) - D_target));
+  r_shared = fminbnd(worstCost, 0.01, 0.995, optimset('TolX', 1e-4));
+  r = r_shared * ones(1, N);
+
+  optsTh = optimset('TolX', 1e-5);
+  for sweep = 1:3
+    for i = 1:N
+      idx = true(1, N);
+      idx(i) = false;
+      otherBump = bumpSumLocal(r(idx), theta(idx), w);
+      residualBase = gdH0 + otherBump - D_target;
+      costTheta_i = @(th) max(abs(residualBase + (1-r(i)^2)./(1 - 2*r(i)*cos(w-th) + r(i)^2)));
+      theta(i) = fminbnd(costTheta_i, theta_lo, theta_hi, optsTh);
+    end
+  end
+end
+
+function s = bumpSumLocal(r, theta, w)
+  s = zeros(size(w));
+  for i = 1:length(r)
+    s = s + (1-r(i)^2) ./ (1 - 2*r(i)*cos(w-theta(i)) + r(i)^2);
+  end
 end

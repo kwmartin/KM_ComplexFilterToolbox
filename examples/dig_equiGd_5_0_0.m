@@ -11,7 +11,11 @@ Ap=3.0103;
 type = 'equiGD'
 Ordr = ni;
 
-H = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr)
+% H = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr); % doesn't equalize
+% stopband attenuation (as/ws unused for pole placement); use equiGdDigital
+deltGD = 0.25;
+useWs = 1;
+H = equiGdDigital(p,px,ni,wp,ws,as,Ap,deltGD,useWs);
 figure
 [ax1, ax2] = plot_drsps(H,wp,'b',[-320 1]);
 plot_dam_ph_gd(H, [-0.5 0.5], -320, 'b');

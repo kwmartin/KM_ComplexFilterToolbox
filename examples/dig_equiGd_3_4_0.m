@@ -17,7 +17,6 @@ Ordr = ni + np;
 
 H = dsgnDigitalFltr2(p,px,ni,wp,ws,as,Ap,type,Ordr);
 deltGD=0.25;
-% H = equiGdDigital(p,px,ni,wp,ws,as,Ap,type,deltGD,Ordr);
 [ax1, axq2] = plot_drsps(H,wp,'b',[-200 1]);
 plot_dam_ph_gd(H, [-0.5 0.5], -40, 'b');
 cscdFltr = mkCscdFltrD2(H, wp);
@@ -25,18 +24,12 @@ plotSimCscd(cscdFltr, wp, ws, -40, 0, 'b');
 gdHs = hgdMake(H);
 gd = hzPlot(gdHs{2});
 
-np = length(p);
-p1 = H.z{1};
-p1 = p1((p1 + 1) < 1e-7);
-if length(p1) ~= Ordr
-    error('There should be %d zeros',ni);
-end
-ni = Ordr - np;
-p2 = exp(2*pi*p*j);
-py = [-ones(ni,1); p2.'];
-py = sortImag(py);
-H2 = zpk(py, H.p{1}, H.k);
-H3= place_polesdLP5(H2,wp);
+% Stopband-equalized version: this used to hand-rebuild H's zeros from p
+% and call place_polesdLP5 directly (the same steps equiGdDigital.m does
+% internally) -- replaced with the actual function call, which is the
+% tested/maintained version of this same logic.
+useWs = 0; % matches the original 2-arg place_polesdLP5(H2,wp) call
+H3 = equiGdDigital(p,px,ni,wp,ws,as,Ap,deltGD,useWs);
 plotDig(H3);
 plotGDd(H3)
 

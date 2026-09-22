@@ -15,7 +15,8 @@ type = 'equiGD'
 % type = 'equiGDLsPls'
 Ordr = ni + np;
 
-H = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr)
+% H = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr); % doesn't equalize
+% stopband attenuation (as/ws unused for pole placement); use equiGdDigital
 deltGD=0.25;
 
 % p = [-0.4 -0.3 -0.25 -0.2 -0.15 0.15 0.2 0.25 0.3 0.4]; % initial guess at finite loss poles

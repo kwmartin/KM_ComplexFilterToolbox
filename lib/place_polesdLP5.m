@@ -108,6 +108,23 @@ for i = 1:2000 % repeat enough times to guarantee success
     Pmin = 1e-6.*diag(ones(1,length(X)));
     X = (S.'*S + Pmin)\(S.'*Y); % Calculate the changes in the pole frequencies
 
+    if any(~isfinite(X))
+        % A pole landing very close to (but not exactly at) a zmin probe
+        % point -- most often wsy(1)=0, which every iteration's zmin
+        % includes as a boundary point -- makes dHy_dp2b's 1/(w-pole)
+        % term huge without being exactly singular, so the boundary clamp
+        % below (which only catches py(k)<=wsy(1) exactly) doesn't
+        % prevent it. Confirmed via a 12-pole wide-passband spec
+        % (dig_equiGd_1_15_0.m): max|X|=498 on iteration 1 (vs. ~1-10 for
+        % well-behaved specs), collapsing to all-NaN py by iteration 3.
+        % Reject any step that produces a non-finite X outright rather
+        % than let it corrupt py permanently -- keep the previous py and
+        % retry from the same point next iteration (Hy is also left
+        % unchanged below, so the next iteration recomputes from
+        % identical state, not a repeated no-op).
+        continue
+    end
+
     % X = (S)\(Y); % Calculate the changes in the pole frequencies
     py = py + 0.05.*X(1:np).'; % Calculate the new pole positions
     % p = sort(p)

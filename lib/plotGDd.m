@@ -27,10 +27,14 @@ function plot_GDd(H,colour)
     w = 2*pi*f;
     s_ = j*w;
     [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H, w(:));
+    % Smooth an outlier spike by borrowing its neighbour's value; guard
+    % against indx+1 running past the end of gdH (happens when the very
+    % last frequency point is itself an outlier, e.g. a filter with a
+    % steep group-delay rise right at the grid edge).
     indx = find(gdH > 100);
-    gdH(indx) = gdH(indx+1);
+    gdH(indx) = gdH(min(indx+1, length(gdH)));
     indx = find(gdH < -100);
-    gdH(indx) = gdH(indx+1);
+    gdH(indx) = gdH(min(indx+1, length(gdH)));
     figure
     ax1 = plot(f,gdH,colour,'LineWidth',1);
     a = 1;

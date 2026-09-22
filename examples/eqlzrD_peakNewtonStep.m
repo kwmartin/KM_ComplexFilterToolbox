@@ -99,14 +99,36 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
 %   in this specific comparison, so absence of an effect here should not
 %   be read as proof neither change ever matters).
 %
+%   A second, more serious bug was found and fixed while re-confirming
+%   the 40-iteration run with the above changes: Step A's refinement used
+%   to search a FIXED +/-0.01 cycle window around each bracket's midpoint
+%   guess, rather than the bracket itself. Once real extrema sit closer
+%   together than 0.01 apart (confirmed: two adjacent brackets only
+%   ~0.003-0.007 apart after the equalizer reshaped the curve), that
+%   fixed window reached past the intended bracket into a NEIGHBORING
+%   one, and find(...,1) locked onto that neighbor's crossing instead --
+%   silently "refining" to the wrong extremum's location, which then
+%   collided with -- and was discarded by -- the de-duplication pass as
+%   an apparent duplicate of that neighbor. This is what was actually
+%   causing the "missed" second edge peak (f=0.076) in the 40-iteration
+%   confirmation run, not an nGridPts/medfilt1 resolution issue. Fixed by
+%   having findAllExtrema return each extremum's own bracket bounds and
+%   searching only within those bounds, which is guaranteed (by
+%   construction, from the d2TdW inflection-point argument above) to
+%   contain at most one extremum regardless of how close neighboring
+%   brackets are. Verified: the 40-iteration run now finds all 9 true
+%   extrema exactly (cross-checked against an 8000-point findpeaks scan,
+%   every value matching), where it previously found only 7.
+%
 %   Method per call:
 %     1. Detect the CURRENT extremum set via the d2TdW-bracket scan
 %        described above (however many extrema are found, not a fixed
 %        count).
 %     2. Step A -- refine each detected extremum's exact location: on a
-%        coarse local grid around it, get dTdW/d2TdW from AnlzDH, bracket
-%        the dTdW sign change appropriate to a max (+ to -) or min (- to
-%        +), then take one Newton step f <- f - dTdW(f)/d2TdW(f).
+%        local grid spanning its own bracket (not a fixed-width window --
+%        see above), get dTdW/d2TdW from AnlzDH, bracket the dTdW sign
+%        change appropriate to a max (+ to -) or min (- to +), then take
+%        one Newton step f <- f - dTdW(f)/d2TdW(f).
 %     3. Step B -- Newton/least-squares update on cluster angles: with
 %        the refined extremum frequencies/values, compute the
 %        gain-weighted deviations w_k = |gd(f_k)-anchor|*gain(f_k) for
@@ -157,7 +179,7 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
   eq = eqlzrDClass(wiVec(:), 1);
   Heq = eq.applyTo(H);
 
-  [f_guess, isMax] = findAllExtrema(Heq, fScan);
+  [f_guess, isMax, fBrackets] = findAllExtrema(Heq, fScan);
   K = length(f_guess);
 
   if K == 0
@@ -166,10 +188,13 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
         wp(1), wp(2), nGridPts);
   end
 
-  % Step A: refine each extremum's exact location.
+  % Step A: refine each extremum's exact location, searching WITHIN its
+  % own detected bracket only (never a fixed-width window) -- see
+  % findAllExtrema/refineExtremum's own comments for why a fixed window
+  % is unsafe once real extrema sit closer together than that width.
   f_peaks = zeros(K,1);
   for k = 1:K
-    f_peaks(k) = refineExtremum(Heq, f_guess(k), isMax(k));
+    f_peaks(k) = refineExtremum(Heq, fBrackets(k,1), fBrackets(k,2), isMax(k));
   end
 
   % Very sharp (near-singular) peaks can make the coarse d2TdW scan flag
@@ -232,7 +257,7 @@ function [clusterTheta, info] = eqlzrD_peakNewtonStep(H, clusterTheta, clusterR,
   info.nExtrema = K;
 end
 
-function [f_ext, isMax] = findAllExtrema(Heq, fScan)
+function [f_ext, isMax, fBrackets] = findAllExtrema(Heq, fScan)
   w = 2*pi*fScan;
   [~, ~, ~, ~, dTdW, ~, d2TdW] = AnlzDH(Heq, w);
   d2TdW = medfilt1(d2TdW, 5, 'omitnan', 'truncate'); % suppress spurious
@@ -247,6 +272,7 @@ function [f_ext, isMax] = findAllExtrema(Heq, fScan)
 
   f_ext = [];
   isMax = logical([]);
+  fBrackets = [];
   for s = 1:length(boundaryIdx)-1
     iLo = boundaryIdx(s);
     iHi = boundaryIdx(s+1);
@@ -255,15 +281,25 @@ function [f_ext, isMax] = findAllExtrema(Heq, fScan)
     if dLo > 0 && dHi <= 0
       f_ext(end+1,1) = 0.5*(fScan(iLo)+fScan(iHi)); %#ok<AGROW>
       isMax(end+1,1) = true; %#ok<AGROW>
+      fBrackets(end+1,:) = [fScan(iLo) fScan(iHi)]; %#ok<AGROW>
     elseif dLo < 0 && dHi >= 0
       f_ext(end+1,1) = 0.5*(fScan(iLo)+fScan(iHi)); %#ok<AGROW>
       isMax(end+1,1) = false; %#ok<AGROW>
+      fBrackets(end+1,:) = [fScan(iLo) fScan(iHi)]; %#ok<AGROW>
     end
   end
 end
 
-function f_refined = refineExtremum(Heq, f_guess, isMax)
-  fLocal = linspace(f_guess - 0.01, f_guess + 0.01, 41);
+function f_refined = refineExtremum(Heq, f_lo, f_hi, isMax)
+  % Search WITHIN the exact bracket [f_lo, f_hi] found by findAllExtrema,
+  % never a fixed-width window: findAllExtrema guarantees at most one
+  % extremum per bracket, but adjacent brackets can be much closer
+  % together than any fixed window (confirmed: a fixed +/-0.01 window
+  % reached past a bracket only ~0.003 away and locked onto that
+  % neighbor's crossing instead via find(...,1), which then collided
+  % with -- and silently discarded, via the de-duplication pass below --
+  % the genuine extremum this call was meant to refine).
+  fLocal = linspace(f_lo, f_hi, 41);
   [~, ~, gdLocal, ~, dTdWLocal] = AnlzDH(Heq, 2*pi*fLocal(:));
   if isMax
     signChange = find(dTdWLocal(1:end-1) > 0 & dTdWLocal(2:end) <= 0, 1);

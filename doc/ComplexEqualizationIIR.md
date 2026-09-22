@@ -326,6 +326,29 @@ Both return `eq` (an `eqlzrDClass`) and an `info` struct with
    de-duplication already covered the specific failure mode both were
    meant to address further. Kept anyway as defensive robustness; a
    design sharper or noisier than this one could still need them.
+
+   **A second, more serious bug was found re-confirming the 40-iteration
+   run with these changes**, and it explains what actually looked like a
+   missing-peak problem: Step A's refinement searched a fixed +/-0.01
+   cycle window around each bracket's midpoint guess rather than the
+   bracket itself. Once real extrema sit closer together than 0.01 apart
+   (confirmed: two adjacent brackets only ~0.003-0.007 apart after the
+   equalizer reshaped the curve), that fixed window reached past the
+   intended bracket into a neighboring one and locked onto the wrong
+   crossing -- silently "refining" to a nearby extremum's location, which
+   then collided with, and was discarded by, de-duplication as an
+   apparent duplicate. This -- not scan resolution -- is what caused the
+   40-iteration run to report only 7 of 9 true extrema, missing the
+   second edge peak (f≈0.076) entirely. Fixed by having the detection
+   step return each extremum's own bracket bounds and confining
+   refinement to those bounds, which are guaranteed (by the same
+   inflection-point argument) to contain at most one extremum regardless
+   of how close neighboring brackets are. Re-verified: the 40-iteration
+   run now finds all 9 true extrema exactly, cross-checked against an
+   8000-point `findpeaks` scan with every value matching. Convergence
+   behavior unaffected -- still 0.53s total for all 40 steps, spread
+   still plateaus (now at 23.1061, essentially the same as the 23.1747
+   seen before this fix) by roughly step 16.
 6. **Stopping criterion.** Iterations were run a fixed number of times by
    hand. A principled stopping rule (e.g. weighted-deviation spread below
    some tolerance, or step size below a threshold) would make the

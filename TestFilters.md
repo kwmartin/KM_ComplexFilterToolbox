@@ -160,17 +160,41 @@ output, check `git status`/`git diff --stat` for surprising size deltas
 and investigate anything that jumped by more than roughly 2x rather than
 committing it blindly.
 
-## Known issues (as of the 2026-09-23 full-suite run)
+## Known issues (as of the 2026-09-23 full-suite run, updated same day
+after further work on the `dig_linPh_1_6_0`/`_1_8_0`/`place_polesdLP3`
+family - see below)
 
 Pre-existing failures, triaged and left as-is — not regressions. Compared
 against the `20260921_115714` run, every failure below was already failing
-there too (or, for `dig_linPh_1_8_0.m`, hitting the same underlying
-`place_polesdLP3` issue with different numbers); that run's 22 failures
-minus these 13 accounts for 8 that got fixed in between (`dig_equiGd_5_10_0`,
-`dig_linPh_0_2_0`, `dig_linPh_1_2_0`, `dig_linPh_1_4_0`, `exmpl12`,
-`exmpl4`, `Fbnk_1_8_0`, `mkYaml`) plus `dig_linPh_1_6_0`, initially
-miscounted as fixed here too - see below for why it isn't. Re-check this
-list after any `lib/` change that touches the functions involved.
+there too; that run's 22 failures minus these accounts for the ones fixed
+in between (`dig_equiGd_5_10_0`, `dig_linPh_0_2_0`, `dig_linPh_1_2_0`,
+`dig_linPh_1_4_0`, `exmpl12`, `exmpl4`, `Fbnk_1_8_0`, `mkYaml`, and now
+`dig_linPh_1_6_0` - see below). Re-check this list after any `lib/`
+change that touches the functions involved.
+
+**Update, same day:** the `dig_linPh_1_6_0.m`/`_1_8_0.m` diagnosis below
+(genuine pole-count/passband-width infeasibility) turned out to be
+wrong. The user identified the actual root cause: `lib/nrmlzSpecsD.m`'s
+`shiftSpecs` call can push `ws` edges past +-0.5 for a passband not
+centered at 0, corrupting the spec `predistortSpecs.m` builds from it -
+and separately, `lib/adaptP3.m`/`lib/place_polesdLP3.m`'s Newton
+iterations had no protection against poles drifting back into collision
+over the course of 200-2000 iterations even from a starting
+configuration that initially met the required extrema/minima count.
+Fixed the latter (four layered measures: dual starting heuristics each
+refined to convergence, proactive per-iteration proximity checks, damped
+step sizes, non-finite/magnitude step guards - mirrored across both
+functions). The `nrmlzSpecsD.m` fix was tried but reverted: it was never
+actually the cause for these two files (`place_polesdLP3`'s 2-arg form,
+what they use, never consumes `ws`), and it broke 21 *other*, previously-
+working `elliptic`/`monotonic` examples by duplicating a sentinel
+`predistortSpecs.m` already adds itself - caught by a fresh full-suite
+run, reverted the same session.
+**Result:** `dig_linPh_1_6_0.m` now passes reliably (confirmed
+reproducible across repeated runs), 6 poles unchanged - moved out of
+this list. `dig_linPh_1_8_0.m` is improved (its own group-delay stage
+now passes cleanly) but still fails, 1 stop-band minimum short - see
+below.
 
 `DLddrFltr_1_2_0.m`/`_1_4_0`/`_1_6_0`/`_1_8_0` (previously listed here as
 an environmental Statistics-Toolbox dependency, `Undefined function
@@ -193,35 +217,29 @@ no longer needs a toolbox that isn't installed here. Verified all 4 pass.
 
 **Numerical/algorithmic limitation (needs real investigation, not a
 guess-fix):**
-- `dig_linPh_1_8_0.m` — `place_polesdLP3: only found 8 independent
-  stop-band loss minima for 9 free pole(s)` — pole collision during
-  stop-band placement for this specific order/spec.
-- `dig_linPh_1_6_0.m` — runs without throwing, so the harness (and an
-  earlier version of this file) counted it as fixed, but the actual output
-  is degenerate: `max|pole|=0.995` (right at the instability edge), a
-  6-fold repeated pole (`(z-(0.8918+0.4524i))^6`, i.e. most of its 6
-  finite-loss poles collapsed onto nearly one point), and -66 dB "worst
-  stopband attenuation" (massive gain, not suppression). Comparing all 5
-  examples that actually call plain `dsgnDigitalFltr` with
-  `type='equiGDLsPls'`: the 3 that work (`dig_linPh_0_2_0.m`,
-  `dig_linPh_1_2_0.m`, `dig_linPh_1_2_0b.m`) all use a passband >= 0.05
-  wide and <= 4 finite-loss poles; `dig_linPh_1_6_0.m`/`_1_8_0.m` share a
-  passband only 0.01 wide *and* sitting entirely off to one side (not
-  centered near DC), while asking for 6/8 poles - the same "too many poles
-  for too narrow (here also off-center) a band" limitation as
-  `dig_equiGd_1_6_0.m` earlier, not a code bug. Tried both
-  `dsgnDigitalFltr2` and `equiGdDigital` as drop-in replacements for
-  `dig_linPh_1_6_0.m`/`_1_8_0.m`'s exact specs - neither helps.
-  `dsgnDigitalFltr2` produces the *identical* degenerate result for
-  `1_6_0` (same collapsed poles, same -66.33 dB) and the identical error
-  for `1_8_0`, confirming it shares the same `equiGDLsPls` pole-placement
-  code path as plain `dsgnDigitalFltr` (its improvements must target other
-  `type` values). `equiGdDigital` fails differently for both
-  (`"There should be 7/9 zeros"` - a separate zero-count assumption of its
-  own that doesn't hold for this `p`/`ni` combination). So the root cause
-  is inherent to the spec (too many finite-loss poles for a band this
-  narrow and off-center), not to which top-level design function wraps
-  the underlying pole placement.
+- `dig_linPh_1_8_0.m` — `place_polesdLP3: only found 9 independent
+  stop-band loss minima for 9 free pole(s)` (short by exactly 1) - its
+  `adaptP3` group-delay stage now passes cleanly (see the update above);
+  the remaining gap is isolated to `place_polesdLP3`'s stop-band stage,
+  which plateaus there even after the full set of fixes described above
+  (dual heuristics both fully refined, proactive proximity checks,
+  damped step, non-finite guard). Stopped here per direct instruction -
+  getting disproportionately difficult relative to the value of
+  continuing, `1_6_0` already fixed without any pole-count compromise.
+- `EqualFltr_1_6_0.m` — `adaptP3: only found 1 group-delay extrema for 7
+  free pole(s)`. Also goes through `adaptP3` (via `dsgnCscdFltr(...,
+  'equiGDLsPls')`), with an extremely narrow passband
+  (`wp = [-1/2048, 1/2048]`, ~100x narrower than even `dig_linPh_1_8_0`'s)
+  and 6 movable poles. Before today's `adaptP3.m` changes this function
+  had zero collision detection at all, so a spec this demanding would
+  have silently run its full 200 iterations on a severely rank-deficient
+  system and returned some degenerate result without ever erroring -
+  same silent-degradation pattern documented throughout this session
+  (e.g. `dig_linPh_1_2_0b.m` below). Very likely a pre-existing silent
+  failure that today's fixes correctly turned into an honest error,
+  not a new regression - not independently confirmed against the
+  pre-today `adaptP3.m` (would need reverting it temporarily to prove),
+  and not investigated further given how extreme this spec is.
 - `exmpl_r1b.m`, `tstTFops.m` — `Pole Removals Failed`.
 
 `exmpl_1_5_1.m`/`exmpl_5_1_1.m` (previously listed here as `Unrecognized

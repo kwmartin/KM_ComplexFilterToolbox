@@ -6,6 +6,16 @@ This picks up the ongoing effort to run every script in `examples/` via
 current status** — always check it first, not this file's snapshot below.
 This file exists only to summarize how we got here and what's left.
 
+**Correction, same day (g22 session):** this file's diagnosis below for
+`dig_linPh_1_6_0.m`/`_1_8_0.m` (genuine pole-count/passband-width
+infeasibility, item 2 under "Known issues still open") was wrong - see
+`TestFilters.md`'s current "Known issues" section for the actual root
+cause (an `nrmlzSpecsD.m` range bug plus missing collision/drift
+monitoring in `adaptP3.m`/`place_polesdLP3.m`) and current status
+(`1_6_0` fixed, 6 poles unchanged; `1_8_0` improved but not fully
+resolved). Don't re-trust the "too many poles for too narrow a band"
+framing below without re-reading `TestFilters.md` first.
+
 ## What's been fixed this session
 
 1. **`lib/place_polesdLP5.m`** — the Newton step that adapts pole

@@ -37,9 +37,6 @@ lddr = ladderClass(); % A matlab object
 [X4, elem10] = rmvSCmplx(X3, lddr);
 lddr.R2 = X4.K; % the remainder should be simply real (the load resistor)
 
-lddr2 = ladderClass(lddr);
-[X5, elem14, elem15] = rmvUsingS2(X2o, P(1), lddr2);
-
 dispLddr(lddr);
 
 lim = [-10 10 -140 5];

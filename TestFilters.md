@@ -198,9 +198,26 @@ guess-fix):**
   stop-band placement for this specific order/spec.
 - `exmpl_r1b.m`, `tstTFops.m` — `Pole Removals Failed`.
 
+`exmpl_1_5_1.m`/`exmpl_5_1_1.m` (previously listed here as `Unrecognized
+function or variable 'X2o'`) are now fixed. `X2o` was never defined in
+either script - it's a variable name from a *different* family of sibling
+examples (`exmpl_1_5_0.m` and others) that build candidate two-port
+reactances via `mkXsCmplx2`/`mkXs`, one of which is called `X2o`. These
+two scripts use a different, unrelated ladder-synthesis path
+(`rmv2XPoles`/`rmvSCmplx`) that never produces an `X2o` at all, so
+whichever error you'd hit depended entirely on whatever happened to be
+left over in the base workspace from a previous script run in the same
+MATLAB session - including no error at all, if `X2o` happened to still be
+sitting there from something else, silently used instead of erroring. The
+whole `lddr2 = ladderClass(lddr); [X5, elem14, elem15] =
+rmvUsingS2(X2o/X4, P(1), lddr2);` block turned out to be dead copy-paste
+regardless of which variable it referenced: the main ladder (`lddr`) is
+already complete one line earlier (the "remainder should be simply real"
+comment), and `lddr2`/`X5`/`elem14`/`elem15` were never referenced again
+anywhere in either script. Removed the block entirely rather than patch
+the variable name. Verified both pass.
+
 **Real bug (stale/renamed variable or wrong call signature):**
-- `exmpl_1_5_1.m`, `exmpl_5_1_1.m` — `Unrecognized function or variable
-  'X2o'`.
 - `mkFltr_exmpl.m` — `Too many output arguments`.
 - `shortDat.m` — `Unrecognized function or variable 'win'`.
 

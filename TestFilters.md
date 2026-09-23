@@ -166,11 +166,11 @@ Pre-existing failures, triaged and left as-is — not regressions. Compared
 against the `20260921_115714` run, every failure below was already failing
 there too (or, for `dig_linPh_1_8_0.m`, hitting the same underlying
 `place_polesdLP3` issue with different numbers); that run's 22 failures
-minus these 13 accounts exactly for the 9 that got fixed in between
-(`dig_equiGd_5_10_0`, `dig_linPh_0_2_0`, `dig_linPh_1_2_0`,
-`dig_linPh_1_4_0`, `dig_linPh_1_6_0`, `exmpl12`, `exmpl4`, `Fbnk_1_8_0`,
-`mkYaml`). Re-check this list after any `lib/` change that touches the
-functions involved.
+minus these 13 accounts for 8 that got fixed in between (`dig_equiGd_5_10_0`,
+`dig_linPh_0_2_0`, `dig_linPh_1_2_0`, `dig_linPh_1_4_0`, `exmpl12`,
+`exmpl4`, `Fbnk_1_8_0`, `mkYaml`) plus `dig_linPh_1_6_0`, initially
+miscounted as fixed here too - see below for why it isn't. Re-check this
+list after any `lib/` change that touches the functions involved.
 
 `DLddrFltr_1_2_0.m`/`_1_4_0`/`_1_6_0`/`_1_8_0` (previously listed here as
 an environmental Statistics-Toolbox dependency, `Undefined function
@@ -196,6 +196,32 @@ guess-fix):**
 - `dig_linPh_1_8_0.m` — `place_polesdLP3: only found 8 independent
   stop-band loss minima for 9 free pole(s)` — pole collision during
   stop-band placement for this specific order/spec.
+- `dig_linPh_1_6_0.m` — runs without throwing, so the harness (and an
+  earlier version of this file) counted it as fixed, but the actual output
+  is degenerate: `max|pole|=0.995` (right at the instability edge), a
+  6-fold repeated pole (`(z-(0.8918+0.4524i))^6`, i.e. most of its 6
+  finite-loss poles collapsed onto nearly one point), and -66 dB "worst
+  stopband attenuation" (massive gain, not suppression). Comparing all 5
+  examples that actually call plain `dsgnDigitalFltr` with
+  `type='equiGDLsPls'`: the 3 that work (`dig_linPh_0_2_0.m`,
+  `dig_linPh_1_2_0.m`, `dig_linPh_1_2_0b.m`) all use a passband >= 0.05
+  wide and <= 4 finite-loss poles; `dig_linPh_1_6_0.m`/`_1_8_0.m` share a
+  passband only 0.01 wide *and* sitting entirely off to one side (not
+  centered near DC), while asking for 6/8 poles - the same "too many poles
+  for too narrow (here also off-center) a band" limitation as
+  `dig_equiGd_1_6_0.m` earlier, not a code bug. Tried both
+  `dsgnDigitalFltr2` and `equiGdDigital` as drop-in replacements for
+  `dig_linPh_1_6_0.m`/`_1_8_0.m`'s exact specs - neither helps.
+  `dsgnDigitalFltr2` produces the *identical* degenerate result for
+  `1_6_0` (same collapsed poles, same -66.33 dB) and the identical error
+  for `1_8_0`, confirming it shares the same `equiGDLsPls` pole-placement
+  code path as plain `dsgnDigitalFltr` (its improvements must target other
+  `type` values). `equiGdDigital` fails differently for both
+  (`"There should be 7/9 zeros"` - a separate zero-count assumption of its
+  own that doesn't hold for this `p`/`ni` combination). So the root cause
+  is inherent to the spec (too many finite-loss poles for a band this
+  narrow and off-center), not to which top-level design function wraps
+  the underlying pole placement.
 - `exmpl_r1b.m`, `tstTFops.m` — `Pole Removals Failed`.
 
 `exmpl_1_5_1.m`/`exmpl_5_1_1.m` (previously listed here as `Unrecognized

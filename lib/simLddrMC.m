@@ -54,7 +54,9 @@ function out1 = simLddrMC(lddr, xin, wp, delta_f, std, nmbRuns, ylim)
   hold(ax2, 'on');
 
   for i=1:nmbRuns
-    d1_0_ = d1_0*(1 + normrnd(0, std, 1));
+    d1_0_ = d1_0*(1 + std*randn(1)); % normrnd(0, std, 1) requires the Statistics
+    % and Machine Learning Toolbox; randn is base MATLAB, same normal
+    % distribution, matching rndmMtrx.m's own std*randn(size) convention.
     rMtrx = rndmMtrx(std, N);
     c_ = rMtrx*c;
     rMtrx = rndmMtrx(std, N);

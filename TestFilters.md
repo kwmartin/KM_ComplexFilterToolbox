@@ -160,7 +160,7 @@ output, check `git status`/`git diff --stat` for surprising size deltas
 and investigate anything that jumped by more than roughly 2x rather than
 committing it blindly.
 
-## Known issues (as of the 2026-09-22 full-suite run)
+## Known issues (as of the 2026-09-23 full-suite run)
 
 Pre-existing failures, triaged and left as-is — not regressions. Compared
 against the `20260921_115714` run, every failure below was already failing
@@ -172,10 +172,15 @@ minus these 13 accounts exactly for the 9 that got fixed in between
 `mkYaml`). Re-check this list after any `lib/` change that touches the
 functions involved.
 
+`DLddrFltr_1_2_0.m`/`_1_4_0`/`_1_6_0`/`_1_8_0` (previously listed here as
+an environmental Statistics-Toolbox dependency, `Undefined function
+'normrnd'`) are now fixed: `lib/simLddrMC.m` used `normrnd(0, std, 1)` for
+a single scalar draw; replaced with `std*randn(1)` (same normal
+distribution, base MATLAB, matching `lib/rndmMtrx.m`'s own
+`std*randn(size)` convention elsewhere in the same Monte-Carlo path) so it
+no longer needs a toolbox that isn't installed here. Verified all 4 pass.
+
 **Environmental (missing toolbox/data, not fixable from this machine):**
-- `DLddrFltr_1_2_0.m`, `DLddrFltr_1_4_0.m`, `DLddrFltr_1_6_0.m`,
-  `DLddrFltr_1_8_0.m` — `Undefined function 'normrnd'`. Requires the
-  Statistics and Machine Learning Toolbox, not installed here.
 - `ECG1.m`, `ECGrial1.m` — required real ECG/PhysioBank `.mat` data under
   a personal, machine-specific path (`.../ecg/ECG_mat_data/` or
   `/home/martin/Medical/database/ECG_mat_data/`) that isn't in this repo

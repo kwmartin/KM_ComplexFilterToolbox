@@ -76,6 +76,49 @@ py = imag(py) % convert to real for adaptation; we'll convert back later
 Hy = Hy2;
 np = length(py);
 
+% Ensure the STARTING configuration already has enough independent
+% stop-band loss minima (np+1, the threshold the main loop's collision
+% monitor below uses) before the Newton loop even begins - mirrors the
+% identical fix added to adaptP3.m's group-delay stage (see its comments
+% for the full rationale). Confirmed needed here too:
+% dig_linPh_1_6_0.m reaches this stage with its group-delay side fully
+% resolved (by adaptP3.m's own version of this fix) but starts short by
+% 1 minimum right here.
+%
+% Two starting heuristics are tried, each independently refined to
+% convergence (or INIT_MAX_ITERS attempts) by pairwise-nudging the most
+% at-risk adjacent pair apart (see refineMinimaCount below): (1) the
+% natural sortZPK-derived py ordering, and (2) a more global even
+% redistribution of all np positions across the same [min(py),max(py)]
+% span. Keep whichever FULLY-REFINED result ends up better - picking
+% only the better STARTING point and refining once regressed on
+% adaptP3.m's identical problem (see its comments for the confirmed
+% example), so both heuristics are always run to full completion here
+% too rather than just picking the better start.
+INIT_MAX_ITERS = 60;
+NUDGE_TOL = 1e-3; % matches COLLISION_TOL below
+
+pyEven = linspace(min(py), max(py), np).';
+[py_nat, count_nat] = refineMinimaCount(ey, ky, py, wsy, asy, ns, np, INIT_MAX_ITERS, NUDGE_TOL, 'natural');
+[py_even, count_even] = refineMinimaCount(ey, ky, pyEven, wsy, asy, ns, np, INIT_MAX_ITERS, NUDGE_TOL, 'even-spacing');
+if count_even > count_nat
+    py = py_even;
+    bestCount = count_even;
+    chosenLabel = 'even-spacing';
+else
+    py = py_nat;
+    bestCount = count_nat;
+    chosenLabel = 'natural';
+end
+fprintf(['place_polesdLP3: starting heuristics refined - natural reached ' ...
+    '%d, even-spacing reached %d, using %s (need %d)\n'], count_nat, ...
+    count_even, chosenLabel, np+1);
+Hy = zpk(ey, j*py, ky);
+if bestCount < np + 1
+    fprintf(['place_polesdLP3: could not reach %d starting minima after ' ...
+        'both refinements (best %d) - proceeding anyway.\n'], np+1, bestCount);
+end
+
 X = [py(:); 0];
 
 % Some poles can converge to (nearly) the same position - the notch between
@@ -113,6 +156,43 @@ for i = 1:2000 % repeat enough times to guarantee success
     % here.
     nz = length(zmin);
 
+    % Proactively freeze any free pole pair that has already drifted
+    % within COLLISION_TOL, even if nz hasn't dropped below threshold
+    % yet. Waiting for that symptom was found to be too late: a starting
+    % configuration that comfortably meets the required minima count can
+    % still drift back into collision over the course of this loop and
+    % fail regardless (confirmed on dig_linPh_1_6_0.m: starts at exactly
+    % 8 minima for 7 free poles, meeting the threshold, but the loop
+    % still degrades it to 5 and halts -- checking proximity directly,
+    % every iteration, catches drift before it becomes a shortfall
+    % instead of after).
+    if npFree > 1
+        for m = 1:(length(freeIdx)-1)
+            k = freeIdx(m);
+            kNext = freeIdx(m+1);
+            if (abs(py(kNext) - py(k)) < COLLISION_TOL)
+                fprintf(['place_polesdLP3: poles %d and %d drifted to ' ...
+                    'nearly the same position (%.6g, %.6g) - freezing ' ...
+                    'pole %d\n'], k, kNext, py(k), py(kNext), kNext);
+                frozen(kNext) = true;
+                freeIdx = find(~frozen);
+                npFree = length(freeIdx);
+                % zmin/mrgn were already truncated to the OLD npFree+1
+                % (in sorted-by-severity order via indxs above), so a
+                % further prefix truncation to the NEW, smaller npFree+1
+                % is safe and keeps the worst-margin points -- needed so
+                % Sfree(:,freeIdx) below stays row-count-consistent with
+                % s2 (npFree+1 rows) after npFree just shrank.
+                if length(zmin) > npFree + 1
+                    zmin = zmin(1:npFree+1);
+                    mrgn = mrgn(1:npFree+1);
+                end
+                nz = length(zmin);
+                break
+            end
+        end
+    end
+
     if nz < npFree + 1
         % Too few independent minima for the current free-pole count. Look
         % for a newly-collided pair among the still-free poles and freeze
@@ -149,9 +229,33 @@ for i = 1:2000 % repeat enough times to guarantee success
     S = [Sfree(:,freeIdx) s2];
     Pmin = 1e-6.*diag(ones(1,npFree+1));
     Xfree = (S + Pmin)\(Y); % Calculate the changes in the free pole frequencies
+
+    if any(~isfinite(Xfree)) || any(abs(Xfree) > 50)
+        % Same two-part fix, and same underlying cause, as
+        % place_polesdLP5.m's identical check: a pole landing very close
+        % to (but not exactly at) a zmin probe point makes dHy_dp2's
+        % 1/(w-pole) term huge without being exactly singular, producing
+        % a finite-but-enormous step that corrupts py just as badly as
+        % an outright non-finite one (confirmed here: the isfinite check
+        % alone did not stop dig_linPh_1_6_0.m's later zpk() NaN/Inf
+        % crash - the finite-but-huge regime still reached it). Reject
+        % the step and retry next iteration instead.
+        continue
+    end
+
     delta = zeros(1,np);
     delta(freeIdx) = Xfree(1:npFree).';
-    py = py + 1.0.*delta; % Calculate the new pole positions
+    % Damping factor reduced from the original 1.0 (full Newton step):
+    % an undamped step was found to overshoot and drive poles back into
+    % collision even from a starting configuration that already met the
+    % required minima count (confirmed on dig_linPh_1_6_0.m -- starts at
+    % exactly 8 minima for 7 free poles, meeting the threshold, but an
+    % undamped step still degrades it to 5 and halts, even with the
+    % proactive proximity check above catching the same collisions no
+    % earlier than the reactive one used to). A smaller step trades
+    % iteration count for stability.
+    STEP_DAMPING = 0.3;
+    py = py + STEP_DAMPING.*delta; % Calculate the new pole positions
     % p = sort(p)
 
     % Check limits and make sure poles don't pass each other
@@ -195,4 +299,61 @@ Hy = 1/Hy; % return in forward gain form, not in loss form
 Hz = y2zSbTrnsf1(Hy,fsb2);
 Hz.k = Hz.k/(abs(rspsd(Hz,j*(wp(2) + wp(1))*pi)));
 a=1; % a place to stop for debugging
+end
 
+function [bestPy, bestCount] = refineMinimaCount(ey, ky, pyInit, wsy, asy, ns, np, maxIters, nudgeTol, label)
+%   Pairwise-nudge refinement of a starting loss-pole configuration
+%   pyInit, tracking the best (most stop-band minima) configuration seen
+%   - see place_polesdLP3's own comments above its call to this function
+%   for the full rationale.
+    py = sort(pyInit);
+    Hy = zpk(ey, j*py, ky);
+    zminI = findLossMinima(Hy,wsy,asy);
+    zminI = [wsy(1); zminI; wsy(ns)];
+    zminI(zminI == Inf) = 1e6;
+    mrgnI = getMarginLP(Hy,wsy,asy,zminI);
+    [~, indxsI] = sort(mrgnI);
+    if length(indxsI) > np + 1
+        zminI = zminI(indxsI(1:np+1));
+    end
+    bestCount = length(zminI);
+    bestPy = py;
+    iter = 0;
+    while bestCount < np + 1 && iter < maxIters
+        iter = iter + 1;
+        [pySorted, srt] = sort(py);
+        gaps = diff(pySorted);
+        [minGap, worstIdx] = min(gaps);
+        kA = srt(worstIdx);
+        kB = srt(worstIdx+1);
+        nudgeAmt = max(0.02*max(abs(py(kA)), abs(py(kB))), 5*nudgeTol);
+        fprintf(['place_polesdLP3 (%s): short %d minima (found %d, best %d, ' ...
+            'need %d) - separating poles %d and %d (gap %.4g), attempt %d\n'], ...
+            label, (np+1)-length(zminI), length(zminI), bestCount, np+1, kA, ...
+            kB, minGap, iter);
+        py(kA) = py(kA) - nudgeAmt/2;
+        py(kB) = py(kB) + nudgeAmt/2;
+        if py(kA) <= wsy(1)
+            py(kA) = wsy(1) + 1e-4;
+        end
+        if py(kB) >= wsy(ns)
+            py(kB) = 0.999*wsy(ns);
+        end
+        py = sort(py); % order is arbitrary for a zpk pole set - safe to
+                        % relabel here
+        Hy = zpk(ey, j*py, ky);
+
+        zminI = findLossMinima(Hy,wsy,asy);
+        zminI = [wsy(1); zminI; wsy(ns)];
+        zminI(zminI == Inf) = 1e6;
+        mrgnI = getMarginLP(Hy,wsy,asy,zminI);
+        [~, indxsI] = sort(mrgnI);
+        if length(indxsI) > np + 1
+            zminI = zminI(indxsI(1:np+1));
+        end
+        if length(zminI) > bestCount
+            bestCount = length(zminI);
+            bestPy = py;
+        end
+    end
+end

@@ -160,10 +160,53 @@ output, check `git status`/`git diff --stat` for surprising size deltas
 and investigate anything that jumped by more than roughly 2x rather than
 committing it blindly.
 
+## Known issues (as of the 2026-09-22 full-suite run)
+
+Pre-existing failures, triaged and left as-is — not regressions. Compared
+against the `20260921_115714` run, every failure below was already failing
+there too (or, for `dig_linPh_1_8_0.m`, hitting the same underlying
+`place_polesdLP3` issue with different numbers); that run's 22 failures
+minus these 13 accounts exactly for the 9 that got fixed in between
+(`dig_equiGd_5_10_0`, `dig_linPh_0_2_0`, `dig_linPh_1_2_0`,
+`dig_linPh_1_4_0`, `dig_linPh_1_6_0`, `exmpl12`, `exmpl4`, `Fbnk_1_8_0`,
+`mkYaml`). Re-check this list after any `lib/` change that touches the
+functions involved.
+
+**Environmental (missing toolbox/data, not fixable from this machine):**
+- `DLddrFltr_1_2_0.m`, `DLddrFltr_1_4_0.m`, `DLddrFltr_1_6_0.m`,
+  `DLddrFltr_1_8_0.m` — `Undefined function 'normrnd'`. Requires the
+  Statistics and Machine Learning Toolbox, not installed here.
+- `ECG1.m`, `ECGrial1.m` — required real ECG/PhysioBank `.mat` data under
+  a personal, machine-specific path (`.../ecg/ECG_mat_data/` or
+  `/home/martin/Medical/database/ECG_mat_data/`) that isn't in this repo
+  (`Issues.md` §1 notes the ECG data under `tmp/` was deliberately removed
+  as junk during the earlier repo cleanup). **Archived** to
+  `examples/archive/` and dropped from the runnable suite (the harness's
+  `examples/*.m` glob doesn't descend into subdirectories) rather than left
+  failing, since there's no way to supply the missing data from this
+  machine.
+
+**Numerical/algorithmic limitation (needs real investigation, not a
+guess-fix):**
+- `dig_linPh_1_8_0.m` — `place_polesdLP3: only found 8 independent
+  stop-band loss minima for 9 free pole(s)` — pole collision during
+  stop-band placement for this specific order/spec.
+- `exmpl_r1b.m`, `tstTFops.m` — `Pole Removals Failed`.
+
+**Real bug (stale/renamed variable or wrong call signature):**
+- `exmpl_1_5_1.m`, `exmpl_5_1_1.m` — `Unrecognized function or variable
+  'X2o'`.
+- `mkFltr_exmpl.m` — `Too many output arguments`.
+- `shortDat.m` — `Unrecognized function or variable 'win'`.
+
 ## Related files
 
 - `tools/run_all_examples.sh` — the test runner itself.
 - `tools/monitor_progress.sh` — the progress watcher.
 - `tools/reports/` — gitignored output directory (see `.gitignore`).
+- `examples/archive/` — examples pulled out of the runnable suite because
+  they depend on something this repo can't provide (e.g. personal data
+  files) — see "Known issues" above. Kept for reference, not run by
+  `tools/run_all_examples.sh`'s flat `examples/*.m` glob.
 - `Issues.md` — tracks the broader repo-integration/cleanup effort this
   harness grew out of, not individual example failures.

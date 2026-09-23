@@ -26,5 +26,5 @@ settings.mat
 /BackUp/
 /tmp/
 
-# point-in-time output from tools/run_all_examples.sh - not source
+# tools/run_all_examples.sh output: point-in-time run artifacts, not source
 /tools/reports/

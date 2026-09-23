@@ -217,9 +217,14 @@ comment), and `lddr2`/`X5`/`elem14`/`elem15` were never referenced again
 anywhere in either script. Removed the block entirely rather than patch
 the variable name. Verified both pass.
 
+`shortDat.m` (previously listed here as `Unrecognized function or
+variable 'win'`) has been removed from the repo entirely - it was an
+orphaned script from a different project (nothing else in the tree
+referenced it, and `win`/`k`/`G` were never defined anywhere it could
+have picked them up from).
+
 **Real bug (stale/renamed variable or wrong call signature):**
 - `mkFltr_exmpl.m` — `Too many output arguments`.
-- `shortDat.m` — `Unrecognized function or variable 'win'`.
 
 ## Related files
 

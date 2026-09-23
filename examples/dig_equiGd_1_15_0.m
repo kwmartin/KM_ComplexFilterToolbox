@@ -7,8 +7,28 @@ wp = [-0.05 0.05];
 ws = [-0.499 -0.1 0.1 0.499];
 as = [20 20 20 20];
 % ni = 15;
-% Ap=3.0103;
-Ap=1.0;
+Ap=3.0103;
+% Ap=1.0;
+np = length(p);
+ni = 1;
+type = 'equiGD'
+% type = 'equiGDLsPls'
+Ordr = ni + np;
+
+
+deltGD=0.25;
+useWs = 1;
+H = equiGdDigital(p,px,ni,wp,ws,as,Ap,deltGD,useWs);
+
+
+p = [-0.4 -0.3 -0.25 -0.2 -0.15 -0.12 0.12 0.15 0.2 0.25 0.3 0.4]; % initial guess at finite loss poles
+px = [];
+wp = [-0.05 0.05];
+ws = [-0.499 -0.1 0.1 0.499];
+as = [20 20 20 20];
+% ni = 15;
+Ap=3.0103;
+% Ap=1.0;
 np = length(p);
 ni = 1;
 type = 'equiGD'

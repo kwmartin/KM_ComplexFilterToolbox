@@ -108,7 +108,7 @@ for i = 1:2000 % repeat enough times to guarantee success
     Pmin = 1e-6.*diag(ones(1,length(X)));
     X = (S.'*S + Pmin)\(S.'*Y); % Calculate the changes in the pole frequencies
 
-    if any(~isfinite(X))
+    if any(~isfinite(X)) || any(abs(X(1:np)) > 50)
         % A pole landing very close to (but not exactly at) a zmin probe
         % point -- most often wsy(1)=0, which every iteration's zmin
         % includes as a boundary point -- makes dHy_dp2b's 1/(w-pole)
@@ -122,6 +122,22 @@ for i = 1:2000 % repeat enough times to guarantee success
         % retry from the same point next iteration (Hy is also left
         % unchanged below, so the next iteration recomputes from
         % identical state, not a repeated no-op).
+        %
+        % The non-finite check alone misses the adjacent regime one notch
+        % short of it: (S.'*S + Pmin)\(S.'*Y) can be finite but huge (not
+        % exactly singular, just RCOND within an order of magnitude of
+        % eps) -- passes isfinite(X), still corrupts py, and since the
+        % exact huge value depends on floating-point round-off order in
+        % the underlying (multi-threaded) linear solve, it is NOT
+        % reproducible run-to-run for otherwise identical inputs.
+        % Confirmed directly on dig_equiGd_1_15_0.m: two back-to-back
+        % calls with byte-identical (p,px,ni,wp,ws,as,Ap,deltGD,useWs)
+        % converged to different final designs, one run producing a pole
+        % at |z|=0.995 and a stop-band gain spike (-145 dB "attenuation",
+        % i.e. massive gain, right near Nyquist) instead of equalization.
+        % 50 is well above the ~1-10 range seen on well-behaved specs and
+        % well below the ~498 seen here, so it catches this regime
+        % without touching normal steps.
         continue
     end
 

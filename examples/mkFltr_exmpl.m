@@ -1,14 +1,13 @@
 exmpl;
+w_shift = 0.0j; % exmpl.m no longer defines this (it shifts via shiftSpecs/
+% shftFctr instead); 0 matches exmpl.m's symmetric wp=[-1,1] and is the
+% branch below that's actually exercised.
 rmvlOrdr = [1, -1, -1];
 rmvlTypes = [8, 4, 3];
 lddr1 = ladderClass();
-[X3, elem1, elem2, type] = rmv2PolesS(X1, P(1), P(2));
-lddr1.addElem(elem1);
-lddr1.addElem(elem2);
-[X4, elem3, type] = rmvSCmplx(X3);
-lddr1.addElem(elem3);
-[X5, elem4, type] = rmvSCmplx(X4);
-lddr1.addElem(elem4);
+[X3, elem1, elem2] = rmv2PolesS(X1, P(1), P(2), lddr1);
+[X4, elem3] = rmvSCmplx(X3, lddr1);
+[X5, elem4] = rmvSCmplx(X4, lddr1);
 lim = [-10 10 -40 1];
 if w_shift == 0
   wps = [imag(P(2))];

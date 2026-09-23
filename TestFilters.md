@@ -223,8 +223,34 @@ orphaned script from a different project (nothing else in the tree
 referenced it, and `win`/`k`/`G` were never defined anywhere it could
 have picked them up from).
 
-**Real bug (stale/renamed variable or wrong call signature):**
-- `mkFltr_exmpl.m` — `Too many output arguments`.
+`mkFltr_exmpl.m` (previously listed here as `Too many output arguments`)
+is now fixed, in three layers:
+1. It called `rmv2PolesS`/`rmvSCmplx` with the pre-refactor calling
+   convention (no `lddr` argument, an extra `type` output neither function
+   actually returns) instead of the current one, where `lddr` is passed in
+   and the function adds the element(s) to it internally. Updated the call
+   sites and removed the now-redundant manual `lddr1.addElem(...)` calls
+   (kept, they'd double-add).
+2. It also referenced `w_shift`, which `exmpl.m` (the design script it
+   runs via a bare `exmpl;`) only ever sets in a commented-out line and,
+   more importantly, never actually uses anywhere else - `exmpl.m` shifts
+   frequencies via `shiftSpecs`/`shftFctr` instead. Defined `w_shift =
+   0.0j` locally in `mkFltr_exmpl.m` (matching both the majority
+   convention across `examples/` and `exmpl.m`'s symmetric `wp=[-1,1]`).
+3. That exposed a real bug one layer further in, inside the deprecated
+   `doRmvls`/`finiteRmvl`/`rmvl4` chain this script's `w_shift==0` branch
+   depends on: `lib/rmvl4.m` filters poles by comparing `abs(p2)` (always
+   >= 0) against a raw `wp` that can be negative (`doRmvls` derives it via
+   `imag(P(2))`), so a negative `wp` never matches its intended
+   resonance-pole pair and the pole count downstream comes out wrong.
+   Fixed by normalizing `wp = abs(wp)` at the top of `rmvl4.m` - every
+   other use of `wp` in that function is either `wp*wp` or
+   `real(evalfr(X, wp*j)/(wp*j))`, both provably sign-invariant for a
+   real-coefficient `X`, so this is a no-op for callers that already pass
+   a positive `wp`. Checked the only other two callers of this chain
+   (`exmpl_r1.m`, unaffected/still passes; `tstTFops.m`, still fails but
+   at an unrelated line - `rmvCmplx`/`rmv_pole2`, not `rmvl4`) to confirm
+   no regression.
 
 ## Related files
 

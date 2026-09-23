@@ -21,6 +21,15 @@ function [K0, K1, K2, X5, fail] = rmvl4(X0, wp)
   posElemsOnly = true;
   tol = 1e-6;
   fail = true;
+  % wp must be positive for the abs(p2)-vs-wp pole match below (poles come
+  % in conjugate pairs, so abs(p2) is always >= 0); every other use of wp
+  % in this function is either wp*wp (sign-invariant) or of the form
+  % real(evalfr(X, wp*j)/(wp*j)), which is also sign-invariant for a
+  % real-coefficient X (flipping wp*j to -wp*j conjugates numerator and
+  % denominator identically). So normalizing the sign here is safe for
+  % callers that already pass a positive wp, and fixes callers (e.g.
+  % doRmvls, via wps = imag(P(2))) that can pass a negative one.
+  wp = abs(wp);
   ord = fndOrdr(X0);
   numOrdr1 = ord(1);
   K0 = real(evalfr(X0, wp*j)/(wp*j));

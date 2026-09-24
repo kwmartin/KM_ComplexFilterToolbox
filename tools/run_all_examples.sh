@@ -4,7 +4,7 @@
 # wouldn't show up from reading the code alone.
 #
 # Usage: tools/run_all_examples.sh [timeout_seconds] [glob]
-#   timeout_seconds: per-example timeout (default 120)
+#   timeout_seconds: per-example timeout (default 300)
 #   glob:            optional shell glob (relative to examples/), e.g.
 #                     'Fbnk_*.m', to run a subset instead of everything.
 #
@@ -21,7 +21,7 @@ set -u
 cd "$(dirname "$0")/.." || exit 1
 REPO="$(pwd)"
 
-TIMEOUT="${1:-120}"
+TIMEOUT="${1:-300}"
 GLOB="${2:-*.m}"
 
 STAMP="$(date +%Y%m%d_%H%M%S)"

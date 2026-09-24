@@ -1,129 +1,152 @@
-# Progress — test-suite triage (pick up here at work)
+# Progress — session handoff (pick up here)
 
-This picks up the ongoing effort to run every script in `examples/` via
-`tools/run_all_examples.sh` and fix (or correctly document) every failure.
 **`TestFilters.md`'s "Known issues" section is the source of truth for
-current status** — always check it first, not this file's snapshot below.
-This file exists only to summarize how we got here and what's left.
+current pass/fail status** — always check it first. `FixadaptP3.md` is
+the detailed technical record for the `adaptP3`/group-delay-equalization
+work specifically. This file is just a summary of how we got here and
+what's left, refreshed at the end of each session.
 
-**Correction, same day (g22 session):** this file's diagnosis below for
-`dig_linPh_1_6_0.m`/`_1_8_0.m` (genuine pole-count/passband-width
-infeasibility, item 2 under "Known issues still open") was wrong - see
-`TestFilters.md`'s current "Known issues" section for the actual root
-cause (an `nrmlzSpecsD.m` range bug plus missing collision/drift
-monitoring in `adaptP3.m`/`place_polesdLP3.m`) and current status
-(`1_6_0` fixed, 6 poles unchanged; `1_8_0` improved but not fully
-resolved). Don't re-trust the "too many poles for too narrow a band"
-framing below without re-reading `TestFilters.md` first.
+This session (g22, 2026-09-24) picked up from an earlier home-machine
+session (see git log before `e1e614b` for that history) and did four
+mostly-independent things, in order:
 
-## What's been fixed this session
+## 1. Fixed a copy-paste bug: `csc_fltr_1_*.m` examples all saved to the same file
 
-1. **`lib/place_polesdLP5.m`** — the Newton step that adapts pole
-   positions could go finite-but-enormous (not `Inf`/`NaN`, so it slipped
-   past the existing safety check) when a pole landed very close to a
-   stop-band probe frequency. RCOND for the underlying solve was within an
-   order of magnitude of machine epsilon, so the exact result was
-   sensitive to floating-point round-off order — meaning *identical
-   inputs could converge to different final designs* across separate
-   calls. Fixed by rejecting any step where `max(abs(X)) > 50` (same
-   treatment as the existing non-finite check). Fixed `dig_equiGd_1_15_0.m`
-   and `dig_equiGd_5_10_0.m`; verified reproducible across repeated calls
-   and no regressions across the full `dig_equiGd_*` family.
+Six examples (`csc_fltr_1_6_0`, `1_6_1`, `1_8_0b`, `1_8_0c`, `1_10_0`,
+`1_12_0`) all hardcoded their `print()` call to `csc_fltr_1_8_0` — none
+of them ever produced their own output file. Fixed all six, verified
+each now runs cleanly and writes its own correctly-named PNG. Commit
+`e1e614b`.
 
-2. **`lib/simLddrMC.m`** — used `normrnd(0, std, 1)`, which needs the
-   Statistics and Machine Learning Toolbox (not installed here). Replaced
-   with `std*randn(1)`, matching `lib/rndmMtrx.m`'s own convention. Fixed
-   all 4 `DLddrFltr_*.m` examples.
+## 2. Removed a duplicate file: `examples/dsgnEquiRplGD.m`
 
-3. **`examples/exmpl_1_5_1.m` / `exmpl_5_1_1.m`** — referenced an
-   undefined `X2o` (copy-paste from an unrelated sibling script family).
-   Removed the whole dead block (the real ladder was already complete one
-   line earlier); confirmed `lddr2`/`X5`/`elem14`/`elem15` were never used
-   again in either script.
+`lib/dsgnEquiRplGD.m` and `examples/dsgnEquiRplGD.m` were byte-identical
+duplicates; `examples/` is added to the MATLAB path after `lib/`, so it
+silently shadowed the `lib/` copy for every call (a debug probe added
+only to `lib/` never ran — how this was noticed). Removed the
+`examples/` copy; `lib/` is now the only one. No behavior change
+(verified). Commits `ae9f966`, `da0a81a`.
 
-4. **`examples/shortDat.m`** — removed outright. Orphaned script from a
-   different project; nothing referenced it and its free variables
-   (`win`/`k`/`G`) were never defined anywhere in this repo.
+## 3. Root-caused and fixed `adaptP3`'s core instability (`FixadaptP3.md` Open Item 1)
 
-5. **`examples/mkFltr_exmpl.m`** + **`lib/rmvl4.m`** — three layered bugs,
-   found by fixing each and re-running until it actually passed:
-   - Stale `rmv2PolesS`/`rmvSCmplx` calling convention (pre-dates a
-     refactor that added a required `lddr` argument and made those
-     functions add elements to it internally).
-   - `w_shift` referenced but never defined (only ever set in a
-     commented-out line in `exmpl.m`, which no longer uses it itself).
-     Defined `w_shift = 0.0j` locally, matching the majority convention.
-   - A genuine sign bug in `lib/rmvl4.m`: it filtered poles by comparing
-     `abs(p2)` (always >= 0) against a raw `wp` that can be negative,
-     so a negative `wp` never matched its intended resonance pole pair.
-     Fixed by normalizing `wp = abs(wp)` at the top of the function
-     (proven sign-invariant everywhere else `wp` is used there). Checked
-     the only other 2 callers of this chain for regressions — none.
+The big one this session. `EqualFltr_1_6_0.m` (and others) failed inside
+`adaptP3`'s group-delay-equalization Newton loop with "only found 1
+group-delay extrema for 7 free pole(s)" — previously misdiagnosed (an
+earlier session) as genuine pole-count infeasibility.
 
-6. **Corrected a miscount**: `dig_linPh_1_6_0.m` had been counted among
-   the examples fixed by item 1 above, based only on it no longer
-   throwing an error. It actually produces a degenerate result (a 6-fold
-   repeated pole, `max|pole|=0.995`, and -66 dB "attenuation" — i.e.
-   massive gain, not suppression). Moved back into known issues.
+**Root cause, precisely traced**: `adaptP3`'s Newton system (`plSens` +
+`setY2`) is *structurally* near-singular whenever it's exactly at the
+minimum-required extrema count (confirmed `rcond ~ 3.7e-15` on
+`EqualFltr_1_6_0.m`'s 13-extrema/7-pole case) — the group-delay rows
+alone are mathematically guaranteed rank-deficient by 1, and `plSens`'s
+single ad hoc "make it square" constraint row only weakly resolves that.
+A tiny (~0.001) Newton step along the resulting near-null "rotate all
+poles together" direction collapsed the extrema count from 13 to 1 in a
+single iteration.
 
-## Known issues still open (see `TestFilters.md` for full detail)
+**Fix, developed and validated interactively with the user** (their
+proposed reformulation, not something I designed alone): reduce to the
+poles' true independent real parameters (conjugate-pair symmetry —
+always holds for `adaptP3`'s actual callers), and instead of the
+original alternating-target system, drive each local group-delay MAXIMUM
+toward `mean(minima) + deltaT`, explicitly accounting for the
+sensitivity of `mean(minima)` to the same pole changes (not a stale
+reference — an unanchored "maxima toward their own floating mean"
+version was tried first and is *exactly* singular, matching a documented
+precedent in `examples/eqlzrD_peakNewtonStep.m`).
 
-- **`dig_linPh_1_6_0.m` / `dig_linPh_1_8_0.m`** — too many finite-loss
-  poles (6 / 8) for a passband that's both very narrow (0.01) and sitting
-  entirely off to one side (not centered near DC), which overconstrains
-  `place_polesdLP3`'s pole placement. Confirmed this is a spec problem,
-  not a code bug: tried `dsgnDigitalFltr2` (produces the *identical*
-  degenerate result/error — shares the same `equiGDLsPls` code path) and
-  `equiGdDigital` (fails differently, its own zero-count assumption
-  doesn't hold for this `p`/`ni`) as drop-in replacements for the exact
-  same specs. Neither helps. A real fix would mean reducing the pole
-  count or widening/recentering the passband in these two scripts -
-  **not yet done, and not attempted without your input since it changes
-  what the examples actually demonstrate.**
-- **`exmpl_r1b.m`** — `Pole Removals Failed`. **Not yet traced this
-  session** — `tstTFops.m` (same error message) was traced to
-  `rmvCmplx`→`rmv_pole2` and confirmed unrelated to the `rmvl4.m` fix, but
-  `exmpl_r1b.m`'s own failure point hasn't been individually confirmed to
-  be the same call chain or a different one. Worth checking whether it's
-  the same root cause before assuming so.
-- **`tstTFops.m`** — `Pole Removals Failed`, confirmed at
-  `rmvCmplx`→`rmv_pole2`, not yet root-caused further.
-- **`ECG1.m` / `ECGrial1.m`** — archived to `examples/archive/`, dropped
-  from the runnable suite. Need real ECG/PhysioBank `.mat` data that was
-  deliberately excluded from this repo; not fixable from any machine
-  without that data.
+**Integrated into production** (`lib/adaptP3.m`, new `adaptP3Reduced`,
+used automatically when preconditions hold — conjugate-paired poles,
+extrema splitting into exactly `Np` maxima — falling back to the
+original system, renamed `adaptP3Standard`, otherwise). Two more real
+bugs found and fixed while getting this to actually work end-to-end:
+- The reduced system's matrix is *exactly* rank-deficient whenever two
+  maxima land at bit-identical mirror frequencies (mathematically
+  guaranteed for any conjugate-paired filter) — fixed via `pinv` instead
+  of a strict solve, matching `eqlzrD_peakNewtonStep.m`'s own existing
+  pattern.
+- `R_MAX=0.995` (a pole-magnitude safety clamp) was too tight for
+  legitimate high-Q narrow-passband designs — `EqualFltr_1_6_0.m`'s
+  starting poles already exceeded it before any Newton step ran. Raised
+  to `0.99999`.
+- The starting-candidate selection (which of several initial pole
+  configurations to refine) picked by raw extrema *count*, which
+  couldn't distinguish a clean, already-good configuration from a
+  badly-warped one that happened to hit the same count. Added the
+  *unwarped original* poles as a third candidate and switched to
+  picking by ripple quality among candidates meeting the threshold.
 
-## Suggested next steps
+**A separate, independent bug found along the way**: `fndZeroCrs3.m`'s
+search-window could overshoot the `+-pi` periodic boundary of
+`z=e^{jw}` and alias, producing spurious "extrema." Fixed by clamping to
+`[-pi,pi]`; this also explained and fixed a previously-unexplained
+120s timeout on `dig_equiGd_1_15_0.m` (now ~33s). Commit `70746d2`.
 
-1. Trace `exmpl_r1b.m`'s actual failure point the same way `tstTFops.m`
-   was traced (wrap in a debug script, catch `ME`, print `ME.stack`) to
-   confirm whether it's the same `rmvCmplx`/`rmv_pole2` issue or something
-   else.
-2. Decide whether `dig_linPh_1_6_0.m`/`dig_linPh_1_8_0.m` are worth
-   actually fixing (reduce pole count and/or widen/recenter the passband)
-   versus leaving as documented known limitations of the design
-   methodology for that kind of spec.
-3. Once `exmpl_r1b.m`/`tstTFops.m` are resolved (fixed or fully
-   root-caused as a documented limitation), run the full suite fresh
-   (`tools/run_all_examples.sh &`) to get a clean end-to-end confirmation
-   — most fixes this session were verified individually via a targeted
-   glob rather than a full run since the two full runs done earlier
-   (2026-09-21, 2026-09-22).
+**Net result** (16-example regression sweep): 2 genuine new successes —
+`EqualFltr_1_6_0.m` (true group-delay ripple `10.31% -> <1%`) and
+`dig_linPh_1_2_0b.m` (a previously silently-degenerate 5-pole cluster
+now resolves cleanly) — and confirmed zero new regressions. Commits
+`b4b2393`, `9d2997e`. Full technical detail, including the numerical
+traces behind each finding, is in `FixadaptP3.md`.
+
+**Important side effect discovered while regression-testing**: the
+`+-pi` fix (independently correct and verified) revealed a genuinely
+harder true extrema landscape for `dig_linPh_0_2_0.m`/`1_2_0.m`/
+`1_4_0.m`/`1_6_0.m` than the old, partially-aliased search saw —
+including `dig_linPh_1_6_0.m`, a celebrated fix from an earlier session
+that no longer holds. All four now get safely reverted to their
+pre-`adaptP3` poles by `dsgnEquiRplGD.m`'s existing safety net (no
+crash, no corrupted output — just no group-delay correction applied).
+Confirmed via a controlled test (swapping in the pre-integration
+`adaptP3.m` against the current `fndZeroCrs3.m`) that this is *not*
+caused by this session's Phase 3 integration. See `FixadaptP3.md` Open
+Item 6.
+
+## 4. `TestFilters.md` corrections
+
+Several claims there (`dig_linPh_1_6_0.m` "now passes reliably",
+`dig_linPh_1_8_0.m`'s "group-delay stage now passes cleanly") were
+stale/now-wrong per items 3 above; corrected with dated notes rather
+than rewritten, matching this file's own established convention.
+
+## Open items (see `FixadaptP3.md` for full detail on 1-2 and 6)
+
+1. **`dig_linPh_1_8_0.m`** — heterogeneous two-cluster pole structure
+   (5-pole near-DC group + 4-pole near-Nyquist group with much lower Q)
+   means the reduced system's "maxima count == Np" precondition never
+   holds; falls back to the standard system, which also can't resolve
+   it (169.52% -> 313.31% ripple, reverted safely). Set aside per
+   direct instruction this session — not investigated further.
+2. **`dig_linPh_0_2_0.m`/`1_2_0.m`/`1_4_0.m`/`1_6_0.m`** — new item this
+   session (`FixadaptP3.md` Open Item 6). All four now silently reverted
+   post-`+-pi`-fix; not yet understood whether genuinely infeasible at
+   current specs or fixable with more work (possibly the same kind of
+   reformulation that fixed `EqualFltr_1_6_0.m`, once their now-more-
+   complex extrema structure — similar to `dig_linPh_1_8_0.m`'s — is
+   diagnosed).
+3. **Stop-band attenuation shortfall** on `EqualFltr_1_6_0.m` (11.76dB
+   vs 50dB target) — lives in `place_polesdLP3`'s territory, not
+   `adaptP3`'s. Not investigated.
+4. **`exmpl_r1b.m`** — `Pole Removals Failed`. Not traced this session;
+   `tstTFops.m` (same error message) was traced to `rmvCmplx`→
+   `rmv_pole2` in an earlier session, but `exmpl_r1b.m`'s own failure
+   point hasn't been individually confirmed to be the same call chain.
+5. **`tstTFops.m`** — `Pole Removals Failed`, confirmed at
+   `rmvCmplx`→`rmv_pole2` (earlier session), not yet root-caused further.
+6. Once the above are settled, run the full suite fresh
+   (`tools/run_all_examples.sh &`) for a clean end-to-end picture —
+   this session's fixes were verified via targeted globs/individual
+   `matlab -batch` runs, not a full sweep.
 
 ## Tools / workflow reminders
 
-- `tools/run_all_examples.sh [timeout_seconds] [glob]` — the test harness.
-  Runs each `examples/*.m` in a fresh MATLAB `-batch` process; results to
-  `tools/reports/<timestamp>/summary.txt` (gitignored).
+- `tools/run_all_examples.sh [timeout_seconds] [glob]` — the test
+  harness. Runs each `examples/*.m` in a fresh MATLAB `-batch` process;
+  results to `tools/reports/<timestamp>/summary.txt` (gitignored).
 - `tools/monitor_progress.sh` — polls a report dir once a minute if
   watching a long run.
-- For a single-file stack trace (the harness only captures `ME.message`,
-  not the stack), use a small wrapper: `run('examples/foo.m')` inside a
-  `try`/`catch`, print `ME.stack(k).name`/`.line` in a loop.
-- Git: this machine (home) has its own local commit history, never pushed
-  directly (global rule: never `git push` from home). g22 holds the
-  shared history and does the actual push to origin. Workflow for each
-  fix: commit on home → `git show --name-only --pretty=format: HEAD` to
-  get the exact changed-file list → `rsync -avR --files-from=<that list>`
-  to g22 → commit the same message on g22 → `git push origin master` on
-  g22.
+- For a single-file stack trace (the harness only captures
+  `ME.message`, not the stack), use a small wrapper: `run('examples/foo.m')`
+  inside a `try`/`catch`, print `ME.stack(k).name`/`.line` in a loop.
+- This session ran directly on g22 (no home-machine rsync/sync step
+  needed) — commits here are pushed straight to `origin master`.

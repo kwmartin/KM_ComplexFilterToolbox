@@ -196,6 +196,25 @@ this list. `dig_linPh_1_8_0.m` is improved (its own group-delay stage
 now passes cleanly) but still fails, 1 stop-band minimum short - see
 below.
 
+**Update, 2026-09-24 (g22 session) - the above "now passes reliably"
+claim no longer holds.** A separate fix that session
+(`lib/fndZeroCrs3.m`'s search window could overshoot the +-pi periodic
+boundary of `z=e^{jw}` and alias, fixed in commit `70746d2`) changed
+`dig_linPh_1_6_0.m`'s true extrema landscape - it now finds 15 extrema
+(not the 7-13 range the fixes above were tuned against), with a much
+harder ~176-421% starting ripple depending on which starting candidate
+is used, that neither `adaptP3`'s original nor its new reduced Newton
+system (see below) can resolve. `lib/dsgnEquiRplGD.m`'s own pre/post
+sanity check now correctly reverts it to its pre-`adaptP3` poles rather
+than delivering a worse result - safe, but back to receiving no
+group-delay correction. Confirmed this is a consequence of the `+-pi`
+fix, not a new regression: the pre-fix `adaptP3.m` code, run against
+the post-fix `fndZeroCrs3.m`, reverts identically. Same story for
+`dig_linPh_0_2_0.m`/`1_2_0.m`/`1_4_0.m` (all in the "already fixed
+in between" list two paragraphs up - that's also now stale for these
+three). See `FixadaptP3.md` Open Item 6 for full detail; not yet
+re-investigated post-`+-pi`-fix.
+
 `DLddrFltr_1_2_0.m`/`_1_4_0`/`_1_6_0`/`_1_8_0` (previously listed here as
 an environmental Statistics-Toolbox dependency, `Undefined function
 'normrnd'`) are now fixed: `lib/simLddrMC.m` used `normrnd(0, std, 1)` for
@@ -227,15 +246,28 @@ guess-fix):**
   getting disproportionately difficult relative to the value of
   continuing, `1_6_0` already fixed without any pole-count compromise.
 `EqualFltr_1_6_0.m` (previously listed here as `adaptP3: only found 1
-group-delay extrema for 7 free pole(s)`) now runs OK, but the story is
-involved enough that it has its own file: see `FixadaptP3.md` for the
-full account (a real `fndZeroCrs3.m` search-window bug found and fixed
-along the way, a `dsgnEquiRplGD.m` pre/post-`adaptP3` sanity check now in
-place, and a genuine open issue - `adaptP3`'s main Newton loop still
-loses extrema during iteration even after starting fully resolved,
-currently caught and reverted rather than fixed - plus a separate,
-apparently pre-existing stop-band attenuation shortfall (11.76dB vs the
-50dB target) only now visible because the script never completed before.
+group-delay extrema for 7 free pole(s)`) is now **genuinely fixed**
+(2026-09-24, g22 session) - the story is involved enough that it has its
+own file: see `FixadaptP3.md` for the full account. Summary: the
+original Newton system was structurally near-singular whenever exactly
+at the extrema-count threshold; root-caused and fixed via a reformulated
+system that reduces to the poles' true independent real parameters
+(conjugate-pair symmetry) and solves for the local maxima to move toward
+`mean(minima)+deltaT`, accounting for the minima's own sensitivity to
+the same pole changes - integrated into `lib/adaptP3.m` as
+`adaptP3Reduced`, used automatically when its preconditions hold, with
+the original system (`adaptP3Standard`) kept as an automatic fallback.
+True overall group-delay ripple: `10.31% -> well under 1%`. The
+`fndZeroCrs3.m` search-window (`+-pi` aliasing) and `R_MAX` (too tight
+for high-Q designs) bugs found along the way are also fixed. The
+stop-band attenuation shortfall (11.76dB vs the 50dB target,
+`place_polesdLP3`'s territory) remains open - not yet investigated.
+
+Same session/fix: `dig_linPh_1_2_0b.m` was never in this failure list
+(it didn't crash), but was silently degenerate - `adaptP3`'s own code
+comments document its "working" result had 5 of its poles clustered
+within ~0.04 of each other. The `adaptP3Reduced` fix above resolves this
+one cleanly too, confirmed via a fresh run (no `dsgnEquiRplGD` revert).
 
 **Numerical/algorithmic limitation (needs real investigation, not a
 guess-fix):**

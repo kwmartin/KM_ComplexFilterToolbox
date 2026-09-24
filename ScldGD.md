@@ -320,3 +320,102 @@ x grid does not.
   it is precision lost in storing z-poles close to 1, a design that keeps the
   poles in x and runs its Newton steps in x is the remaining case where the
   transformed variable could be justified.
+
+## 8. All-pass group-delay equalizers (`dsgnEqlzrD` family): narrow-band test
+
+**Question.** Does the transformed variable help the `dsgnEqlzrD_*` all-pass
+equalizer designs, e.g. `examples/dsgnEqlzrD_peakNewton_manual.m`?
+
+**What the transformed variable could not improve there.**
+- These designs already use band-relative grids: `estAllPassOrder`, and
+  `eqlzrD_peakNewtonStep`'s `linspace` over wp ± 10%. The section 7 grid
+  problem therefore does not occur.
+- The existing examples use wide bands (0.05 and 0.45 cycles).
+
+**What it could improve.** Each section is parametrized as (r, θ) with fixed
+absolute limits:
+- `dsgnEqlzrD` has r ≤ 0.995;
+- `eqlzrD_peakNewtonStep` has R_MIN/R_MAX = [0.3, 0.995].
+
+A section's group-delay peak is about 2(1-r) wide, so narrow bands need r
+closer to 1 than those limits allow.
+
+**Five designs** (new files only apart from A; test `examples/shrink_eqlzr_scld.m`,
+about 4 minutes):
+
+| | File | Section parameters |
+|---|---|---|
+| A | `lib/dsgnEqlzrD.m` (unchanged) | (r, θ) in z, r in [0, 0.995], r0 in {0.5, 0.75, 0.85, 0.95} |
+| B | `lib/dsgnEqlzrDX_scld.m` | x-domain pole -σ + jΩp |
+| C | `lib/dsgnEqlzrDZrel_scld.m` | (r, θ) in z, with B's limits and starts mapped to r |
+| D | `lib/dsgnEqlzrDZlin_scld.m` | linear band scaling in z: r = 1 - 2tρ, θ = w0 + 2tφ |
+| E | `lib/dsgnEqlzrDZlinB_scld.m` | D, with the group delay evaluated without cancellation |
+
+**Design B in detail.**
+- An x-domain pole -σ + jΩp with zero σ + jΩp contributes a z-domain group
+  delay of J(Ω)·2σ/(σ² + (Ω - Ωp)²). This equals `dsgnEqlzrD`'s Poisson kernel
+  for the corresponding z pole.
+- Stability is σ > 0.
+- Poles are converted with a = e^{jw0}(1 + t x)/(1 - t x).
+
+**Settings shared by B, C, D and E.**
+- The limits and starting values come from `lib/eqlzrSigmaSpecs_scld.m`: A's
+  r limits [0, 0.995] and starting radii converted to σ at the reference
+  0.05-cycle band, so all the designs start alike at that width.
+- The group delay is scaled by the unequalized peak, so fminimax's level
+  variable is of order 1.
+  - Without this scaling, B slipped at 5e-5 (76% ripple, and D = 1.219e5
+    instead of 1.296e5), because D grew to about 1e5 next to σ and Ωp values
+    of about 1.
+- Everything else is as in `dsgnEqlzrD`: the grid, the fminimax multi-start
+  plus the staged start, and the limits on D.
+
+**Results** for the `dsgnEqlzrD_manual` filter (elliptic cascade, shifted by
+0.05), with wp = ±0.025·s, ws edges ±0.049·s and 5 sections. The table gives
+peak-to-peak group delay over the nominal passband, relative to its mean; the
+unequalized value is 176% at every width.
+
+| band width | A | B (x) | C (z, relative limits) | D (z, linear) | E (D, no cancellation) |
+|---|---|---|---|---|---|
+| 5e-2 | 51.2% | 51.1% | 91.7% | 50.9% | 50.9% |
+| 5e-3 | 70.6% | **51.1%** | 51.1% | 51.1% | 51.1% |
+| 5e-4 | 118.6% | **51.1%** | 83.0% | 51.1% | 51.1% |
+| 5e-5 | 167.3% | **51.1%** | 67.6% | 102.0% | **51.1%** |
+
+- **B is exactly the same at every width.** D scales 10x per step
+  (129.7 → 1.296e5), and 1 - max|pole| scales 10x per step (0.0255 → 2.59e-5).
+  Each design takes 4–6 s, against 7–21 s for A.
+- **A is limited by r ≤ 0.995:** 1 - max|pole| stays at 0.005 from 5e-3
+  downward.
+- **C has the same limits and starts as B** but keeps (r, θ). It reaches the
+  good optimum only once in four widths. In z, θ varies over about 2π·bw and
+  1 - r over a similar range, while r stays near 1. That is a badly scaled
+  problem for fminimax.
+- **D (linear scaling) matches B down to 5e-4 but fails at 5e-5.**
+  - The cause is cancellation in the z-domain kernel
+    (1 - r²)/(1 - 2r cos Δ + r²). Its denominator subtracts numbers near 1 to
+    get about (1-r)² ≈ 1e-9, so only about 7 digits are left.
+  - fminimax's finite-difference steps (about 1e-8 in ρ) then change the
+    delay by less than the rounding noise, so its gradients are noise.
+  - E evaluates (1-r)(1+r)/((1-r)² + 4r sin²(Δ/2)) with 1 - r = 2tρ kept
+    exact. It matches B at every width, which confirms the cause.
+
+**Conclusion.**
+- The transformed variable is useful for all-pass equalizer design on narrow
+  bands. It gives, automatically and exactly:
+  1. parameters of order 1 at any band width, with limits and starting values
+     in band units;
+  2. a group-delay expression, 2σ/(σ² + (Ω - Ωp)²), that has no
+     cancellation.
+- A z-domain design can match it only by doing both by hand: the linear band
+  scaling (D), plus a rewritten kernel with 1 - r kept exact (E). Either one
+  alone fails (C, D).
+- **Existing code, found but not changed:**
+  - `dsgnEqlzrD`'s kernel has this cancellation. It is currently masked by the
+    r ≤ 0.995 limit, which fails first.
+  - `eqlzrD_peakNewtonStep` uses the same (r, θ) parameters with the fixed
+    [0.3, 0.995] clamp.
+- At the existing examples' 0.05-cycle width, B matches A (51%), so the gain
+  is for narrower bands.
+- `AnlzDH` is much less affected, because e^{jw} - p is not squared. Its
+  relative error is about eps/(1-r) ≈ 1e-11 at 1 - r = 2.6e-5.

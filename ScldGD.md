@@ -415,7 +415,80 @@ unequalized value is 176% at every width.
     r ≤ 0.995 limit, which fails first.
   - `eqlzrD_peakNewtonStep` uses the same (r, θ) parameters with the fixed
     [0.3, 0.995] clamp.
+  - Both are addressed with new files in section 9; the originals are
+    unchanged.
 - At the existing examples' 0.05-cycle width, B matches A (51%), so the gain
   is for narrower bands.
 - `AnlzDH` is much less affected, because e^{jw} - p is not squared. Its
   relative error is about eps/(1-r) ≈ 1e-11 at 1 - r = 2.6e-5.
+
+## 9. Fixes for the two existing-code problems in section 8
+
+Both fixes use new files only; `dsgnEqlzrD.m` and `eqlzrD_peakNewtonStep.m`
+are unchanged.
+
+**1. `dsgnEqlzrD` (cancellation in the kernel, r ≤ 0.995 limit).** Use
+`lib/dsgnEqlzrDX_scld.m` from section 8. It takes the same inputs and returns
+the same outputs as `dsgnEqlzrD`. Its section group delay
+J·2σ/(σ² + (Ω - Ωp)²) has no cancellation, and its limits are in band units.
+It matches `dsgnEqlzrD` at 0.05 cycles and stays at 51.1% down to 5e-5, where
+`dsgnEqlzrD` reaches 167%.
+
+If a z-domain version is wanted instead, `lib/dsgnEqlzrDZlinB_scld.m` gives
+the same results. It needs both parts of the fix:
+- the linear band scaling r = 1 - 2tρ, θ = w0 + 2tφ;
+- the kernel written as (1-r)(1+r)/((1-r)² + 4r sin²(Δ/2)), with 1 - r kept
+  exact.
+
+**2. `eqlzrD_peakNewtonStep` (fixed [0.3, 0.995] radius clamp; its Jacobian
+uses D = 1 - 2r cos Δ + r²).** The fix is
+`examples/eqlzrD_peakNewtonStepX_scld.m`, the same Newton step with each
+cluster parametrized as an x-domain pole -σ + jΩp.
+- **Jacobian** (count = number of stacked stages, J = (1 + t²Ω²)/(2t)):
+
+      d gd/d Ωp = count·J·4σ(Ω - Ωp)/(σ² + (Ω - Ωp)²)²
+      d gd/d σ  = count·J·2((Ω - Ωp)² - σ²)/(σ² + (Ω - Ωp)²)²
+
+  It agrees with a central finite difference of `AnlzDH` group delay to
+  4.6e-10.
+- **Clamp:** σ is limited to [0.0318, 6.84] in band units. These are the
+  original [0.995, 0.3] radius limits converted at the reference 0.05-cycle
+  band, so at that width the two clamps coincide.
+- **Unchanged:** the extremum detection (a d2TdW bracket scan on wp ± 10%). It
+  already scales with the band, and `AnlzDH` is not affected by the
+  cancellation.
+- **Interface:** the same as the original, with clusterTheta → clusterWp,
+  clusterR → clusterSigma and freeR → freeSigma. `info.dtheta` and `info.dr`
+  hold the raw steps on Ωp and σ, and `info.rClamped` flags σ clamping.
+
+**Test** (`examples/shrink_peakNewton_scld.m`, non-interactive, a few minutes).
+- It runs `dsgnEqlzrD_peakNewton_manual`'s two phases:
+  - angle-only: step 0.2, up to 100 steps, stopping when the spread changes
+    by less than 1e-4 of the anchor;
+  - joint: step 0.1, up to 50 steps, keeping the best result, patience 5.
+- It starts from 5 clusters of 5 stages at 10/30/50/70/90% of the band, with
+  r = 0.925.
+- The x version starts from those poles mapped exactly at 0.05 cycles, then
+  from the same (Ωp, σ) in band units at every width.
+- The filter is the manual's, with its band scaled by s.
+
+| band width | version | p2p nominal | p2p expanded | 1 - max\|pole\| | clamped |
+|---|---|---|---|---|---|
+| 5e-2 | z (θ, r) | 4.39% | 44.22% | 0.0682 | no |
+| 5e-2 | x (Ωp, σ) | 4.38% | 44.25% | 0.0681 | no |
+| 5e-3 | z (θ, r) | 80.79% | 101.68% | 0.0205 | yes |
+| 5e-3 | x (Ωp, σ) | **4.39%** | 44.22% | 0.00705 | no |
+| 5e-4 | z (θ, r) | 175.59% | 203.40% | 0.005 | yes |
+| 5e-4 | x (Ωp, σ) | **4.39%** | 44.22% | 0.000707 | no |
+| 5e-5 | z (θ, r) | 175.81% | 203.62% | 0.005 | yes |
+| 5e-5 | x (Ωp, σ) | **4.39%** | 44.22% | 7.07e-05 | no |
+
+- **The x version gives the same equalizer at every width.** The poles'
+  distance from the unit circle scales exactly 10x per step, and no clamp is
+  hit.
+- **The z version equals it at 0.05 cycles** but hits its r clamp from 5e-3
+  down. At 5e-4 and narrower it ends no better than the unequalized filter
+  (176%).
+- **A test-script detail:** the design path turns warnings back on, so the
+  script silences the two clamp warning IDs after designing each filter;
+  clamping is reported in the table instead.

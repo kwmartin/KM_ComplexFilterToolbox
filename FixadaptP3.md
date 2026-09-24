@@ -160,13 +160,44 @@ for the full results once available.
      iterations (`EqualFltr_1_6_0.m`: overall p2p `5745 -> 0.35`,
      `meanMax-meanMin` gap `4981 -> 0.16` vs `deltT=0.1` target), with
      zero extrema-count collapse throughout.
-   - **Not yet integrated into `lib/adaptP3.m`** - still needs: wiring
-     into production with a runtime conjugate-pairing check/fallback,
-     and resolving `dig_linPh_1_8_0.m`'s more complex extrema structure
-     (7 maxima / 13 minima for `Np=9` poles, not the clean
-     "maxima count == Np" pattern `EqualFltr_1_6_0.m` has), which needs
-     further investigation before the same reformulation can be applied
-     there directly.
+   - **DONE (g22 session, 2026-09-24), Phase 3 integrated**: wired into
+     `lib/adaptP3.m` as `adaptP3Reduced`, used automatically whenever
+     poles are conjugate-paired (`checkConjugatePairing`) and the found
+     extrema split into exactly `Np` maxima (`classifyExtrema`), with a
+     runtime fallback to the original system (renamed `adaptP3Standard`)
+     otherwise - both at the top level and mid-run if the maxima/minima
+     structure changes and doesn't recover (commit `b4b2393`).
+   - Along the way, found and fixed two more issues surfaced by getting
+     this working end-to-end: (a) the reduced system's `A` matrix is
+     EXACTLY (not just numerically) rank-deficient whenever two maxima
+     land at bit-identical mirror frequencies +w/-w - true for any
+     conjugate-paired filter, since `T(w)=T(-w)` identically, so their
+     reduced sensitivity rows are mathematically guaranteed equal, not
+     just numerically close (confirmed on `dig_linPh_1_6_0.m`'s
+     even-spacing candidate: `rcond(A)=4e-18`). Fixed by solving via
+     `pinv` instead of a strict backslash, matching
+     `examples/eqlzrD_peakNewtonStep.m`'s own established pattern for
+     rank-deficient systems. (b) The starting-candidate selection (now 3
+     candidates: original/tan-warp/even-spacing, picked by lowest ripple
+     among those meeting the extrema-count threshold, not highest raw
+     count) had a bug where the shared magnitude boost `m=abs(p).^0.1`
+     was silently applied to the new "original" candidate too, inflating
+     its group delay ~6-7x before it was ever compared - fixed by giving
+     the "original" candidate the true, unmodified magnitude.
+   - **Result** (16-example regression sweep): 2 genuine new successes -
+     `EqualFltr_1_6_0.m` (true overall p2p ripple `10.31%` -> well under
+     `1%`) and `dig_linPh_1_2_0b.m` (previously silently-degenerate
+     5-pole cluster now resolves cleanly) - and zero new regressions.
+     The 6 examples still reverted by `dsgnEquiRplGD.m`'s existing safety
+     net (`dig_linPh_0_2_0/1_2_0/1_4_0/1_6_0/1_8_0`) were confirmed, by
+     temporarily swapping in the pre-Phase-3 `adaptP3.m` against the
+     current (already-fixed) `fndZeroCrs3.m`, to already exhibit the
+     identical revert behavior before any of this integration's changes
+     - a pre-existing consequence of item 3's `+-pi` fix revealing a
+     harder true extrema landscape for those filters, not something
+     Phase 3 introduced. `dig_linPh_1_8_0.m`'s heterogeneous two-cluster
+     pole structure (5-pole near-DC + 4-pole near-Nyquist, set aside
+     earlier this session) remains a separate open item - see new item 6.
 2. **Stop-band attenuation shortfall** (11.76dB vs 50dB target,
    `EqualFltr_1_6_0.m`) - likely pre-existing (the script never completed
    before, so there's no earlier baseline to compare against) and
@@ -196,3 +227,20 @@ for the full results once available.
 5. Once (1)-(3) are settled, re-run the full suite
    (`tools/run_all_examples.sh &`) for a clean end-to-end picture, per
    `Progress.md`'s standing suggestion.
+6. **NEW (g22 session, 2026-09-24)**: `dig_linPh_0_2_0.m`, `1_2_0.m`,
+   `1_4_0.m`, `1_6_0.m` all get their group-delay stage silently reverted
+   by `dsgnEquiRplGD.m`'s safety net (adaptP3 - either system - makes
+   ripple worse, not better). Not a regression from anything this session
+   changed (see item 1's last bullet) - it's the true extrema landscape
+   `fndZeroCrs3.m`'s `+-pi` fix (item 3) revealed for these filters,
+   previously masked by the aliasing bug. `dig_linPh_1_6_0.m` specifically
+   was a celebrated earlier-session success (dual-heuristic/proactive-
+   collision fixes, all 6 poles stable) that no longer holds post-fix -
+   worth understanding whether these filters are genuinely infeasible at
+   their current `wp`/`deltT`/pole-count, or whether the same kind of
+   reformulation that fixed `EqualFltr_1_6_0.m` (or something else) could
+   help once their now-more-complex extrema structure is understood, the
+   way `dig_linPh_1_8_0.m`'s two-cluster structure was diagnosed. Not
+   investigated - functionally safe for now (clean revert, no crash or
+   corrupted output), just missing group-delay correction these filters
+   used to get.

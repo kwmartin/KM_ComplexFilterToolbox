@@ -514,3 +514,70 @@ cluster parametrized as an x-domain pole -σ + jΩp.
 - **A test-script detail:** the design path turns warnings back on, so the
   script silences the two clamp warning IDs after designing each filter;
   clamping is reported in the table instead.
+
+## 10. What failed at a 1e-6-cycle band, and fixes down to 1e-12
+
+Section 7 found both filter-design chains failing at a passband width of
+1e-6 cycles. **The cause was three hard-coded absolute tolerances in the
+z-domain code**, each suited to ordinary band widths. It was not the
+transformed variable or the Newton method.
+
+1. **`adaptP3`'s pole clamp `R_MAX = 0.99999`**, which forces 1 - |p| >= 1e-5.
+   This fails first, at 1e-6 cycles.
+   - The prototype's poles already start at 1 - |p| ≈ 2.2e-6.
+   - The first clamp pushes them all out to 1e-5, about 5x too far from the
+     circle.
+   - The group-delay shape collapses ("1 maxima, need 3"), `adaptP3` gives up,
+     and the design is reverted.
+2. **`simpl` in `cont2Digital`**, whose default tolerance is an absolute 1e-6.
+   It makes roots with a smaller imaginary part real, so it fails at 1e-7
+   cycles. The complex pole pair's imaginary parts are about 4e-7 there
+   (angle ±0.69 band widths), so the filter becomes wrong right after the
+   bilinear transform, before any design step. The x-domain and z-domain
+   group delays still agreed, so the extrema finder was not at fault.
+3. **`simpl` in `y2zSbTrnsf1`**, which `place_polesdLP3` uses to convert back to
+   z. It uses the same absolute 1e-6 and also fails at 1e-7 cycles.
+   - The group-delay stage alone still gave 2.805% at 1e-7.
+   - After `place_polesdLP3`, the pole pair had moved by 1.17 × (1 - |p|), and
+     the ripple was 67% with 10 dB of passband loss.
+
+**Fixes** (new files, or `_scld` files from this work):
+
+| File | Change |
+|---|---|
+| `lib/adaptP3X_scld.m` | R_MAX = 1 - min(1e-5, 0.01·2π·width) |
+| `lib/cont2Digital_scld.m` (copy of `cont2Digital.m`) | `simpl` tolerance min(1e-6, 1e-3·2π·width) |
+| `lib/y2zSbTrnsf1_scld.m` (copy of `y2zSbTrnsf1.m`) | the same, for the conversion back to z |
+| `lib/place_polesdLP3_scld.m` (copy of `place_polesdLP3.m`) | calls `y2zSbTrnsf1_scld` |
+| `lib/dsgnEquiRplGDX_scld.m` | calls `cont2Digital_scld` and `place_polesdLP3_scld` |
+
+Both limits equal the old values for bands wider than about 1.6e-4 cycles.
+Designs at those widths are unchanged; every section 7 result was reproduced
+exactly.
+
+**Results** (`examples/shrink_band_scld.m`, now run down to a width of 1e-12
+cycles; the `0_2_0` specs as in section 7):
+
+| width (cycles) | n = 3 GD ripple | n = 5 GD ripple | n = 7 |
+|---|---|---|---|
+| 1e-4 to 1e-11 | 2.80–2.81% | 0.449–0.451% | 9.837%, `adaptP3` skipped |
+| 1e-12 | 2.807% | 0.449% | 9.835% |
+
+- Passband and stopband loss are also unchanged down to 1e-12.
+- The fixed-grid chain (`dsgnDigitalFltr_scld`) still fails below 1e-4,
+  because its extrema grid is not scaled to the band (section 7).
+
+**The floor.** A separate run (scratchpad copies with the same three changes)
+at a width of 1e-13 gave 2.793% and 0.499%. The poles are then about 2e-13
+from the unit circle, roughly 1000·eps, so z-domain pole positions keep only
+about 3 digits. That is the limit for any design that ends with z-domain poles.
+
+**For the scaled-variable question.** These failures came from absolute
+tolerances written for ordinary band widths, not from where group delay is
+evaluated. Scaling the tolerances to the band fixes them in z; no transformed
+variable was needed. The transformed-variable chain was used here only because
+its extrema grid already scales with the band (section 7).
+
+**Still present in the originals** (`adaptP3`, `cont2Digital`, `y2zSbTrnsf1`,
+and `simpl`'s default): the same absolute limits. Other callers of `simpl` with
+its default tolerance could hit the same problem on very narrow bands.

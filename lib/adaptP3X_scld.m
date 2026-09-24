@@ -161,7 +161,12 @@ function H = adaptP3X_scld(H, deltT, wp)
     % catches genuine instability (any step that pushes a pole to/past
     % the unit circle) without corrupting legitimate near-unit-circle
     % designs.
-    R_MAX = 0.99999;
+    % _scld: the absolute 0.99999 (1 - |p| >= 1e-5) is too far from the
+    % unit circle for passbands narrower than about 1e-5 cycles, where the
+    % prototype's poles already start at 1 - |p| ~ 2e-6 and the first
+    % clamp destroyed the group-delay structure. Scale it with the band;
+    % it equals 0.99999 for bands wider than about 1.6e-4 cycles.
+    R_MAX = 1 - min(1e-5, 1e-2*2*pi*(wp(2) - wp(1)));
 
     % Decide which Newton system to use. The standard system below
     % (plSens + setY2, alternating extrema toward two target levels,

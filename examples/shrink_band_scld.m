@@ -1,17 +1,17 @@
-% Shrinks the dig_linPh_0_2_0-style passband by factors of 10 (width 0.1
-% down to 1e-6 cycles) and compares two design chains (see ScldGD.md
-% section 7):
+% Shrinks the dig_linPh_0_2_0-style passband (width 0.1 cycles down to
+% 1e-12 cycles) and compares two design chains (see ScldGD.md
+% sections 7 and 10):
 %   dsgnDigitalFltr_scld  - group-delay extrema found on a fixed w grid
 %                           (fndZeroCrs3_scld, step 2*pi*1e-5)
 %   dsgnDigitalFltrX_scld - extrema found on a grid uniform in the
 %                           band-centred transformed variable (fndZeroCrsX_scld)
 % Prints the passband group-delay ripple and loss of each final design.
-% Takes about 2 minutes.
+% Takes about 4 minutes.
 
 figVis = get(0, 'DefaultFigureVisible'); warnState = warning;
 set(0,'DefaultFigureVisible','off'); warning('off','all');
 for Ordr = [3 5 7]
-for s = [1 1e-2 1e-3 1e-4 1e-5]
+for s = [1 1e-2 1e-3 1e-4 1e-5 1e-6 1e-7 1e-9 1e-11]
   wp = [-0.05 0.05]*s; ws = [-0.499 -0.1*s 0.1*s 0.499]; p = [-0.3 0.3];
   as = [20 20 20 20]; px = []; ni = 0; Ap = 3.0103;
   for fn = {'dsgnDigitalFltr_scld', 'dsgnDigitalFltrX_scld'}

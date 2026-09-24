@@ -1,5 +1,5 @@
 function [H, p, px, wp, ws, as] = dsgnEquiRplGDX_scld(p,px,wp,ws,as,Ap,Ordr,sclFctr,shftFctr,deltGD)
-%   [_scld copy of dsgnEquiRplGD.m - calls LinPh_LssPls_scld, fndZeroCrsX_scld and adaptP3X_scld]
+%   [_scld copy of dsgnEquiRplGD.m - calls LinPh_LssPls_scld, cont2Digital_scld, fndZeroCrsX_scld, adaptP3X_scld and place_polesdLP3_scld]
 % H = dsgnEquiRplGDX_scld(p,px,wp,ws,as,Ap,Ordr,deltGD) designs a complex digital filter
 % havine equi-ripple group delay and finite loss-poles with equi-loss
 % attenuation in the stop band. The final filter uses sclFctr and shftFctr
@@ -27,7 +27,7 @@ function [H, p, px, wp, ws, as] = dsgnEquiRplGDX_scld(p,px,wp,ws,as,Ap,Ordr,sclF
     H1 = LinPh_LssPls_scld(Ordr, deltGD, Ap, 3); % design continous prototype
     % next we transform to a digital filter using the bilinear transform,
     % this distorts the equi-ripple group delay
-    [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
+    [p, px, wp, ws, as, H2] = cont2Digital_scld(H1, p, px, wp, ws, as, sclFctr, shftFctr);
     % shift back to 0 temporarilly
     H3 = freq_shiftd(H2, shftFctr);
     % now correct the distorted equi-ripple group delay; this distorts the
@@ -107,5 +107,5 @@ function [H, p, px, wp, ws, as] = dsgnEquiRplGDX_scld(p,px,wp,ws,as,Ap,Ordr,sclF
     % now adapt the loss poles so we again have an equi-ripple stop band;
     % this is done using a conformal transform that places the stop-band
     % between 0 and j*Inf.
-    H = place_polesdLP3(H2,wp); % H is returned
+    H = place_polesdLP3_scld(H2,wp); % H is returned
     a = 1;

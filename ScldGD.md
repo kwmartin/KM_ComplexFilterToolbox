@@ -227,3 +227,96 @@ How each example got there:
 6. **The other callers of the unchanged originals are not covered by `_scld`
    copies:** `adaptP2`, which is used by the `equiGD` type and `equiGdDigital`,
    and `dsgnCascadeFltr`, which calls `LinPh_LssPls` directly.
+
+## 7. Does the transformed variable help? Narrow-band test
+
+**Question.** Is there a design where using the transformed variable works
+and the unscaled z-domain code fails, or where it at least improves the result?
+
+**Chain.** New files only:
+
+| New file | Copied from | Change |
+|---|---|---|
+| `lib/fndZeroCrsX_scld.m` | new | finds group-delay extrema in x (see below) |
+| `lib/adaptP3X_scld.m` | `adaptP3_scld.m` | calls `fndZeroCrsX_scld` |
+| `lib/dsgnEquiRplGDX_scld.m` | `dsgnEquiRplGD_scld.m` | calls `fndZeroCrsX_scld` and `adaptP3X_scld` |
+| `lib/dsgnDigitalFltrX_scld.m` | `dsgnDigitalFltr_scld.m` | calls `dsgnEquiRplGDX_scld` |
+| `examples/shrink_band_scld.m` | new | the test below |
+
+**How `fndZeroCrsX_scld` works.**
+- It maps H to x with `z2xc` over wp. The z-domain group delay is J·gd_x, and
+  W increases with w, so the extrema in w are the zeros of
+  d(J·gd_x)/dW = t·W·gd_x + J·dgd_x/dW. Both gd_x and dgd_x/dW come from
+  `AnlzH`.
+- It finds sign changes on a grid of 40001 points uniform in W, refines them by
+  linear interpolation, and maps back with w = w0 + 2·atan(t·W).
+- The search window is the same as `fndZeroCrs3`'s: the passband widened by
+  marginMult passband widths on each side, doubled while an extremum lies near
+  the edge. It stops 1e-3 rad short of Nyquist.
+- **It snaps transmission zeros onto the axis.** Zeros with
+  |Re(x)| < 1e-8·max(1, |x|) are set to Re = 0. Rounding in z leaves the
+  stopband transmission zeros off the unit circle, by about eps/t in x
+  (1e-14 to 1e-11 for bands 1e-3 to 1e-5 cycles wide). That puts spikes in the
+  group delay and gives spurious extrema; the ±3.78 and ±5.82 half-width
+  entries appeared at widths of 1e-5 and below before this was added.
+
+**Two bugs found while writing it:**
+- `W(indc)` is a row and `dT(indc)` a column, so implicit expansion made the
+  interpolation an n×n matrix (49 "extrema" instead of 7).
+- A first window rule ("widen until the outermost extremum is inside the inner
+  half") found extra outer extrema that `fndZeroCrs3` does not include.
+  `adaptP3` needs exactly 2Np-1 extrema, so the window rule was changed to
+  match `fndZeroCrs3`'s.
+
+**Finder check.** On H3 (order 5, the `0_2_0` specs, passband width scaled by
+s):
+- For s = 1 and 1e-2, both finders return the same 9 extrema, within 3e-5 of
+  the band width.
+- For s = 1e-3, both return 9. The fixed-grid finder is off by 0.27% of the
+  band width (0.589 against 0.591 half-widths).
+- For s = 1e-4, the fixed grid finds 1 extremum and the x-grid finds 9.
+- For s = 1e-5, the fixed grid finds 0 and the x-grid finds 9.
+- At every s the x-grid finds the same 9 extrema, in half-widths.
+
+**Design results** (`examples/shrink_band_scld.m`). The `0_2_0` specs have
+wp = ±0.05·s, ws edges ±0.1·s, loss poles at ±0.3 and Ap = 3.0103 dB. The
+table gives passband GD ripple; "fail" means only 0–1 extrema were found.
+
+| n | passband width | fixed z grid | x grid | control: z grid scaled to band |
+|---|---|---|---|---|
+| 3 | 1e-1 | 2.14% | 2.14% | 2.14% |
+| 3 | 1e-3 | 0.48% | 2.71% | 2.71% |
+| 3 | 1e-4 | 14.7% (not corrected) | **2.80%** | 2.80% |
+| 3 | 1e-5 | fail | **2.81%** | 2.81% |
+| 3 | 1e-6 | fail | 14.7% (reverted) | 14.7% (reverted) |
+| 5 | 1e-1 | 2.58% | 2.58% | 2.58% |
+| 5 | 1e-3 | 0.43% | 0.47% | 0.47% |
+| 5 | 1e-4 | 11.2% (reverted) | **0.45%** | 0.45% |
+| 5 | 1e-5 | fail | **0.45%** | 0.45% |
+| 5 | 1e-6 | fail | 11.2% | 8.8% |
+
+For n = 7, both chains skip `adaptP3` (9.84% ripple, under the 10% threshold)
+at widths from 1e-3 to 1e-6. The fixed grid fails at 1e-5 and 1e-6, and the
+x grid does not.
+
+- **The control** was a scratchpad copy of `fndZeroCrs3_scld` with
+  deltW = min(1e-5, width/2000)·2π and a coarse step of 10·deltW. It is not in
+  the repo. Its results are identical to the x grid down to width 1e-5, and it
+  is 2–3x slower (7–10 s against 3 s per design).
+- **At width 1e-3 for n = 3,** the fixed grid's in-band ripple is lower. The
+  finer grids place the extrema more accurately, and `adaptP3` then converges
+  differently. Its objective also includes extrema just outside the band.
+
+**Conclusion.**
+- The x-grid chain designs bands about 100x narrower than the fixed-grid chain
+  (down to 1e-5 cycles against 1e-3).
+- The gain comes from a frequency grid scaled to the band. A z grid scaled the
+  same way gives identical results, so this does **not** by itself justify the
+  transformed variable.
+- The x-specific advantage seen so far is that on-axis transmission zeros can be
+  placed exactly at Re = 0. It did not change any result here. In z, a zero on
+  the unit circle could simply be counted as a constant 1/2 of group delay.
+- Both chains fail at width 1e-6. **Next step:** find out what fails there. If
+  it is precision lost in storing z-poles close to 1, a design that keeps the
+  poles in x and runs its Newton steps in x is the remaining case where the
+  transformed variable could be justified.

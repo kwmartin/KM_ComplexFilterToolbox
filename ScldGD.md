@@ -326,6 +326,28 @@ x grid does not.
 **Question.** Does the transformed variable help the `dsgnEqlzrD_*` all-pass
 equalizer designs, e.g. `examples/dsgnEqlzrD_peakNewton_manual.m`?
 
+**Summary: where the x version (B) is better depends on the comparison.**
+
+| Compared with | x is better at | Why |
+|---|---|---|
+| A, the existing `dsgnEqlzrD` | 5e-3 and narrower (70.6% → 167.3% against 51.1%) | fixed r ≤ 0.995 limit |
+| C, z with band-relative limits | 5e-2, 5e-4, 5e-5 | (r, θ) are badly scaled for fminimax |
+| D, z with linear band scaling | 5e-5 only (102.0% against 51.1%) | cancellation in the z kernel |
+| E, D with a cancellation-free kernel | never | E has both properties, added by hand |
+
+- **Nothing here is unreachable in z.** The value of x is that it gives both
+  properties automatically and exactly: parameters of order 1 at any width,
+  and a group-delay expression with no cancellation. A z-domain design needs
+  both added by hand (E); either one alone fails (C, D).
+- **The practical gain is over the existing code,** which uses fixed limits.
+  Section 9 shows the same for `eqlzrD_peakNewtonStep` (80.8% → 175.8%
+  against 4.39%, from 5e-3 down). E-style controls were only tested for
+  `dsgnEqlzrD`; section 9 compares x with the original only.
+- **Relevant widths:** `EqualFltr_1_6_0`'s passband is 1/1024 ≈ 1e-3 cycles,
+  so the existing code's fixed limits already matter there.
+- **Not comparable:** the 51.1% here is a 5-section minimax design, and
+  section 9's 4.39% is 25 stages in 5 clusters tuned by Newton steps.
+
 **What the transformed variable could not improve there.**
 - These designs already use band-relative grids: `estAllPassOrder`, and
   `eqlzrD_peakNewtonStep`'s `linspace` over wp ± 10%. The section 7 grid

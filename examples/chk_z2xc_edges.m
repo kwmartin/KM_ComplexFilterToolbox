@@ -25,7 +25,9 @@ for i = 1:size(cases, 1)
     Hrt = xc2z(Hx, fb);
     [z0, p0, k0] = zpkdata(Hz, 'vector');
     [z1, p1, k1] = zpkdata(Hrt, 'vector');
-    % nearest-root matching: sort() can pair equal-magnitude roots differently
+    % nearest-root matching needs no ordering: sort() orders complex values
+    % by magnitude first, so equal-magnitude roots come out in rounding-noise
+    % order. For ordered lists use sortRootsD (z, by angle) or sortRoots (x).
     rootErr = max([rootDist(z0, z1), rootDist(p0, p1), abs(k0 - k1)/abs(k0)]);
     % skip frequencies on top of a unit-circle pole (the -exp(j*w0) case)
     w = wAll(min(abs(exp(j*wAll(:)) - p0.'), [], 2) > 1e-6);

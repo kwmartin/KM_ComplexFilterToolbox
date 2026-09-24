@@ -86,7 +86,15 @@ poles, so the sensitivities satisfy d gd_z/d x_p = J * d gd_x/d x_p.
   3.8e-15, and max Re(pole) = -0.969.
   The pole-at-infinity case skips frequencies within 1e-6 of the unit-circle
   pole, because H is infinite there. Roots are compared by nearest-neighbour
-  matching, because `sort()` can pair roots of equal magnitude differently.
+  matching, which needs no ordering. MATLAB's `sort()` orders complex values
+  by magnitude first, so roots whose designed magnitudes are equal are
+  ordered by rounding noise after a round trip. Where an ordered list is
+  needed, use the toolbox helpers instead:
+  - `sortRootsD` (by angle) for z-domain roots. A root on the negative real
+    axis, such as z = -1, can come out at +pi or -pi, so it may land at either
+    end of the list.
+  - `sortRoots` or `sortImag` (by imaginary part) for x-domain roots, where
+    the imaginary part plays the role of frequency.
 - `examples/chk_z2xc_1_6_0.m` uses the real `dig_linPh_1_6_0` filter at the input
   to `adaptP3` (H3, wp3 = [-0.005 0.005]). The round trip is 7.4e-12 and the GD
   identity 1.3e-15. This filter has a zero at z = -1 = -e^{jw0}, so the

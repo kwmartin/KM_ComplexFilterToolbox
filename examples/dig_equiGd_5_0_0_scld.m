@@ -1,0 +1,28 @@
+% _scld copy of dig_equiGd_5_0_0.m - uses the _scld design chain (adaptP2_scld)
+% One of the early examples used in developing normalized design
+% Includes the first SFG ladder simulation
+
+p = []; % initial guess at finite loss poles
+px = [];
+wp = [-0.05 0.05];
+ws = [-0.499 -0.1 0.1 0.499];
+as = [20 20 20 20];
+ni = 15;
+Ap=3.0103;
+type = 'equiGD'
+Ordr = ni;
+
+% H = dsgnDigitalFltr_scld(p,px,ni,wp,ws,as,Ap,type,Ordr); % doesn't equalize
+% stopband attenuation (as/ws unused for pole placement); use equiGdDigital_scld
+deltGD = 0.25;
+useWs = 1;
+H = equiGdDigital_scld(p,px,ni,wp,ws,as,Ap,deltGD,useWs);
+figure
+[ax1, ax2] = plot_drsps(H,wp,'b',[-320 1]);
+plot_dam_ph_gd(H, [-0.5 0.5], -320, 'b');
+cscdFltr = mkCscdFltrD2(H, wp);
+plotSimCscd(cscdFltr, wp, ws, -320, 0, 'b');
+gdHs = hgdMake(H);
+gd = hzPlot(gdHs{2});
+
+a=1;

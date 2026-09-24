@@ -581,3 +581,85 @@ its extrema grid already scales with the band (section 7).
 **Still present in the originals** (`adaptP3`, `cont2Digital`, `y2zSbTrnsf1`,
 and `simpl`'s default): the same absolute limits. Other callers of `simpl` with
 its default tolerance could hit the same problem on very narrow bands.
+
+## 11. The `dig_equiGd` series, and `paper_examples_scld.m`
+
+### What was wrong with `dig_equiGd_*`
+
+In the repo, all 9 `examples/dig_equiGd_*.m` scripts run without error, but
+their filters are broken:
+- poles pinned at |p| = 0.995 (`adaptP2`'s clamp);
+- passband loss varying by up to 164 dB across wp;
+- stopband *gain* of up to +146 dB in 7 of the 9.
+
+The cause is the Nyquist group-delay extremum of section 3a. `adaptP2`, which
+`equiGdDigital` and the `'equiGD'` type of `dsgnDigitalFltr`/`2` use, calls
+`fndZeroCrs3`. Since the ±π fix, `fndZeroCrs3` returns that extremum. A
+2026-09-22 check recorded 7 of 9 as good, so this is a regression.
+
+### Fix (new files, or `_scld` files from this work)
+
+| File | Change |
+|---|---|
+| `lib/adaptP2_scld.m` (copy of `adaptP2.m`) | uses `fndZeroCrs3_scld` (drops the Nyquist extremum) |
+| `lib/equiGdDigital_scld.m` (copy of `equiGdDigital.m`) | calls `adaptP2_scld` |
+| `lib/dsgnDigitalFltr_scld.m`, `lib/dsgnDigitalFltr2_scld.m` | `'equiGD'` branch calls `adaptP2_scld` |
+| `examples/dig_equiGd_*_scld.m` (9 copies) | call the `_scld` design functions |
+
+### Results
+
+From `paper_examples_scld.m` part 2. "GD p2p" is peak-to-peak group delay over
+wp. "Ap band" is the half-width of the band within Ap of the passband peak, as
+a fraction of wp's half-width.
+
+| example | original GD p2p | `_scld` GD p2p | `_scld` stop dB | `_scld` Ap band | `_scld` loss at wp edge |
+|---|---|---|---|---|---|
+| 1_6_0 | 2.30 (14.5%) | 0.258 (0.20%) | 92.1 | 0.25 | 17.4 dB |
+| 1_10_0 | 0.154 (80.1%) | 3.32 (1.36%) | 150.3 | 0.31 | 36.3 dB |
+| 1_12_0 | 0.024 (75.0%) | 0.263 (0.71%) | 148.1 | 0.32 | 33.6 dB |
+| 1_15_0 | 8.82 (21.9%) | 0.263 (0.68%) | 153.3 | 0.33 | 30.7 dB |
+| 15_0_0 | 0.024 (75.0%) | 0.263 (0.71%) | 110.5 | 0.35 | 28.3 dB |
+| 3_4_0 | 12.1 (112%) | 0.255 (0.18%) | 241.9 | 0.34 | 8.9 dB |
+| 3_10_0 | 10.4 (205%) | 0.257 (0.10%) | 158.5 | 0.32 | 32.8 dB |
+| 5_0_0 | 61.8 (201%) | 0.263 (0.65%) | 116.8 | 0.37 | 23.1 dB |
+| 5_10_0 | 61.8 (201%) | 0.263 (0.65%) | 157.4 | 0.33 | 29.1 dB |
+
+- All 9 `_scld` designs equalize the group delay: 0.1–0.7% ripple (1_10_0:
+  1.4%), 92–242 dB of stopband loss, and no clamped poles.
+- The small percentages for some originals come with broken magnitude, so
+  their GD p2p is not meaningful.
+- 1_12_0 and 15_0_0 give the same GD result: the same design, except for the
+  stopband measurement bands.
+- For 3_4_0 and 15_0_0, the table measures `H`, the first design in the
+  script (from `dsgnDigitalFltr2`); the scripts also design `H3` with
+  `equiGdDigital`.
+
+**Open issue: the magnitude passband is narrower than wp.** In every `_scld`
+design, the band within Ap of the peak is only 0.25–0.37 of wp, and the loss
+at the wp edge is 9–36 dB. The group delay is flat over all of wp. It is not
+known whether this is intended (wp treated as the group-delay band of a
+Bessel-like response) or a problem. It should be settled before these
+designs are presented as band-pass filters meeting Ap over wp.
+
+### `examples/paper_examples_scld.m`
+
+Regenerates, in one run (about 20 minutes), the numbers recommended for a
+paper on group-delay optimization:
+1. `dig_linPh` direct designs: 1_6_0 and 1_8_0 (original vs `_scld`), and
+   1_2_0b.
+2. The `dig_equiGd` series, original vs `_scld` (the table above).
+3. All-pass equalizers on the `dsgnEqlzrD_manual` filter:
+   - unequalized 176.1%;
+   - `dsgnEqlzrD` 51.2%;
+   - `dsgnEqlzrDX_scld` 51.1%.
+
+   It also measures `EqualFltr_1_6_0`: 0.19% GD ripple, but only 9.3 dB of
+   stopband loss against a 50 dB spec.
+4. The band-shrinking studies, controlled by flags: `shrink_eqlzr_scld`,
+   `shrink_peakNewton_scld` and `shrink_band_scld`.
+
+All results matched the earlier individual runs (sections 5 and 7–10).
+
+**Not measured:** `eqlz_csc_1_8_0.m` (it stops at `keyboard`),
+`eqlz_csc_newton_1_8_0.m` and `dsgnEqlzrD_staged_demo.m` (which saves figures
+to a relative path).

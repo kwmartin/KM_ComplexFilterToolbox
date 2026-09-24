@@ -27,6 +27,17 @@ function wz = fndZeroCrs3(H, wp)
 %   margin's, but the same underlying problem: the search range needs to
 %   track the filter's actual behavior, not a number disconnected from it).
 %
+%   The search window is clamped to +-pi: z=e^{jw} is periodic with
+%   period 2*pi, so a window that overshoots +-pi doesn't reach new
+%   information - it aliases back onto frequencies already inside
+%   [-pi,pi], and AnlzDH/zci then "find" spurious/wrapped crossings
+%   there instead. Confirmed on examples/dig_linPh_1_8_0.m (Np=9,
+%   wp=[-0.005 0.005], width=0.01): its genuine equiripple extent needs
+%   the full 64x margin cap, pushing the unclamped window to
+%   2*pi*[-0.645,0.645] = [-4.05,4.05] rad, well past +-pi - the
+%   resulting wz included values as far out as -3.516 and 2.767 with no
+%   mirrored counterpart, clearly not genuine passband-relative extrema.
+%
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
 %
@@ -59,9 +70,14 @@ function wz = fndZeroCrs3(H, wp)
     coarseDeltW = 1e-4*2*pi;
     marginMult = 1;
     MAX_MARGIN_MULT = 64;
+    NYQUIST = pi; % z=e^{jw} is periodic with period 2*pi - a window past
+                  % +-pi aliases back onto frequencies already covered,
+                  % not new information (see file header comment).
     outermost = width/2; % fallback if even mult=1 finds nothing
     while true
-        wTest = 2*pi*[wp(1) - marginMult*width, wp(2) + marginMult*width];
+        wTestRaw = 2*pi*[wp(1) - marginMult*width, wp(2) + marginMult*width];
+        wTest = [max(wTestRaw(1), -NYQUIST), min(wTestRaw(2), NYQUIST)];
+        atBoundary = (wTest(1) <= -NYQUIST) && (wTest(2) >= NYQUIST);
         wGrid = wTest(1):coarseDeltW:wTest(2);
         [~, ~, ~, ~, dTdWTest] = AnlzDH(H, wGrid);
         idxTest = zci(dTdWTest);
@@ -76,16 +92,18 @@ function wz = fndZeroCrs3(H, wp)
             distPast = max(0, max(2*pi*wp(1) - wc, wc - 2*pi*wp(2)));
             outermost = max(max(distPast)/(2*pi), outermost);
         end
-        if ~nearEdge || marginMult >= MAX_MARGIN_MULT
+        if atBoundary || ~nearEdge || marginMult >= MAX_MARGIN_MULT
             break
         end
         marginMult = marginMult * 2;
     end
     % Final margin: the outermost extremum actually found, plus 20% ("a
     % bit extra") - not a fraction of passband width disconnected from
-    % what's actually there.
+    % what's actually there. Still clamped to +-pi for the same reason
+    % as the locate pass above.
     margin = 1.2 * outermost;
     wrng = 2*pi*[wp(1) - margin, wp(2) + margin];
+    wrng = [max(wrng(1), -NYQUIST), min(wrng(2), NYQUIST)];
     w = wrng(1):deltW:wrng(2);
 
     [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H, w);

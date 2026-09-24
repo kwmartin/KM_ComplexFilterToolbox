@@ -173,7 +173,9 @@ All 11 `dig_linPh_*` scripts (originals and copies) run cleanly with
 `tools/run_all_examples.sh 300 'dig_linPh_*.m'`.
 
 The table measures the final H over the passband with 2001 points, and over the
-stopbands with 8000 points:
+stopbands with 8000 points. `examples/cmp_linPh_scld.m` reproduces it; it takes
+about 3 minutes, longer than the default 120 s timeout of
+`tools/run_all_examples.sh`.
 
 | Example | GD ripple orig → `_scld` | passband loss dB | min stopband loss dB |
 |---|---|---|---|

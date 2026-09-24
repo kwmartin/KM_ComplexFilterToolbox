@@ -195,8 +195,20 @@ How each example got there:
 ## 6. Open items
 
 1. **Passband loss drifts from the spec** when `adaptP3_scld` moves the poles:
-   1.55–1.62 dB against Ap = 2.0 dB, and 3.31 dB against 3.01 dB. Nothing in the
-   flow restores the Ap edge after GD correction.
+   1.55–1.62 dB against Ap = 2.0 dB, and 3.31 dB against 3.01 dB.
+   - **This was already the case with the original code**; the `_scld` changes
+     only made it visible. `dig_linPh_1_2_0b` runs the unchanged path and
+     `adaptP3`'s reduced system succeeds there. Its passband-edge loss is
+     3.31 dB against Ap = 3.0103 dB (measured over `wp` with 4001 points,
+     relative to the in-band peak).
+   - The other `dig_linPh` originals hit Ap exactly only because their
+     `adaptP3` step was being reverted, which kept the prototype poles.
+   - Likely cause, not yet traced line by line: the Ap edge is set only on
+     the continuous-time prototype (`fndApFrq` and `scaleFltr` in
+     `LinPh_LssPls`). After `adaptP3`, `dsgnEquiRplGD` only renormalizes the
+     gain at DC (`H2.k = H2.k/abs(freqresp(H2,0))`). Nothing puts the Ap edge
+     back at `wp`.
+   - Also recorded in `Progress.md` (open item 7).
 2. **Stopband loss on 1_2_0 and 1_4_0 is about 6 dB against the 20 dB spec**,
    before and after this change. This belongs to `place_polesdLP3` and was not
    investigated.

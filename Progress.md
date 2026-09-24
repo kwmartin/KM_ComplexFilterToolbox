@@ -137,6 +137,16 @@ than rewritten, matching this file's own established convention.
    (`tools/run_all_examples.sh &`) for a clean end-to-end picture —
    this session's fixes were verified via targeted globs/individual
    `matlab -batch` runs, not a full sweep.
+7. **Passband loss drifts from Ap whenever `adaptP3` succeeds** (found
+   2026-09-24). This is already the case in the original code:
+   `dig_linPh_1_2_0b.m` (reduced system succeeds) ends at 3.31dB
+   passband-edge loss against Ap = 3.0103dB. The other `dig_linPh`
+   originals only hit Ap because `adaptP3` is reverted for them. Likely
+   cause: the Ap edge is set only on the continuous prototype
+   (`fndApFrq`/`scaleFltr` in `LinPh_LssPls`), and after `adaptP3`,
+   `dsgnEquiRplGD` only renormalizes DC gain. Not yet traced or fixed.
+   See `ScldGD.md` open item 1; the `_scld` examples show it too
+   (1.55-1.62dB against 2.0dB, and 3.31dB against 3.01dB).
 
 ## Tools / workflow reminders
 

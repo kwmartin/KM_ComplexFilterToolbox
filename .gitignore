@@ -28,3 +28,9 @@ settings.mat
 
 # tools/run_all_examples.sh output: point-in-time run artifacts, not source
 /tools/reports/
+
+# third-party reference PDFs (IEEE papers, textbook chapters, a thesis) -
+# deliberately kept out of git (see Issues.md issue 2): copyrighted
+# material, staged outside the repo at /home/Dropbox/Matlab/Complex/docs
+# instead. Re-populated locally from time to time; never commit.
+/doc/

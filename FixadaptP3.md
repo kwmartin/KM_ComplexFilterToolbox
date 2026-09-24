@@ -141,14 +141,14 @@ for the full results once available.
    logic in `fndZeroCrs3.m` runs an iterative widening scan; check whether
    it's the cause of the new timeout (e.g. an unusually slow-to-converge
    widening loop for that specific case) before assuming it's unrelated.
-4. **`lib/dsgnEquiRplGD.m` vs `examples/dsgnEquiRplGD.m`** are two
-   independently-maintained duplicate files - confirmed this session when
-   a temporary debug probe added only to the `lib/` copy silently never
-   ran, because `examples/` is added to the MATLAB path after `lib/` and
-   shadows it for any duplicate name. Both copies were kept in sync by
-   hand for every change in this file; worth considering whether the
-   `examples/` copy should just be removed (or replaced with something
-   that calls into `lib/`) to remove this fragility permanently.
+4. **DONE (g22 session, 2026-09-24)**: `lib/dsgnEquiRplGD.m` vs
+   `examples/dsgnEquiRplGD.m` duplicate-file fragility. Confirmed the two
+   copies were byte-identical, then removed `examples/dsgnEquiRplGD.m`
+   outright (commit `ae9f966`) - `lib/dsgnEquiRplGD.m` is now the only
+   copy. All callers (`dsgnDigitalFltr`/`1`/`2.m`) resolve it by name via
+   the path, so this was a no-op for behavior; verified by re-running
+   `EqualFltr_1_6_0.m` and `dig_equiGd_1_6_0.m` with only the `lib/` copy
+   present.
 5. Once (1)-(3) are settled, re-run the full suite
    (`tools/run_all_examples.sh &`) for a clean end-to-end picture, per
    `Progress.md`'s standing suggestion.

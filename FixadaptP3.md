@@ -126,21 +126,65 @@ for the full results once available.
 
 ## Open items for next session
 
-1. **Not actually root-caused**: why does `adaptP3`'s main Newton loop
-   drive an already-fully-resolved (13/13) pole configuration back into
-   collision during iteration? Currently caught-and-reverted via the new
-   safety net, not fixed. The revert gives a safe, reasonable result for
-   this specific case, but the underlying algorithmic issue is
-   unaddressed.
+1. **ROOT-CAUSED (g22 session, 2026-09-24), fix prototyped but not yet
+   integrated**: `adaptP3`'s 14x14 Newton system (13 group-delay-extrema
+   rows via `plSens`/`setY2`, `EqualFltr_1_6_0.m`'s 13/13 case) is
+   structurally near-singular (`rcond ~ 3.7e-15`) - the 13 rows alone are
+   mathematically guaranteed rank-deficient by 1 (13 rows < 14 unknowns),
+   and `plSens`'s single ad hoc mirror-constraint row only weakly
+   resolves that null direction. A tiny (~0.001) step along the
+   resulting near-null "rotate all poles' angles together" direction
+   collapsed the extrema count 13->1.
+   - A SEPARATE, independent bug compounded this: the starting poles'
+     radius (`|p|~0.9998`) already exceeded `adaptP3`'s hardcoded
+     `R_MAX=0.995` safety clamp *before any Newton step*, so the clamp
+     fired unconditionally on iteration 1, forcibly shrinking every
+     pole's radius by ~0.005 - 5x larger than the actual Newton
+     correction. Fixing `R_MAX` alone stops the crash but the original
+     14x14 system still fails to converge (ripple grows instead of
+     shrinking) due to the conditioning issue above - both bugs are real
+     and independent.
+   - Prototyped and empirically validated (scratch scripts, not yet in
+     `lib/`) a reformulation: reduce to the poles' true independent real
+     parameters (conjugate-pair symmetry, guaranteed by construction for
+     every current `adaptP3` caller via `dsgnEquiRplGD`'s re-centering -
+     7 real unknowns for `EqualFltr_1_6_0.m`'s 7 poles), and instead of
+     `plSens`/`setY2`'s alternating-target system, solve for each local
+     MAXIMUM to move toward `mean(minima) + deltaT` (deltaT = the
+     caller-supplied target ripple width, `adaptP3`'s own `deltT` arg),
+     explicitly accounting for the sensitivity of `mean(minima)` to the
+     same pole changes (not a stale/fixed reference). An earlier,
+     simpler "maxima-only equalized to a fixed anchor" variant only
+     closed the true overall peak-to-peak group delay by ~13%; this
+     coupled max/min-sensitivity version closed it by >99.99% over 600
+     iterations (`EqualFltr_1_6_0.m`: overall p2p `5745 -> 0.35`,
+     `meanMax-meanMin` gap `4981 -> 0.16` vs `deltT=0.1` target), with
+     zero extrema-count collapse throughout.
+   - **Not yet integrated into `lib/adaptP3.m`** - still needs: wiring
+     into production with a runtime conjugate-pairing check/fallback,
+     and resolving `dig_linPh_1_8_0.m`'s more complex extrema structure
+     (7 maxima / 13 minima for `Np=9` poles, not the clean
+     "maxima count == Np" pattern `EqualFltr_1_6_0.m` has), which needs
+     further investigation before the same reformulation can be applied
+     there directly.
 2. **Stop-band attenuation shortfall** (11.76dB vs 50dB target,
    `EqualFltr_1_6_0.m`) - likely pre-existing (the script never completed
    before, so there's no earlier baseline to compare against) and
    probably unrelated to anything in this file - lives in
    `place_polesdLP3`'s territory, not `adaptP3`'s. Not investigated.
-3. **Confirm the `dig_equiGd_1_15_0.m` timeout** - new margin-locate
-   logic in `fndZeroCrs3.m` runs an iterative widening scan; check whether
-   it's the cause of the new timeout (e.g. an unusually slow-to-converge
-   widening loop for that specific case) before assuming it's unrelated.
+3. **DONE (g22 session, 2026-09-24)**: root-caused and fixed the
+   `dig_equiGd_1_15_0.m` timeout. `fndZeroCrs3.m`'s margin-locate loop
+   could overshoot the +-pi periodic boundary of `z=e^{jw}` once a
+   filter's genuine equiripple extent needed close to the full 64x
+   margin cap - confirmed directly on `dig_linPh_1_8_0.m`
+   (`Np=9`, `wp=[-0.005 0.005]`), whose unclamped window reached
+   `[-4.05,4.05]` rad, well past +-pi, producing aliased/spurious
+   "extrema" (`wz` as far out as `-3.516`/`2.767` with no mirrored
+   counterpart). Fixed by clamping both the coarse locate-pass window
+   and the final fine-search window to `[-pi,pi]` (commit `70746d2`).
+   `dig_equiGd_1_15_0.m` now completes in ~33s (was a 120s timeout).
+   Verified via a 13-example regression sweep (all `dig_linPh_*.m`,
+   `dig_equiGd_*.m`, `EqualFltr_1_6_0.m`) - no regressions.
 4. **DONE (g22 session, 2026-09-24)**: `lib/dsgnEquiRplGD.m` vs
    `examples/dsgnEquiRplGD.m` duplicate-file fragility. Confirmed the two
    copies were byte-identical, then removed `examples/dsgnEquiRplGD.m`

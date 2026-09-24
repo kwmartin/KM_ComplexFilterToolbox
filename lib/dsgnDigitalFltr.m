@@ -60,7 +60,7 @@ function H2 = dsgnDigitalFltr(p,px,ni,wp,ws,as,Ap,type,Ordr)
     deltT = 0.25;
     [H1 T0] = LinPhFltr(Ordr, 0.02, Ap); % design continous prototype
     [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
-    H2 = adaptP2(H2,deltT);
+    H2 = adaptP2(H2,deltT,wp);
     % H2 = adaptP3(H2,deltT); % Intermittent "HCat failed" crash in
     % dig_equiGd_1_12_0.m traced to adaptP3's moving-target (recomputed
     % from mean(Tz) every iteration, vs adaptP2's fixed target) plus its

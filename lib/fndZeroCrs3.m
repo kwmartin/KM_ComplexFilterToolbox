@@ -1,8 +1,31 @@
-function wz = fndZeroCrs3(H)
-%   indc = fndZeroCrs3(H) finds the zero-crossings of the derivative function used in
+function wz = fndZeroCrs3(H, wp)
+%   indc = fndZeroCrs3(H, wp) finds the zero-crossings of the derivative function used in
 %   finding peaks for adapting the poles to get equiripple group delay of a digital filter
 %   Inputs are the frequency vector (in Hz), the derivatives at those frequencies, and the
 %   pole positions; the angles of the poles are used to determine the starting and endpoints
+%
+%   The search range is the passband wp extended past each edge by a
+%   margin sized from an actual initial analysis, not a fixed fraction of
+%   the passband width: scan progressively wider windows (starting at 1x
+%   the passband width, doubling) until no group-delay extremum sits near
+%   the current window's edge, then use the outermost extremum actually
+%   found, plus a 20% buffer, as the margin. A fixed-fraction margin (this
+%   file's first fix attempt used 0.1x passband width) was found
+%   empirically to be far too small in general - confirmed on a 7-pole
+%   filter (EqualFltr_1_6_0.m) whose genuine equiripple extent reached
+%   ~3.5x the passband width, where a 0.1x margin found only 5 of the 13
+%   real extrema, with the missing ones sitting essentially at the search
+%   window's own edge - a signature that should have been (and wasn't,
+%   initially) caught by checking whether found extrema cluster near the
+%   window boundary.
+%
+%   Before this fix: a hardcoded [-0.45 0.45]*2*pi spanning nearly the
+%   whole spectrum regardless of passband width, which for a narrow,
+%   near-DC passband swamped the real passband extrema with irrelevant
+%   stop-band structure and made adaptP3's group-delay-extrema count come
+%   out badly short (a different failure mode than the fixed-fraction
+%   margin's, but the same underlying problem: the search range needs to
+%   track the filter's actual behavior, not a number disconnected from it).
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -23,9 +46,47 @@ function wz = fndZeroCrs3(H)
 
     [z, p, k] = sortZPK(H);
     deltW = 1e-5*2*pi;
-    wrng = 2*pi*[-0.45 0.45];
-    w = wrng(1):deltW:wrng(2);
     zci = @(v) find(v(:).*circshift(v(:), [-1 0]) <= 0);
+
+    width = wp(2) - wp(1);
+    % Locate pass: coarser grid, progressively wider window, doubling
+    % from 1x the passband width, until no crossing sits within a few
+    % grid points of the window's own edge (i.e. widening further stops
+    % turning up new extrema) or the cap is hit. The cap (64x) is a
+    % judgment call - generous enough for every case tried so far, but
+    % nowhere near the old near-whole-spectrum search, so it still
+    % shouldn't reach unrelated stop-band structure far from the passband.
+    coarseDeltW = 1e-4*2*pi;
+    marginMult = 1;
+    MAX_MARGIN_MULT = 64;
+    outermost = width/2; % fallback if even mult=1 finds nothing
+    while true
+        wTest = 2*pi*[wp(1) - marginMult*width, wp(2) + marginMult*width];
+        wGrid = wTest(1):coarseDeltW:wTest(2);
+        [~, ~, ~, ~, dTdWTest] = AnlzDH(H, wGrid);
+        idxTest = zci(dTdWTest);
+        nearEdge = any(idxTest <= 3) | any(idxTest >= length(wGrid) - 3);
+        if ~isempty(idxTest)
+            % For each crossing, how far PAST the nearest passband edge it
+            % sits (0 if inside [wp(1),wp(2)]) - not its distance to both
+            % edges, which would overestimate for a crossing near either
+            % edge by conflating it with the (much larger) distance to
+            % the far edge.
+            wc = wGrid(idxTest);
+            distPast = max(0, max(2*pi*wp(1) - wc, wc - 2*pi*wp(2)));
+            outermost = max(max(distPast)/(2*pi), outermost);
+        end
+        if ~nearEdge || marginMult >= MAX_MARGIN_MULT
+            break
+        end
+        marginMult = marginMult * 2;
+    end
+    % Final margin: the outermost extremum actually found, plus 20% ("a
+    % bit extra") - not a fraction of passband width disconnected from
+    % what's actually there.
+    margin = 1.2 * outermost;
+    wrng = 2*pi*[wp(1) - margin, wp(2) + margin];
+    w = wrng(1):deltW:wrng(2);
 
     [lgH, phH, gdH, dLdW, dTdW] = AnlzDH(H, w);
     indc = zci(dTdW);
@@ -35,7 +96,17 @@ function wz = fndZeroCrs3(H)
     if ~isempty(doubleIndc)
         indc(doubleIndc+1) = [];
     end
-    
+
+    % A candidate pole configuration can have zero group-delay extrema
+    % within this (now properly narrow, passband-scoped) window - the old
+    % near-whole-spectrum range rarely hit this since it was wide enough
+    % to almost always contain something. indc(end) on an empty indc would
+    % otherwise crash here ("Array indices must be positive integers").
+    if isempty(indc)
+        wz = [];
+        return
+    end
+
     if indc(end) == length(w) indc(end) = []; end
 
     %dTdW2 = gltchRmv(dTdW);

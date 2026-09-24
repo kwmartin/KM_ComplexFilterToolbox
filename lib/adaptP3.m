@@ -1,6 +1,9 @@
-function H = adaptP3(H, deltT)
-%   [H2, deltT] = adaptP2(H) adapts the poles of a digital filter to correct the group delay
-%   to be equiripple after being distorted by the bilinear transform
+function H = adaptP3(H, deltT, wp)
+%   [H2, deltT] = adaptP3(H, deltT, wp) adapts the poles of a digital filter to correct the group delay
+%   to be equiripple after being distorted by the bilinear transform.
+%   wp is the passband, forwarded to fndZeroCrs3 so its search range
+%   tracks the actual passband instead of a fixed fraction of the whole
+%   spectrum.
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -62,8 +65,8 @@ function H = adaptP3(H, deltT)
     NUDGE_STEP = 0.02; % radians per attempt
 
     aEven = linspace(min(a1), max(a1), Np).';
-    [p1_tan, count_tan] = refineExtremaCount(z, k, m, a1, Np, INIT_MAX_ITERS, NUDGE_STEP, 'tan-warp');
-    [p1_even, count_even] = refineExtremaCount(z, k, m, aEven, Np, INIT_MAX_ITERS, NUDGE_STEP, 'even-spacing');
+    [p1_tan, count_tan] = refineExtremaCount(z, k, m, a1, Np, INIT_MAX_ITERS, NUDGE_STEP, 'tan-warp', wp);
+    [p1_even, count_even] = refineExtremaCount(z, k, m, aEven, Np, INIT_MAX_ITERS, NUDGE_STEP, 'even-spacing', wp);
     if count_even > count_tan
         p1 = p1_even;
         bestCount = count_even;
@@ -77,10 +80,19 @@ function H = adaptP3(H, deltT)
         'even-spacing reached %d, using %s (need %d)\n'], count_tan, ...
         count_even, chosenLabel, 2*Np-1);
     H1 = zpk(z, p1, k);
-    wz = fndZeroCrs3(H1);
+    wz = fndZeroCrs3(H1, wp);
     if bestCount < 2*Np - 1
-        fprintf(['adaptP3: could not reach %d starting extrema after both ' ...
-            'refinements (best %d) - proceeding anyway.\n'], 2*Np-1, bestCount);
+        % Used to print a warning and fall through ("proceeding anyway"),
+        % but nothing downstream actually tolerates fewer than Np extrema
+        % - gd1 = Tz(Np) a few lines below indexes straight past the end
+        % of a too-short Tz, crashing with an opaque "Array indices must
+        % be positive integers" instead of a clear diagnostic. Raise a
+        % real error here instead, so callers can catch it and revert to
+        % their pre-adaptP3 state (same principle as this file's own
+        % in-loop collision-halt errors below).
+        error('adaptP3:tooFewStartingExtrema', ...
+            ['adaptP3: could not reach %d starting extrema after both ' ...
+            'refinements (best %d) - cannot proceed'], 2*Np-1, bestCount);
     end
 
     w1 = angle(p1);
@@ -131,7 +143,7 @@ function H = adaptP3(H, deltT)
 
     for i = 1:N
         H = zpk(z, p, k, 1);
-        wz = fndZeroCrs3(H);
+        wz = fndZeroCrs3(H, wp);
         Tz = p2T(H, wz);
         meanTz = mean(Tz);
         gd1 = meanTz + deltT/2;
@@ -256,14 +268,14 @@ function H = adaptP3(H, deltT)
     a = 1;
 end
 
-function [bestP1, bestCount] = refineExtremaCount(z, k, m, aInit, Np, maxIters, nudgeStep, label)
+function [bestP1, bestCount] = refineExtremaCount(z, k, m, aInit, Np, maxIters, nudgeStep, label, wp)
 %   Pairwise-nudge refinement of a starting angle configuration aInit,
 %   tracking the best (most group-delay extrema) configuration seen -
 %   see adaptP3's own comments above its call to this function for the
 %   full rationale.
     p1 = m.*exp(j*aInit);
     H1 = zpk(z, p1, k);
-    wz = fndZeroCrs3(H1);
+    wz = fndZeroCrs3(H1, wp);
     bestCount = length(wz);
     bestP1 = p1;
     iter = 0;
@@ -283,7 +295,7 @@ function [bestP1, bestCount] = refineExtremaCount(z, k, m, aInit, Np, maxIters, 
         aCur(kB) = aCur(kB) + nudgeStep/2;
         p1 = m.*exp(j*aCur);
         H1 = zpk(z, p1, k);
-        wz = fndZeroCrs3(H1);
+        wz = fndZeroCrs3(H1, wp);
         if length(wz) > bestCount
             bestCount = length(wz);
             bestP1 = p1;

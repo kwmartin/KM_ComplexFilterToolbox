@@ -226,20 +226,28 @@ guess-fix):**
   damped step, non-finite guard). Stopped here per direct instruction -
   getting disproportionately difficult relative to the value of
   continuing, `1_6_0` already fixed without any pole-count compromise.
-- `EqualFltr_1_6_0.m` — `adaptP3: only found 1 group-delay extrema for 7
-  free pole(s)`. Also goes through `adaptP3` (via `dsgnCscdFltr(...,
-  'equiGDLsPls')`), with an extremely narrow passband
-  (`wp = [-1/2048, 1/2048]`, ~100x narrower than even `dig_linPh_1_8_0`'s)
-  and 6 movable poles. Before today's `adaptP3.m` changes this function
-  had zero collision detection at all, so a spec this demanding would
-  have silently run its full 200 iterations on a severely rank-deficient
-  system and returned some degenerate result without ever erroring -
-  same silent-degradation pattern documented throughout this session
-  (e.g. `dig_linPh_1_2_0b.m` below). Very likely a pre-existing silent
-  failure that today's fixes correctly turned into an honest error,
-  not a new regression - not independently confirmed against the
-  pre-today `adaptP3.m` (would need reverting it temporarily to prove),
-  and not investigated further given how extreme this spec is.
+`EqualFltr_1_6_0.m` (previously listed here as `adaptP3: only found 1
+group-delay extrema for 7 free pole(s)`) now runs OK, but the story is
+involved enough that it has its own file: see `FixadaptP3.md` for the
+full account (a real `fndZeroCrs3.m` search-window bug found and fixed
+along the way, a `dsgnEquiRplGD.m` pre/post-`adaptP3` sanity check now in
+place, and a genuine open issue - `adaptP3`'s main Newton loop still
+loses extrema during iteration even after starting fully resolved,
+currently caught and reverted rather than fixed - plus a separate,
+apparently pre-existing stop-band attenuation shortfall (11.76dB vs the
+50dB target) only now visible because the script never completed before.
+
+**Numerical/algorithmic limitation (needs real investigation, not a
+guess-fix):**
+- `dig_linPh_1_8_0.m` — `place_polesdLP3: only found 9 independent
+  stop-band loss minima for 9 free pole(s)` (short by exactly 1) - its
+  `adaptP3` group-delay stage now passes cleanly (see the update above);
+  the remaining gap is isolated to `place_polesdLP3`'s stop-band stage,
+  which plateaus there even after the full set of fixes described above
+  (dual heuristics both fully refined, proactive proximity checks,
+  damped step, non-finite guard). Stopped here per direct instruction -
+  getting disproportionately difficult relative to the value of
+  continuing, `1_6_0` already fixed without any pole-count compromise.
 - `exmpl_r1b.m`, `tstTFops.m` — `Pole Removals Failed`.
 
 `exmpl_1_5_1.m`/`exmpl_5_1_1.m` (previously listed here as `Unrecognized

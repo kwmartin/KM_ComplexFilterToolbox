@@ -30,8 +30,74 @@ function [H, p, px, wp, ws, as] = dsgnEquiRplGD(p,px,wp,ws,as,Ap,Ordr,sclFctr,sh
     % shift back to 0 temporarilly
     H3 = freq_shiftd(H2, shftFctr);
     % now correct the distorted equi-ripple group delay; this distorts the
-    % equi-ripple stop-band
-    H4 = adaptP3(H3,0.1);
+    % equi-ripple stop-band. wp3 is wp shifted the same way H3 was (H3 is
+    % at a different frequency location than the wp returned above), so
+    % adaptP3/fndZeroCrs3 search around H3's actual passband.
+    wp3 = wp + shftFctr;
+
+    % Check group-delay extrema BEFORE calling adaptP3: how many are
+    % there, and how close to equi-ripple already? adaptP3 is only meant
+    % to correct group delay that the bilinear transform has genuinely
+    % distorted - calling it unconditionally can make things worse when
+    % it's not needed (confirmed on EqualFltr_1_6_0.m: the pre-adaptP3
+    % group delay was already at 10.2% p2p/mean ripple with a clean
+    % alternating extrema pattern, and adaptP3's own pole-angle-warping
+    % search degrades that starting point before it tries to fix
+    % anything). MIN_EXTREMA_TO_ASSESS=2 and RIPPLE_SKIP_THRESHOLD=0.10
+    % are this session's own judgment calls (2 is the minimum needed to
+    % even compute a p2p/mean ripple figure; 0.10 is the user-specified
+    % skip threshold) - verify empirically on other cases, not just this
+    % one.
+    MIN_EXTREMA_TO_ASSESS = 2;
+    RIPPLE_SKIP_THRESHOLD = 0.10;
+
+    wzPre = fndZeroCrs3(H3, wp3);
+    if length(wzPre) < MIN_EXTREMA_TO_ASSESS
+        error('dsgnEquiRplGD:tooFewExtrema', ...
+            ['dsgnEquiRplGD: only found %d group-delay extrema in the ' ...
+            'passband (need at least %d to assess equi-ripple error) - ' ...
+            'cannot proceed'], length(wzPre), MIN_EXTREMA_TO_ASSESS);
+    end
+    [~, ~, gdPre] = AnlzDH(H3, wzPre(:));
+    ripplePre = (max(gdPre) - min(gdPre)) / mean(gdPre);
+
+    if ripplePre < RIPPLE_SKIP_THRESHOLD
+        fprintf(['dsgnEquiRplGD: group delay already within %.1f%% of ' ...
+            'equi-ripple (%.2f%%) - skipping adaptP3\n'], ...
+            100*RIPPLE_SKIP_THRESHOLD, 100*ripplePre);
+        H4 = H3;
+    else
+        % adaptP3 can itself fail outright (e.g. it can't find enough
+        % starting extrema for its own internal Newton loop) - a failure
+        % is a worse outcome than not touching the poles at all, so treat
+        % it the same as "adaptP3 made things worse" and revert.
+        try
+            H4 = adaptP3(H3,0.1,wp3);
+            wzPost = fndZeroCrs3(H4, wp3);
+            revert = length(wzPost) < MIN_EXTREMA_TO_ASSESS;
+            if ~revert
+                [~, ~, gdPost] = AnlzDH(H4, wzPost(:));
+                ripplePost = (max(gdPost) - min(gdPost)) / mean(gdPost);
+                revert = ripplePost >= ripplePre;
+            end
+            if revert
+                if length(wzPost) < MIN_EXTREMA_TO_ASSESS
+                    fprintf(['dsgnEquiRplGD: adaptP3''s output has too few ' ...
+                        'extrema to assess (%d) - reverting to pre-adaptP3 ' ...
+                        'poles\n'], length(wzPost));
+                else
+                    fprintf(['dsgnEquiRplGD: adaptP3 made group-delay ripple ' ...
+                        'worse (%.2f%% -> %.2f%%) - reverting to pre-adaptP3 ' ...
+                        'poles\n'], 100*ripplePre, 100*ripplePost);
+                end
+                H4 = H3;
+            end
+        catch ME
+            fprintf(['dsgnEquiRplGD: adaptP3 failed (%s) - reverting to ' ...
+                'pre-adaptP3 poles\n'], ME.message);
+            H4 = H3;
+        end
+    end
     % now shift back to the desired passband frequency; this is a complex
     % frequency shift
     H2 = freq_shiftd(H4, -shftFctr);

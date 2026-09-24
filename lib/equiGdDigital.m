@@ -38,7 +38,7 @@ function H4 = equiGdDigital(p,px,ni,wp,ws,as,Ap,deltGD, useWs)
     Ordr = ni + np;
     [H1 T0] = LinPhFltr(Ordr, 0.01, Ap); % design continous prototype
     [p, px, wp, ws, as, H2] = cont2Digital(H1, p, px, wp, ws, as, sclFctr, shftFctr);
-    H2 = adaptP2(H2,deltGD);
+    H2 = adaptP2(H2,deltGD,wp);
     % H2 = adaptP3(H2,deltGD); % adaptP3's moving target (recomputed from
     % mean(Tz) every iteration) plus its escalating step size
     % (logspace(-2,-1,200), vs adaptP2's fixed 0.05) has no stability

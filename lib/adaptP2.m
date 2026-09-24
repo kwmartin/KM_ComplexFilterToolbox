@@ -1,6 +1,9 @@
-function H = adaptP2(H, deltT)
-%   [H2, deltT] = adaptP2(H) adapts the poles of a digital filter to correct the group delay
-%   to be equiripple after being distorted by the bilinear transform
+function H = adaptP2(H, deltT, wp)
+%   [H2, deltT] = adaptP2(H, deltT, wp) adapts the poles of a digital filter to correct the group delay
+%   to be equiripple after being distorted by the bilinear transform.
+%   wp is the passband, forwarded to fndZeroCrs3 so its search range
+%   tracks the actual passband instead of a fixed fraction of the whole
+%   spectrum.
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2018  Kenneth Martin
@@ -37,7 +40,7 @@ function H = adaptP2(H, deltT)
     fgd = wrng/(2*pi);
     w = wrng(1):deltW:wrng(2);
     Np = length(p1);
-    wz = fndZeroCrs3(H1);
+    wz = fndZeroCrs3(H1, wp);
     % wz2 = fndZeroCrs2(H1,fgd); % works very well but 22.6 times slower
     Tz = p2T(H1, wz);
     %dT = mean(abs(diff(gdHz1(1:Np))));
@@ -51,7 +54,7 @@ function H = adaptP2(H, deltT)
     f = w./(2*pi);
     for i = 1:200
         H = zpk(z, p, k, 1);
-        wz = fndZeroCrs3(H);
+        wz = fndZeroCrs3(H, wp);
         Tz = p2T(H, wz);
         Y = setY2(Tz, gd1, gd2);
         sens = plSens(p, wz);

@@ -168,6 +168,26 @@ it. Practical takeaway: **use ws=6x for `5_10_0`**, not ws=4x; if ws must stay
 near 4x, the instability itself would need to be root-caused. Left as an open
 item below.
 
+### 2026-09-25 update: full re-run with the fixed selection logic
+
+`equiGd_Ap_scld` was re-run end to end after the fix above (the rows other
+than `5_0_0`/`5_10_0` had only been run before it). At ws = 6x every row is
+unchanged except `1_15_0`:
+
+| spec | variant | k | Ap band | wp-edge loss | GD p2p | stop | designs |
+|---|---|---|---|---|---|---|---|
+| 1_15_0 | ws 6x* (before fix) | 3.05 | 1.017 | 2.92 | 2.31% | 170.8 | 8 |
+| 1_15_0 | ws 6x* (after fix) | 2.80 | **0.940** | **3.43** | 2.04% | 191.2 | 8 |
+
+The history shows nearly every trial with k between 2.8 and 3.0 is broken
+(GD p2p 50–2500%, or an Ap band of 3 with negative stopband loss); the
+earlier k = 3.05 result was a lucky landing on a good design inside that
+range. Running 14 trial designs instead of 8 does not find one again. So
+`1_15_0` at 6x has the same inner-solver instability as `5_10_0` at 4x
+(next step 1 below). At ws = 4x, `1_12_0` (0.943 -> 0.887), `1_15_0`
+(1.003 -> 0.998) and `15_0_0` (0.937 -> 0.941) also moved slightly. The
+paper's §6.1 table now uses these numbers: 8 of 9 hold Ap at wp.
+
 ### Reading the results
 
 - **ws = 6x wp works for 6 of the 9 specs:** `1_6_0`, `1_10_0`, `1_12_0`,

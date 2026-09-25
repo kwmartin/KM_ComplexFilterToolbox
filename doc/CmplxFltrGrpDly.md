@@ -86,8 +86,11 @@ specification to a finished filter.
    angles are found by directly solving for the equi-ripple condition.
 3. **Map to the digital domain.** Apply the bilinear transform to the
    prototype, then shift and un-warp the result back onto the actual
-   passband. The prototype's $N$-fold pole at infinity becomes $N$ zeros
-   at the Nyquist frequency $z=-1$.
+   passband. The all-pole prototype's $N$ zeros at infinity become $N$
+   zeros at $z=-e^{j\omega_0}$, the point on the unit circle opposite the
+   passband centre $\omega_0$ (for every example in this paper the
+   passband is centred on zero, so this is the Nyquist frequency $z=-1$).
+   Step 5 then moves them to their final positions.
 4. **Re-equalize the group delay.** The bilinear mapping is nonlinear in
    frequency, so it distorts the prototype's equi-ripple group delay.
    Correct this directly on the mapped filter's poles with a damped
@@ -309,13 +312,11 @@ $$
 The forward and inverse transforms are
 
 $$
-x \;=\; \frac{1}{t}\cdot\frac{z\,e^{-j\omega_0} - 1}{z\,e^{-j\omega_0} + 1}
-\qquad\text{(§ }z\to x\text{)}, \tag{12}
+x \;=\; \frac{1}{t}\cdot\frac{z\,e^{-j\omega_0} - 1}{z\,e^{-j\omega_0} + 1}, \tag{1}
 $$
 
 $$
-z \;=\; e^{j\omega_0}\,\frac{1 + t x}{1 - t x}
-\qquad\text{(§ }x\to z\text{)}. \tag{13}
+z \;=\; e^{j\omega_0}\,\frac{1 + t x}{1 - t x}. \tag{2}
 $$
 
 This is a Möbius transform centered on the band rather than on the
@@ -343,7 +344,7 @@ nonlinearly, so the chain rule introduces a Jacobian factor:
 
 $$
 \tau_z(\omega) \;=\; \tau_x(W)\cdot J, \qquad
-J = \frac{dW}{d\omega} = \frac{1+t^2W^2}{2t}. \tag{14}
+J = \frac{dW}{d\omega} = \frac{1+t^2W^2}{2t}. \tag{3}
 $$
 
 Because $J$ does not depend on the filter's poles, a pole's group-delay
@@ -363,7 +364,7 @@ again on any further round trip); and a root landing exactly at
 $z=-e^{j\omega_0}$ (which maps to $x=\infty$ and is dropped, its
 contribution folded into the gain instead). A verification suite
 (`examples/chk_z2xc_edges.m`) confirms round-trip accuracy, response
-equality, and the group-delay identity of Eq. 14 to within about
+equality, and the group-delay identity of Eq. 3 to within about
 $10^{-13}$ across all of these cases, including on a real filter from
 this work's own examples.
 
@@ -409,7 +410,7 @@ register any change in $r$ at all, depending on $w$.
 **The cancellation problem.** Writing $r=1-\varepsilon$ and
 $\Delta=\omega-\theta$, the kernel's denominator is exactly
 $$
-1-2r\cos\Delta+r^2 \;=\; (1-r)^2 + 2r(1-\cos\Delta) \;=\; \varepsilon^2 + 4r\sin^2(\Delta/2), \tag{15}
+1-2r\cos\Delta+r^2 \;=\; (1-r)^2 + 2r(1-\cos\Delta) \;=\; \varepsilon^2 + 4r\sin^2(\Delta/2), \tag{4}
 $$
 using $1-\cos\Delta=2\sin^2(\Delta/2)$. But if the denominator is instead
 evaluated the direct way — computing $1$, $2r\cos\Delta$, and $r^2$
@@ -428,7 +429,7 @@ observed in practice, and enough to bury the finite-difference gradient
 parameter) in rounding noise rather than signal. The same style of
 cancellation would recur at $\Delta\to 0$ — evaluating $1-\cos\Delta$
 directly loses precision the same way as $\Delta$ shrinks — which is why
-Eq. 15's right-hand side avoids *both* subtractions at once: $\varepsilon$
+Eq. 4's right-hand side avoids *both* subtractions at once: $\varepsilon$
 is used directly, not recovered by subtracting a stored $r$ from 1, and
 $\sin(\Delta/2)$ is evaluated directly rather than via $1-\cos\Delta$, so
 every term entering the sum is already the right order of magnitude and
@@ -500,18 +501,26 @@ same result.
    fixed normalized band, for the specified passband ripple $A_p$.
 3. **Map to the digital domain** `[cont2Digital]`. Apply the bilinear
    transform, then shift and un-warp back onto the actual passband. The
-   prototype's pole at infinity (multiplicity $N$) becomes $N$ zeros at
-   the Nyquist frequency $z=-1$.
+   prototype's $N$ zeros at infinity become $N$ zeros at
+   $z=-e^{j\omega_0}$ ($z=-1$ for the zero-centred passbands used here).
 4. **Re-equalize the group delay** `[adaptP2_scld, fndZeroCrs3_scld]`.
    Locate the current configuration's group-delay extrema
-   $\{w_k\}_{k=1}^K$ (§4.2's fixed-but-band-scaled grid), and drive them
+   $\{w_k\}_{k=1}^K$ as sign changes of $d\tau/d\omega$ on a uniform
+   grid. The search window is sized to the band: starting at one
+   passband width either side of the passband, it is doubled until no
+   sign change lies at its edge (up to 64 widths, and never past
+   $\pm\pi$), then set to the outermost extremum found plus 20%. The grid
+   step itself is fixed at $10^{-5}$ cycles, which is ample for the
+   passbands used here ($1/64$ and $0.1$ cycles wide); §4.2's
+   band-scaled grid is needed only for passbands several orders of
+   magnitude narrower. Drive the extrema
    toward a classical Chebyshev alternation — odd-indexed extrema toward
    one level $T_1$, even-indexed extrema toward $T_2=T_1-\Delta T$, for a
    caller-specified ripple size $\Delta T$ — rather than solving for the
    optimal ripple level as an extra unknown, which keeps the update
    linear:
    $$
-   Y_k \;=\; \begin{cases}\tau(w_k)-T_1 & k \text{ odd} \\ \tau(w_k)-T_2 & k \text{ even}\end{cases}. \tag{16}
+   Y_k \;=\; \begin{cases}\tau(w_k)-T_1 & k \text{ odd} \\ \tau(w_k)-T_2 & k \text{ even}\end{cases}. \tag{5}
    $$
    Each iteration solves the linear least-squares system $S\,\Delta p = Y$
    for a perturbation $\Delta p$ to every pole's real and imaginary parts,
@@ -532,7 +541,7 @@ same result.
    band})$ against $\log k$,
    $$
    \log k^{(i+1)} \;=\; \log k^{(i)} \;-\; \frac{\log b^{(i)}}{\text{slope}^{(i)}}, \qquad
-   \text{slope}^{(i)} = \frac{\log b^{(i)}-\log b^{(i-1)}}{\log k^{(i)}-\log k^{(i-1)}}, \tag{17}
+   \text{slope}^{(i)} = \frac{\log b^{(i)}-\log b^{(i-1)}}{\log k^{(i)}-\log k^{(i-1)}}, \tag{6}
    $$
    discarding, for both this step and the slope above, any trial whose
    group-delay ripple exceeds a basic sanity bound and stepping back
@@ -547,10 +556,15 @@ ordinary, wide passband; `shrink_peakNewton_scld` runs the same
 two-phase schedule with every $z$-domain quantity below replaced by its
 $x$-domain counterpart, to demonstrate steps 3-5 at bands as narrow as
 $5\times10^{-5}$ cycles. §4.2 found the $x$-domain form necessary at
-such widths, so it is the one given here; the plain $z$-domain
-$(r,\theta)$ form of §3.1 is the special case $\sigma=(1-r)/((1+r)t)$,
-$W_p=\tan((\theta-\omega_0)/2)/t$ at whatever width makes that
-substitution well conditioned.
+such widths, so it is the one given here. The plain $z$-domain
+$(r,\theta)$ form of §3.1 describes the same poles: by Eq. 1, a $z$ pole
+$re^{j\theta}$ with $\varphi=\theta-\omega_0$ maps to $x=-\sigma+jW_p$ with
+$$
+\sigma = \frac{1-r^2}{t\,(1+2r\cos\varphi+r^2)}, \qquad
+W_p = \frac{2r\sin\varphi}{t\,(1+2r\cos\varphi+r^2)}. \tag{7}
+$$
+At the band centre ($\varphi=0$) this reduces to $\sigma=(1-r)/((1+r)t)$,
+and as $r\to1$, $W_p\to\tan(\varphi/2)/t$.
 
 1. **Fix the anchor.** Compute $D_0$ once from the unequalized filter's
    own passband extrema, and hold it fixed for the rest of the
@@ -568,14 +582,14 @@ substitution well conditioned.
 4. **Phase 1 — equalize the frequencies.** With every $\sigma_i$ fixed,
    form the gain-weighted deviation from the anchor at each extremum,
    $$
-   w_k \;=\; \big|\tau(f_k)-D_0\big|\cdot|H(f_k)|, \tag{18}
+   w_k \;=\; \big|\tau(f_k)-D_0\big|\cdot|H(f_k)|, \tag{8}
    $$
    and its closed-form derivative with respect to each cluster's
    frequency,
    $$
    \frac{\partial \tau(\omega)}{\partial W_{p,i}} \;=\; c_i\,J\,
    \frac{4\sigma_i(W-W_{p,i})}{\big(\sigma_i^2+(W-W_{p,i})^2\big)^2},
-   \qquad J = \frac{1+t^2W^2}{2t}. \tag{19}
+   \qquad J = \frac{1+t^2W^2}{2t}. \tag{9}
    $$
    Assemble these into a Jacobian $J_w$ of the weighted deviations and
    solve, via the Moore-Penrose pseudoinverse (the number of tracked
@@ -583,7 +597,7 @@ substitution well conditioned.
    call),
    $$
    \Delta W_p \;=\; J_w^{+}\big(\bar w\,\mathbf 1 - \mathbf w\big), \qquad
-   \bar w = \frac1K\sum_k w_k, \tag{20}
+   \bar w = \frac1K\sum_k w_k, \tag{10}
    $$
    for the step that drives every $w_k$ toward their common mean, and
    apply a damped fraction $W_p \leftarrow W_p + \alpha_1\Delta W_p$.
@@ -592,7 +606,7 @@ substitution well conditioned.
    $\sigma_i$ as well, add the matching derivative
    $$
    \frac{\partial \tau(\omega)}{\partial \sigma_i} \;=\; c_i\,J\,
-   \frac{2\big((W-W_{p,i})^2-\sigma_i^2\big)}{\big(\sigma_i^2+(W-W_{p,i})^2\big)^2} \tag{21}
+   \frac{2\big((W-W_{p,i})^2-\sigma_i^2\big)}{\big(\sigma_i^2+(W-W_{p,i})^2\big)^2} \tag{11}
    $$
    as a second block of Jacobian columns, and repeat the update of step 4
    with a separate, smaller damping $\alpha_2$, clamping every $\sigma_i$
@@ -603,13 +617,13 @@ substitution well conditioned.
    for a set number of steps, keeping that best configuration.
 6. **Return the equalizer.** Report the final $\{(W_{p,i},\sigma_i,c_i)\}$
    and the resulting group delay, converting each pole back to $z$ with
-   Eq. 13 for realization.
+   Eq. 2 for realization.
 
 Because every quantity in steps 3-5 is expressed in $x$-domain, band-unit
-terms — $W_{p,i}$, $\sigma_i$, and the kernel of Eq. 19/21 itself — this
+terms — $W_{p,i}$, $\sigma_i$, and the kernel of Eqs. 9/11 itself — this
 description, and the code implementing it, is unchanged whether the
 target passband is $0.05$ cycles wide or $5\times10^{-5}$; only $t$ and
-$\omega_0$ (Eq. 12) differ.
+$\omega_0$ (Eq. 1) differ.
 
 ## 6. Overview of the Best Examples
 
@@ -624,8 +638,8 @@ combinations, are carried through the full procedure of §5.1, including
 step 6's band-widening loop. Recommending a single design-band factor $k$
 per filter is itself part of the result: widening to $6\times$ the
 passband half-width (§2.2) holds the $A_p$ edge at $[f_{p1},f_{p2}]$ for
-all nine, with the stop-band left comfortably clear of its 20 dB target
-in every case, so it is the variant given below (`equiGdDigitalAp_scld`
+eight of the nine, with the stop-band left comfortably clear of its
+20 dB target in every case, so it is the variant given below (`equiGdDigitalAp_scld`
 with $\text{ws}=6\times$; see `equiGd_Ap_scld` for all nine filters in
 one run). Before step 6 was added, every one of these filters held $A_p$
 over only 0.25-0.37 of the specified passband.
@@ -635,7 +649,7 @@ over only 0.25-0.37 of the specified passband.
 | `1_6_0`  | 1.00 | 1.000 | 1.00 | 0.93% | 63.0 |
 | `1_10_0` | 3.01 | 1.001 | 3.02 | 0.34% | 140.1 |
 | `1_12_0` | 3.01 | 0.998 | 3.04 | 2.36% | 173.9 |
-| `1_15_0` | 3.01 | 1.017 | 2.92 | 2.31% | 170.8 |
+| `1_15_0` | 3.01 | 0.940 | 3.43 | 2.04% | 191.2 |
 | `15_0_0` | 3.01 | 1.000 | 3.01 | 2.28% | 152.9 |
 | `3_4_0`  | 1.00 | 0.999 | 1.00 | 0.54% | 45.1 |
 | `3_10_0` | 3.01 | 1.000 | 3.06 | 0.31% | 150.7 |
@@ -643,8 +657,16 @@ over only 0.25-0.37 of the specified passband.
 | `5_10_0` | 3.01 | 1.007 | 2.98 | 2.16% | 166.3 |
 
 `5_0_0` and `5_10_0` needed the selection-logic fix of §2.2's last
-paragraph to reach this table at all; every other row was already
-reachable before that fix.
+paragraph to reach this table at all. `1_15_0` is the one filter that
+falls short: nearly every trial design with $k$ between 2.8 and 3.0 is
+numerically broken (group-delay ripple of 50-2500%), so the search
+settles on the last sane design below that range, whose $A_p$ edge sits
+at 0.94 of the target (0.4 dB of extra loss at the passband edge). A run
+before the selection fix happened to land on a good design inside the
+range ($k=3.05$: band 1.017, GD p2p 2.31%), and allowing 14 trial
+designs instead of 8 does not find one again, so the instability, not
+the search, is what limits this filter. `5_10_0` shows the same
+behaviour when ws is only $4\times$ the passband half-width.
 
 ### 6.2 Method 2: the All-Pass Cluster Equalizer
 

@@ -38,3 +38,5 @@ settings.mat
 # excluded.
 /doc/*
 !/doc/snelgrove_cmplx.pdf
+# Exception: the paper's own figures (examples/paper_figs_scld.m)
+!/doc/figures/

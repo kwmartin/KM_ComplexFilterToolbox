@@ -24,6 +24,14 @@ already holds copyrighted reference material excluded from git (see
 Issues.md issue 2), so this copy is not meant to be committed from there.
 Use --no-doc-copy to skip it.
 
+Figures: the paper refers to images as figures/<name> with no extension
+(written by examples/paper_figs_scld.m into doc/figures/ as both .pdf and
+.png). The LaTeX build uses the vector .pdf and the HTML build the .png
+(pandoc's --default-image-extension). The figures/ folder next to the
+Markdown file is copied into --build-dir, since pdflatex runs there and
+the built HTML refers to figures/<name>.png relative to itself; after the
+PDF is built only the .png copies are kept there.
+
 Requires `pandoc` and `pdflatex` on PATH. `google-chrome` (or `chromium`/
 `chromium-browser`) is only needed if --view is used.
 
@@ -96,6 +104,8 @@ def build_html(md_path, out_path, pagetitle, toc):
         "pandoc", str(md_path), "-o", str(out_path),
         "--standalone", f"--mathjax={MATHJAX_URL}",
         "--metadata", f"pagetitle={pagetitle}",
+        "--default-image-extension=png",
+        f"--resource-path={md_path.parent}",
     ]
     if toc:
         cmd.append("--toc")
@@ -108,6 +118,8 @@ def build_tex(md_path, tex_path, header_path, toc):
         "pandoc", str(md_path), "-o", str(tex_path),
         "--standalone",
         "--include-in-header", str(header_path),
+        "--default-image-extension=pdf",
+        f"--resource-path={md_path.parent}",
     ]
     if toc:
         cmd.append("--toc")
@@ -135,6 +147,32 @@ def compile_pdf(tex_path, outdir, max_passes=5):
         if "Rerun to get" not in result.stdout:
             return
     print(f"note: cross-references may still be unstable after {max_passes} passes")
+
+
+def copy_figures(md_path, build_dir):
+    """Copy the figures/ folder next to the Markdown file into build_dir,
+    so pdflatex (run in build_dir) finds the .pdf figures and the built
+    HTML finds the .png ones. Returns the copied folder, or None."""
+    src = md_path.parent / "figures"
+    if not src.is_dir():
+        return None
+    dst = build_dir / "figures"
+    if src.resolve() == dst.resolve():
+        return dst
+    dst.mkdir(parents=True, exist_ok=True)
+    for f in src.iterdir():
+        if f.suffix in (".pdf", ".png"):
+            shutil.copy2(f, dst / f.name)
+    return dst
+
+
+def drop_pdf_figures(fig_dir):
+    """After the PDF is built, the .pdf figure copies in the build dir
+    are no longer needed (the built HTML only uses the .png ones)."""
+    if fig_dir is None:
+        return
+    for f in fig_dir.glob("*.pdf"):
+        f.unlink()
 
 
 def clean_aux(stem, outdir):
@@ -212,6 +250,8 @@ def main():
     do_html = not args.pdf_only
     do_pdf = not args.html_only
 
+    fig_dir = copy_figures(md_path, build_dir)
+
     if do_html:
         build_html(md_path, html_path, pagetitle, toc)
         print(f"HTML: {html_path}")
@@ -220,6 +260,8 @@ def main():
         header_path.write_text(LATEX_HEADER, encoding="utf-8")
         build_tex(md_path, tex_path, header_path, toc)
         compile_pdf(tex_path, build_dir)
+        if fig_dir is not None and fig_dir.resolve() != (md_path.parent / "figures").resolve():
+            drop_pdf_figures(fig_dir)
         if not args.keep_aux:
             clean_aux(stem, build_dir)
             header_path.unlink(missing_ok=True)

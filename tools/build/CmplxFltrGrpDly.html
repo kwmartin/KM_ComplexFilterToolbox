@@ -322,10 +322,15 @@ Bessel filter whose pole angles are found by directly solving for the
 equi-ripple condition.</li>
 <li><strong>Map to the digital domain.</strong> Apply the bilinear
 transform to the prototype, then shift and un-warp the result back onto
-the actual passband. The prototype’s <span
-class="math inline">\(N\)</span>-fold pole at infinity becomes <span
-class="math inline">\(N\)</span> zeros at the Nyquist frequency <span
-class="math inline">\(z=-1\)</span>.</li>
+the actual passband. The all-pole prototype’s <span
+class="math inline">\(N\)</span> zeros at infinity become <span
+class="math inline">\(N\)</span> zeros at <span
+class="math inline">\(z=-e^{j\omega_0}\)</span>, the point on the unit
+circle opposite the passband centre <span
+class="math inline">\(\omega_0\)</span> (for every example in this paper
+the passband is centred on zero, so this is the Nyquist frequency <span
+class="math inline">\(z=-1\)</span>). Step 5 then moves them to their
+final positions.</li>
 <li><strong>Re-equalize the group delay.</strong> The bilinear mapping
 is nonlinear in frequency, so it distorts the prototype’s equi-ripple
 group delay. Correct this directly on the mapped filter’s poles with a
@@ -564,12 +569,10 @@ fixed, band-independent scale.</p>
 <p>The forward and inverse transforms are</p>
 <p><span class="math display">\[
 x \;=\; \frac{1}{t}\cdot\frac{z\,e^{-j\omega_0} - 1}{z\,e^{-j\omega_0} +
-1}
-\qquad\text{(§ }z\to x\text{)}, \tag{12}
+1}, \tag{1}
 \]</span></p>
 <p><span class="math display">\[
-z \;=\; e^{j\omega_0}\,\frac{1 + t x}{1 - t x}
-\qquad\text{(§ }x\to z\text{)}. \tag{13}
+z \;=\; e^{j\omega_0}\,\frac{1 + t x}{1 - t x}. \tag{2}
 \]</span></p>
 <p>This is a Möbius transform centered on the band rather than on the
 origin, chosen so that the band maps onto a fixed reference range
@@ -606,7 +609,7 @@ class="math inline">\(W\)</span> are related nonlinearly, so the chain
 rule introduces a Jacobian factor:</p>
 <p><span class="math display">\[
 \tau_z(\omega) \;=\; \tau_x(W)\cdot J, \qquad
-J = \frac{dW}{d\omega} = \frac{1+t^2W^2}{2t}. \tag{14}
+J = \frac{dW}{d\omega} = \frac{1+t^2W^2}{2t}. \tag{3}
 \]</span></p>
 <p>Because <span class="math inline">\(J\)</span> does not depend on the
 filter’s poles, a pole’s group-delay <em>sensitivity</em> in <span
@@ -632,9 +635,9 @@ class="math inline">\(z=-e^{j\omega_0}\)</span> (which maps to <span
 class="math inline">\(x=\infty\)</span> and is dropped, its contribution
 folded into the gain instead). A verification suite
 (<code>examples/chk_z2xc_edges.m</code>) confirms round-trip accuracy,
-response equality, and the group-delay identity of Eq. 14 to within
-about <span class="math inline">\(10^{-13}\)</span> across all of these
-cases, including on a real filter from this work’s own examples.</p>
+response equality, and the group-delay identity of Eq. 3 to within about
+<span class="math inline">\(10^{-13}\)</span> across all of these cases,
+including on a real filter from this work’s own examples.</p>
 <p>Implementation: <code>lib/z2xc.m</code> and
 <code>lib/xc2z.m</code>.</p>
 <h3 id="where-it-gives-a-noticeable-improvement">4.2 Where It Gives a
@@ -695,7 +698,7 @@ class="math inline">\(r=1-\varepsilon\)</span> and <span
 class="math inline">\(\Delta=\omega-\theta\)</span>, the kernel’s
 denominator is exactly <span class="math display">\[
 1-2r\cos\Delta+r^2 \;=\; (1-r)^2 + 2r(1-\cos\Delta) \;=\; \varepsilon^2
-+ 4r\sin^2(\Delta/2), \tag{15}
++ 4r\sin^2(\Delta/2), \tag{4}
 \]</span> using <span
 class="math inline">\(1-\cos\Delta=2\sin^2(\Delta/2)\)</span>. But if
 the denominator is instead evaluated the direct way — computing <span
@@ -725,7 +728,7 @@ noise rather than signal. The same style of cancellation would recur at
 <span class="math inline">\(\Delta\to 0\)</span> — evaluating <span
 class="math inline">\(1-\cos\Delta\)</span> directly loses precision the
 same way as <span class="math inline">\(\Delta\)</span> shrinks — which
-is why Eq. 15’s right-hand side avoids <em>both</em> subtractions at
+is why Eq. 4’s right-hand side avoids <em>both</em> subtractions at
 once: <span class="math inline">\(\varepsilon\)</span> is used directly,
 not recovered by subtracting a stored <span
 class="math inline">\(r\)</span> from 1, and <span
@@ -819,23 +822,35 @@ normalized band, for the specified passband ripple <span
 class="math inline">\(A_p\)</span>.</li>
 <li><strong>Map to the digital domain</strong>
 <code>[cont2Digital]</code>. Apply the bilinear transform, then shift
-and un-warp back onto the actual passband. The prototype’s pole at
-infinity (multiplicity <span class="math inline">\(N\)</span>) becomes
-<span class="math inline">\(N\)</span> zeros at the Nyquist frequency
-<span class="math inline">\(z=-1\)</span>.</li>
+and un-warp back onto the actual passband. The prototype’s <span
+class="math inline">\(N\)</span> zeros at infinity become <span
+class="math inline">\(N\)</span> zeros at <span
+class="math inline">\(z=-e^{j\omega_0}\)</span> (<span
+class="math inline">\(z=-1\)</span> for the zero-centred passbands used
+here).</li>
 <li><strong>Re-equalize the group delay</strong>
 <code>[adaptP2_scld, fndZeroCrs3_scld]</code>. Locate the current
 configuration’s group-delay extrema <span
-class="math inline">\(\{w_k\}_{k=1}^K\)</span> (§4.2’s
-fixed-but-band-scaled grid), and drive them toward a classical Chebyshev
-alternation — odd-indexed extrema toward one level <span
-class="math inline">\(T_1\)</span>, even-indexed extrema toward <span
-class="math inline">\(T_2=T_1-\Delta T\)</span>, for a caller-specified
-ripple size <span class="math inline">\(\Delta T\)</span> — rather than
-solving for the optimal ripple level as an extra unknown, which keeps
-the update linear: <span class="math display">\[
+class="math inline">\(\{w_k\}_{k=1}^K\)</span> as sign changes of <span
+class="math inline">\(d\tau/d\omega\)</span> on a uniform grid. The
+search window is sized to the band: starting at one passband width
+either side of the passband, it is doubled until no sign change lies at
+its edge (up to 64 widths, and never past <span
+class="math inline">\(\pm\pi\)</span>), then set to the outermost
+extremum found plus 20%. The grid step itself is fixed at <span
+class="math inline">\(10^{-5}\)</span> cycles, which is ample for the
+passbands used here (<span class="math inline">\(1/64\)</span> and <span
+class="math inline">\(0.1\)</span> cycles wide); §4.2’s band-scaled grid
+is needed only for passbands several orders of magnitude narrower. Drive
+the extrema toward a classical Chebyshev alternation — odd-indexed
+extrema toward one level <span class="math inline">\(T_1\)</span>,
+even-indexed extrema toward <span class="math inline">\(T_2=T_1-\Delta
+T\)</span>, for a caller-specified ripple size <span
+class="math inline">\(\Delta T\)</span> — rather than solving for the
+optimal ripple level as an extra unknown, which keeps the update linear:
+<span class="math display">\[
 Y_k \;=\; \begin{cases}\tau(w_k)-T_1 &amp; k \text{ odd} \\
-\tau(w_k)-T_2 &amp; k \text{ even}\end{cases}. \tag{16}
+\tau(w_k)-T_2 &amp; k \text{ even}\end{cases}. \tag{5}
 \]</span> Each iteration solves the linear least-squares system <span
 class="math inline">\(S\,\Delta p = Y\)</span> for a perturbation <span
 class="math inline">\(\Delta p\)</span> to every pole’s real and
@@ -868,7 +883,7 @@ band})\)</span> against <span class="math inline">\(\log k\)</span>,
 \log k^{(i+1)} \;=\; \log k^{(i)} \;-\; \frac{\log
 b^{(i)}}{\text{slope}^{(i)}}, \qquad
 \text{slope}^{(i)} = \frac{\log b^{(i)}-\log b^{(i-1)}}{\log
-k^{(i)}-\log k^{(i-1)}}, \tag{17}
+k^{(i)}-\log k^{(i-1)}}, \tag{6}
 \]</span> discarding, for both this step and the slope above, any trial
 whose group-delay ripple exceeds a basic sanity bound and stepping back
 toward the last accepted trial instead — until the achieved band <span
@@ -885,12 +900,21 @@ replaced by its <span class="math inline">\(x\)</span>-domain
 counterpart, to demonstrate steps 3-5 at bands as narrow as <span
 class="math inline">\(5\times10^{-5}\)</span> cycles. §4.2 found the
 <span class="math inline">\(x\)</span>-domain form necessary at such
-widths, so it is the one given here; the plain <span
+widths, so it is the one given here. The plain <span
 class="math inline">\(z\)</span>-domain <span
-class="math inline">\((r,\theta)\)</span> form of §3.1 is the special
-case <span class="math inline">\(\sigma=(1-r)/((1+r)t)\)</span>, <span
-class="math inline">\(W_p=\tan((\theta-\omega_0)/2)/t\)</span> at
-whatever width makes that substitution well conditioned.</p>
+class="math inline">\((r,\theta)\)</span> form of §3.1 describes the
+same poles: by Eq. 1, a <span class="math inline">\(z\)</span> pole
+<span class="math inline">\(re^{j\theta}\)</span> with <span
+class="math inline">\(\varphi=\theta-\omega_0\)</span> maps to <span
+class="math inline">\(x=-\sigma+jW_p\)</span> with <span
+class="math display">\[
+\sigma = \frac{1-r^2}{t\,(1+2r\cos\varphi+r^2)}, \qquad
+W_p = \frac{2r\sin\varphi}{t\,(1+2r\cos\varphi+r^2)}. \tag{7}
+\]</span> At the band centre (<span
+class="math inline">\(\varphi=0\)</span>) this reduces to <span
+class="math inline">\(\sigma=(1-r)/((1+r)t)\)</span>, and as <span
+class="math inline">\(r\to1\)</span>, <span
+class="math inline">\(W_p\to\tan(\varphi/2)/t\)</span>.</p>
 <ol type="1">
 <li><strong>Fix the anchor.</strong> Compute <span
 class="math inline">\(D_0\)</span> once from the unequalized filter’s
@@ -913,19 +937,19 @@ genuine extrema sit closer together than that width.</li>
 <span class="math inline">\(\sigma_i\)</span> fixed, form the
 gain-weighted deviation from the anchor at each extremum, <span
 class="math display">\[
-w_k \;=\; \big|\tau(f_k)-D_0\big|\cdot|H(f_k)|, \tag{18}
+w_k \;=\; \big|\tau(f_k)-D_0\big|\cdot|H(f_k)|, \tag{8}
 \]</span> and its closed-form derivative with respect to each cluster’s
 frequency, <span class="math display">\[
 \frac{\partial \tau(\omega)}{\partial W_{p,i}} \;=\; c_i\,J\,
 \frac{4\sigma_i(W-W_{p,i})}{\big(\sigma_i^2+(W-W_{p,i})^2\big)^2},
-\qquad J = \frac{1+t^2W^2}{2t}. \tag{19}
+\qquad J = \frac{1+t^2W^2}{2t}. \tag{9}
 \]</span> Assemble these into a Jacobian <span
 class="math inline">\(J_w\)</span> of the weighted deviations and solve,
 via the Moore-Penrose pseudoinverse (the number of tracked extrema and
 the number of clusters are unrelated and change call to call), <span
 class="math display">\[
 \Delta W_p \;=\; J_w^{+}\big(\bar w\,\mathbf 1 - \mathbf w\big), \qquad
-\bar w = \frac1K\sum_k w_k, \tag{20}
+\bar w = \frac1K\sum_k w_k, \tag{10}
 \]</span> for the step that drives every <span
 class="math inline">\(w_k\)</span> toward their common mean, and apply a
 damped fraction <span class="math inline">\(W_p \leftarrow W_p +
@@ -936,7 +960,7 @@ Free every <span class="math inline">\(\sigma_i\)</span> as well, add
 the matching derivative <span class="math display">\[
 \frac{\partial \tau(\omega)}{\partial \sigma_i} \;=\; c_i\,J\,
 \frac{2\big((W-W_{p,i})^2-\sigma_i^2\big)}{\big(\sigma_i^2+(W-W_{p,i})^2\big)^2}
-\tag{21}
+\tag{11}
 \]</span> as a second block of Jacobian columns, and repeat the update
 of step 4 with a separate, smaller damping <span
 class="math inline">\(\alpha_2\)</span>, clamping every <span
@@ -951,17 +975,17 @@ configuration.</li>
 <li><strong>Return the equalizer.</strong> Report the final <span
 class="math inline">\(\{(W_{p,i},\sigma_i,c_i)\}\)</span> and the
 resulting group delay, converting each pole back to <span
-class="math inline">\(z\)</span> with Eq. 13 for realization.</li>
+class="math inline">\(z\)</span> with Eq. 2 for realization.</li>
 </ol>
 <p>Because every quantity in steps 3-5 is expressed in <span
 class="math inline">\(x\)</span>-domain, band-unit terms — <span
 class="math inline">\(W_{p,i}\)</span>, <span
-class="math inline">\(\sigma_i\)</span>, and the kernel of Eq. 19/21
+class="math inline">\(\sigma_i\)</span>, and the kernel of Eqs. 9/11
 itself — this description, and the code implementing it, is unchanged
 whether the target passband is <span class="math inline">\(0.05\)</span>
 cycles wide or <span class="math inline">\(5\times10^{-5}\)</span>; only
 <span class="math inline">\(t\)</span> and <span
-class="math inline">\(\omega_0\)</span> (Eq. 12) differ.</p>
+class="math inline">\(\omega_0\)</span> (Eq. 1) differ.</p>
 <h2 id="overview-of-the-best-examples">6. Overview of the Best
 Examples</h2>
 <p>This section collects the current best results for each method, drawn
@@ -977,10 +1001,11 @@ step 6’s band-widening loop. Recommending a single design-band factor
 result: widening to <span class="math inline">\(6\times\)</span> the
 passband half-width (§2.2) holds the <span
 class="math inline">\(A_p\)</span> edge at <span
-class="math inline">\([f_{p1},f_{p2}]\)</span> for all nine, with the
-stop-band left comfortably clear of its 20 dB target in every case, so
-it is the variant given below (<code>equiGdDigitalAp_scld</code> with
-<span class="math inline">\(\text{ws}=6\times\)</span>; see
+class="math inline">\([f_{p1},f_{p2}]\)</span> for eight of the nine,
+with the stop-band left comfortably clear of its 20 dB target in every
+case, so it is the variant given below
+(<code>equiGdDigitalAp_scld</code> with <span
+class="math inline">\(\text{ws}=6\times\)</span>; see
 <code>equiGd_Ap_scld</code> for all nine filters in one run). Before
 step 6 was added, every one of these filters held <span
 class="math inline">\(A_p\)</span> over only 0.25-0.37 of the specified
@@ -1033,10 +1058,10 @@ class="math inline">\(/\)</span>target</th>
 <tr class="even">
 <td><code>1_15_0</code></td>
 <td>3.01</td>
-<td>1.017</td>
-<td>2.92</td>
-<td>2.31%</td>
-<td>170.8</td>
+<td>0.940</td>
+<td>3.43</td>
+<td>2.04%</td>
+<td>191.2</td>
 </tr>
 <tr class="odd">
 <td><code>15_0_0</code></td>
@@ -1081,8 +1106,19 @@ class="math inline">\(/\)</span>target</th>
 </tbody>
 </table>
 <p><code>5_0_0</code> and <code>5_10_0</code> needed the selection-logic
-fix of §2.2’s last paragraph to reach this table at all; every other row
-was already reachable before that fix.</p>
+fix of §2.2’s last paragraph to reach this table at all.
+<code>1_15_0</code> is the one filter that falls short: nearly every
+trial design with <span class="math inline">\(k\)</span> between 2.8 and
+3.0 is numerically broken (group-delay ripple of 50-2500%), so the
+search settles on the last sane design below that range, whose <span
+class="math inline">\(A_p\)</span> edge sits at 0.94 of the target (0.4
+dB of extra loss at the passband edge). A run before the selection fix
+happened to land on a good design inside the range (<span
+class="math inline">\(k=3.05\)</span>: band 1.017, GD p2p 2.31%), and
+allowing 14 trial designs instead of 8 does not find one again, so the
+instability, not the search, is what limits this filter.
+<code>5_10_0</code> shows the same behaviour when ws is only <span
+class="math inline">\(4\times\)</span> the passband half-width.</p>
 <h3 id="method-2-the-all-pass-cluster-equalizer">6.2 Method 2: the
 All-Pass Cluster Equalizer</h3>
 <p><strong>Effect of cluster count, on the toolbox’s primary reference

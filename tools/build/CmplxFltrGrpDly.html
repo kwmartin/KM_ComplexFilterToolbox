@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Group-Delay Equalization for Complex IIR Filters</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+  type="text/javascript"></script>
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#group-delay-equalization-for-complex-iir-filters"
+id="toc-group-delay-equalization-for-complex-iir-filters">Group-Delay
+Equalization for Complex IIR Filters</a>
+<ul>
+<li><a href="#introduction" id="toc-introduction">1. Introduction</a>
+<ul>
+<li><a href="#two-approaches-to-equalizing-group-delay"
+id="toc-two-approaches-to-equalizing-group-delay">1.1 Two Approaches to
+Equalizing Group Delay</a></li>
+</ul></li>
+<li><a href="#method-1-design-from-an-analog-linear-phase-prototype"
+id="toc-method-1-design-from-an-analog-linear-phase-prototype">2. Method
+1: Design from an Analog Linear-Phase Prototype</a>
+<ul>
+<li><a href="#algorithm" id="toc-algorithm">2.1 Algorithm</a></li>
+<li><a href="#alternatives-investigated"
+id="toc-alternatives-investigated">2.2 Alternatives
+Investigated</a></li>
+</ul></li>
+<li><a href="#method-2-cascaded-all-pass-equalizer-clusters"
+id="toc-method-2-cascaded-all-pass-equalizer-clusters">3. Method 2:
+Cascaded All-Pass Equalizer Clusters</a>
+<ul>
+<li><a href="#algorithm-1" id="toc-algorithm-1">3.1 Algorithm</a></li>
+<li><a href="#alternatives-investigated-1"
+id="toc-alternatives-investigated-1">3.2 Alternatives
+Investigated</a></li>
+</ul></li>
+<li><a href="#the-z-to-x-transform" id="toc-the-z-to-x-transform">4. The
+<span class="math inline">\(z\)</span>-to-<span
+class="math inline">\(x\)</span> Transform</a>
+<ul>
+<li><a href="#transform-details" id="toc-transform-details">4.1
+Transform Details</a></li>
+<li><a href="#where-it-gives-a-noticeable-improvement"
+id="toc-where-it-gives-a-noticeable-improvement">4.2 Where It Gives a
+Noticeable Improvement</a></li>
+</ul></li>
+<li><a href="#step-by-step-reference" id="toc-step-by-step-reference">5.
+Step-by-Step Reference</a>
+<ul>
+<li><a href="#method-1-in-detail" id="toc-method-1-in-detail">5.1 Method
+1, in Detail</a></li>
+<li><a href="#method-2-in-detail" id="toc-method-2-in-detail">5.2 Method
+2, in Detail</a></li>
+</ul></li>
+<li><a href="#overview-of-the-best-examples"
+id="toc-overview-of-the-best-examples">6. Overview of the Best
+Examples</a>
+<ul>
+<li><a href="#method-1-the-dig_equigd-series"
+id="toc-method-1-the-dig_equigd-series">6.1 Method 1: the
+<code>dig_equiGd</code> Series</a></li>
+<li><a href="#method-2-the-all-pass-cluster-equalizer"
+id="toc-method-2-the-all-pass-cluster-equalizer">6.2 Method 2: the
+All-Pass Cluster Equalizer</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="group-delay-equalization-for-complex-iir-filters">Group-Delay
+Equalization for Complex IIR Filters</h1>
+<h2 id="introduction">1. Introduction</h2>
+<h3 id="two-approaches-to-equalizing-group-delay">1.1 Two Approaches to
+Equalizing Group Delay</h3>
+<p>This paper considers two distinct approaches to obtaining a complex
+(not-necessarily-conjugate-symmetric) discrete-time IIR filter with
+equalized — ideally equi-ripple — group delay across its passband.</p>
+<p><strong>Method 1: an analog linear-phase prototype, mapped and
+re-equalized in the digital domain.</strong> This approach designs a
+continuous-time lowpass prototype whose group delay is already
+equi-ripple by construction, for a given order and passband ripple, and
+then carries that prototype into the digital domain and onto the desired
+complex passband. The prototype is first mapped to the discrete domain
+by a bilinear-based frequency transformation; because that
+transformation is nonlinear in frequency, it warps the prototype’s
+previously flat group delay, so a second step perturbs the mapped
+filter’s pole positions directly, via a Newton iteration, to restore the
+equi-ripple condition on the actual discrete passband. Stop-band
+attenuation is equalized separately, by placing the filter’s loss zeros
+to balance the stop-band loss minima. In this approach the passband
+shape, the stop-band shape, and the group delay are all properties of
+one and the same set of poles and zeros — there is no separate
+correction network, and group-delay equalization is inseparable from the
+filter’s synthesis.</p>
+<p><strong>Method 2: a cascaded all-pass equalizer built from pole
+clusters.</strong> This approach instead starts from an already-designed
+complex IIR filter — of any type, designed by whatever means — whose
+group delay across the passband is typically far from flat, commonly
+showing two peaks near the passband edges bridged by a lower floor (a
+“bathtub” shape). Rather than altering that filter’s own poles and
+zeros, it cascades additional first-order all-pass sections onto it.
+Because a discrete all-pass section has unit magnitude at every
+frequency, cascading any number of them leaves the filter’s magnitude
+response exactly unchanged and affects only its phase, and hence its
+group delay. For a manageable number of free parameters, the all-pass
+sections are grouped into clusters: each cluster is a stack of several
+identical sections sharing one common pole angle and magnitude, so a
+cluster’s only free parameters are that one angle and one magnitude
+regardless of how many sections it stacks. The cluster angles and
+magnitudes are then tuned by a dedicated Newton/least-squares iteration
+until the group-delay extrema across the passband are equalized. In the
+examples developed for this work, each cluster consists of five stacked
+all-pass sections, and results are shown for both a three-cluster and a
+five-cluster equalizer. In this approach, group-delay equalization is
+entirely decoupled from the base filter’s design: it is a modular
+cascade stage, solved as a separate, smaller fitting problem, that can
+in principle be applied to any filter’s existing group delay without
+touching the poles and zeros that already fix its magnitude
+response.</p>
+<p>The two approaches represent opposite ends of a basic design choice.
+Method 1 bakes the flat-group-delay requirement into the filter’s
+synthesis from the start, at the cost of re-deriving a dedicated
+pipeline (prototype design, frequency mapping, re-equalization,
+stop-band placement) for the filter type and passband at hand. Method 2
+treats group-delay equalization as an add-on that is independent of how
+the underlying filter was designed, at the cost of solving an
+additional, separate optimization problem whose achievable flatness is
+limited by what a cascade of purely delay-adding sections can do to a
+fixed, already-determined group-delay curve.</p>
+<h2 id="method-1-design-from-an-analog-linear-phase-prototype">2. Method
+1: Design from an Analog Linear-Phase Prototype</h2>
+<h3 id="algorithm">2.1 Algorithm</h3>
+<p>The filter is specified by a passband <span
+class="math inline">\([f_{p1},f_{p2}]\)</span> and stop-band edges <span
+class="math inline">\([f_{s1},f_{s2}]\)</span> (not necessarily
+symmetric about zero), a passband ripple <span
+class="math inline">\(A_p\)</span>, and an order split <span
+class="math inline">\(N = n_i + n_p\)</span>: <span
+class="math inline">\(n_i\)</span> loss zeros (zeros of <span
+class="math inline">\(H\)</span>, so called because they are poles of
+the loss function <span class="math inline">\(1/|H|\)</span>) are fixed
+at the digital equivalent of “zeros at infinity” — the Nyquist frequency
+<span class="math inline">\(z=-1\)</span> — and <span
+class="math inline">\(n_p\)</span> are free, each given an initial
+guessed stop-band frequency and adjusted during design. The steps below
+are the ones currently used to go from this specification to a finished
+filter.</p>
+<ol type="1">
+<li><strong>Normalize.</strong> Shift the passband to be centered at
+zero and pre-warp every specified edge for the bilinear transform used
+in step 3, so that the continuous-time prototype of step 2 can always be
+designed on the same fixed, normalized band regardless of where the
+actual passband sits.</li>
+<li><strong>Design the continuous-time prototype.</strong> Design an
+all-pole, continuous-time lowpass filter of order <span
+class="math inline">\(N\)</span> with equi-ripple group delay and
+passband ripple <span class="math inline">\(A_p\)</span> — an adapted
+Bessel filter whose pole angles are found by directly solving for the
+equi-ripple condition.</li>
+<li><strong>Map to the digital domain.</strong> Apply the bilinear
+transform to the prototype, then shift and un-warp the result back onto
+the actual passband. The prototype’s <span
+class="math inline">\(N\)</span>-fold pole at infinity becomes <span
+class="math inline">\(N\)</span> zeros at the Nyquist frequency <span
+class="math inline">\(z=-1\)</span>.</li>
+<li><strong>Re-equalize the group delay.</strong> The bilinear mapping
+is nonlinear in frequency, so it distorts the prototype’s equi-ripple
+group delay. Correct this directly on the mapped filter’s poles with a
+damped Newton iteration: at each step, locate the group delay
+derivative’s zero crossings over the passband expanded by an empirically
+sized margin (§2.2), fit a least-squares correction driving those
+extrema toward a common level, and take a small, fixed step in that
+direction; repeat to convergence.</li>
+<li><strong>Place the loss zeros.</strong> Move <span
+class="math inline">\(n_i\)</span> of the <span
+class="math inline">\(N\)</span> zeros to <span
+class="math inline">\(z=-1\)</span> and initialize the remaining <span
+class="math inline">\(n_p\)</span> at their guessed stop-band
+frequencies, then adjust those <span class="math inline">\(n_p\)</span>
+free zeros with a separate damped Newton iteration to equalize the
+stop-band’s loss minima.</li>
+<li><strong>Hold the passband edge.</strong> Steps 4 and 5 are performed
+independently and in sequence, and their combined effect narrows the
+band within <span class="math inline">\(A_p\)</span> of the passband
+peak well short of the specified <span
+class="math inline">\([f_{p1},f_{p2}]\)</span>. Steps 2 through 5 are
+therefore wrapped in an outer loop that re-runs them on a widened design
+passband (the normalized band of step 1, scaled by a factor <span
+class="math inline">\(k&gt;1\)</span> about the true passband’s center),
+measures the resulting <span class="math inline">\(A_p\)</span>-band,
+and adjusts <span class="math inline">\(k\)</span> — a damped secant
+search on <span class="math inline">\(\log(\text{band})\)</span> against
+<span class="math inline">\(\log k\)</span>, filtered against
+numerically broken trial designs (§2.2) — until the achieved <span
+class="math inline">\(A_p\)</span>-band matches <span
+class="math inline">\([f_{p1},f_{p2}]\)</span> to within a small
+tolerance.</li>
+</ol>
+<p>Implementation: step 2 is <code>lib/LinPhFltr.m</code>; steps 1 and 3
+are <code>lib/nrmlzSpecsD.m</code> and <code>lib/cont2Digital.m</code>;
+step 4 is <code>lib/adaptP2_scld.m</code> (extremum location by
+<code>lib/fndZeroCrs3_scld.m</code>); step 5 is
+<code>lib/place_polesdLP5.m</code>; the whole pipeline of steps 2-5 is
+<code>lib/equiGdDigital_scld.m</code>, and step 6’s outer loop is
+<code>lib/equiGdDigitalAp_scld.m</code>.</p>
+<h3 id="alternatives-investigated">2.2 Alternatives Investigated</h3>
+<p><strong>Sizing the extremum-search margin (step 4).</strong> An
+earlier version of the group-delay-extremum locator searched a fixed
+range spanning the entire normalized spectrum, regardless of the
+passband; for a passband narrow and centered near zero this returned as
+few as 1 extremum where 7 were needed, since the search was
+overwhelmingly dominated by stop-band structure unrelated to the
+passband ripple being corrected. A second version instead sized the
+margin as a fixed fraction of the passband width (10%, with a 2% floor);
+this was still wrong in general, because the margin actually needed
+depends on the specific pole configuration, not on the passband width
+alone — for one configuration the true extrema sat right at the edge of
+that fixed window, and only widening the window showed that they had not
+disappeared but simply extended beyond it. The current locator instead
+scans progressively wider windows until widening no longer changes which
+extrema are found, then sizes the margin from their observed extent plus
+a safety margin.</p>
+<p><strong>Choice of Newton scheme (step 4).</strong> The
+re-equalization step was first implemented with an escalating step size
+and no stability safeguard; this was found to be able to drive the
+filter unstable outright — one case went from a stable design (max pole
+magnitude 0.87) to max pole magnitude 9.88, with 9 of 13 poles outside
+the unit circle, after a single call. The fixed, damped step used
+instead is far more stable in practice, though it is not itself a
+guarantee against instability.</p>
+<p><strong>Holding the passband edge (step 6).</strong> The narrowing
+described in step 6 was first investigated with two simpler fixes:
+skipping the group-delay re-equalization step entirely, and rescaling
+the design’s poles in a transformed frequency variable after that step.
+Neither was sufficient on its own — even the better of the two only
+recovered about half of the target band, since the stop-band loss-zero
+placement of step 5 narrows the band again by itself, independent of
+step 4. Widening the whole design band and iterating, as in step 6, was
+the approach that actually closed the gap.</p>
+<p><strong>Robustness of the outer search (step 6).</strong> The
+relationship between the widening factor <span
+class="math inline">\(k\)</span> and the achieved <span
+class="math inline">\(A_p\)</span>-band is not smooth for every pole
+configuration: for two of the configurations tried, some trial values of
+<span class="math inline">\(k\)</span> produced numerically broken
+designs — group-delay ripple in the hundreds or thousands of percent —
+whose achieved band nonetheless looked close to the target. Selecting a
+trial purely by how close its achieved band was to the target therefore
+sometimes preferred a broken design over a well-behaved one available in
+the very same search. The current search instead discards any trial
+whose group-delay ripple exceeds a basic sanity bound before comparing
+achieved bands, and steps back toward the last accepted trial instead of
+extrapolating from a discarded one.</p>
+<h2 id="method-2-cascaded-all-pass-equalizer-clusters">3. Method 2:
+Cascaded All-Pass Equalizer Clusters</h2>
+<h3 id="algorithm-1">3.1 Algorithm</h3>
+<p>The starting point is an already-designed filter <span
+class="math inline">\(H(z)\)</span> with group delay <span
+class="math inline">\(\tau_H(f)\)</span> over its passband <span
+class="math inline">\([f_{p1},f_{p2}]\)</span>, typically showing the
+“bathtub” shape described in §1.1. The equalizer is a cascade of <span
+class="math inline">\(N\)</span> first-order all-pass sections grouped
+into <span class="math inline">\(M\)</span> clusters: cluster <span
+class="math inline">\(i\)</span> is <span
+class="math inline">\(c_i\)</span> identical stacked sections sharing
+one pole angle <span class="math inline">\(\theta_i\)</span> and
+magnitude <span class="math inline">\(r_i\)</span>, so <span
+class="math inline">\(N = \sum_i c_i\)</span> and the equalizer
+contributes a total group delay <span class="math inline">\(\tau_{eq} =
+\sum_i c_i\,\tau_i(\theta_i,r_i)\)</span>. The steps below are the ones
+currently used to choose <span
+class="math inline">\(\{(\theta_i,r_i)\}\)</span>.</p>
+<ol type="1">
+<li><strong>Fix the anchor.</strong> Compute a target delay level <span
+class="math inline">\(D_0\)</span> once, from the <em>unequalized</em>
+filter’s own passband group-delay extrema (in practice the mean of its
+two edge peaks), and never recompute it afterward — an external, fixed
+target rather than one that could drift with the equalizer’s own
+output.</li>
+<li><strong>Initialize the clusters.</strong> Choose <span
+class="math inline">\(M\)</span> clusters of <span
+class="math inline">\(c_i\)</span> stacked identical sections, spread
+their starting angles across the passband (evenly, or symmetrically for
+a symmetric passband), and give them all a common starting radius <span
+class="math inline">\(r_0\)</span>.</li>
+<li><strong>Detect the current extrema.</strong> At each iteration,
+locate every local extremum of the combined group delay <span
+class="math inline">\(\tau_H+\tau_{eq}\)</span> over the passband
+expanded by a margin, by scanning its second derivative for sign changes
+on a uniform grid — each bracket between consecutive sign changes
+contains at most one extremum — and refining each extremum’s location
+with one Newton step.</li>
+<li><strong>Phase 1 — equalize the angles.</strong> With the radii held
+fixed, form the closed-form Jacobian of each extremum’s gain-weighted
+deviation from <span class="math inline">\(D_0\)</span> with respect to
+each cluster’s angle, solve via pseudoinverse for the least-squares step
+driving every deviation toward their common mean, and take a damped
+fraction of it. Repeat with step 3 until the deviation spread stops
+improving.</li>
+<li><strong>Phase 2 — equalize angles and radii jointly.</strong>
+Continuing from the Phase 1 result, free the radii as well and repeat
+the same update with both angle and radius Jacobian columns, using a
+separate (smaller) damping. This phase does not converge monotonically,
+so track the best (smallest-spread) configuration seen and stop once it
+fails to improve for a set number of steps, returning that best
+configuration rather than the final iterate.</li>
+<li><strong>Return the equalizer.</strong> Report the final cluster
+angles, radii, and section counts, and the resulting flattened group
+delay <span class="math inline">\(\tau_H+\tau_{eq}\)</span>.</li>
+</ol>
+<p>Implementation: a single iteration of steps 3-5 is
+<code>examples/eqlzrD_peakNewtonStep.m</code>; the two-phase schedule of
+steps 4-5 is driven by <code>dsgnEqlzrD_peakNewton_manual.m</code>, one
+such driver per reference filter
+(e.g. <code>eqlz_csc_newton_1_8_0.m</code>). The examples in this paper
+use clusters of <span class="math inline">\(c_i=5\)</span> stacked
+sections each, with <span class="math inline">\(M=3\)</span> and <span
+class="math inline">\(M=5\)</span> clusters.</p>
+<h3 id="alternatives-investigated-1">3.2 Alternatives Investigated</h3>
+<p><strong>Automated joint optimization.</strong> Fitting all <span
+class="math inline">\(N\)</span> pole locations plus a free flat target
+level jointly, via a general-purpose minimax solver
+(<code>lib/dsgnEqlzrD.m</code>), works reasonably — roughly 52.1
+nominal-passband peak-to-peak group delay from an unequalized 69.0 — but
+the cost surface has multiple local minima (some starting radii land in
+a distinctly worse basin than doing nothing at all), so the function
+needs to multi-start from several shared radii and keep the best, at a
+cost of about 20 seconds per call.</p>
+<p><strong>A cheap staged heuristic.</strong> Placing the <span
+class="math inline">\(N\)</span> pole angles evenly across the sub-band
+between the filter’s own two largest peaks, then a 1-D search over a
+single shared radius followed by coordinate descent on each angle, is
+about 55 times faster and nearly matches the automated result on the
+nominal passband. It is, however, worse than doing nothing at all on a
+wider analysis band that includes some margin around the nominal
+passband — the poles, confined away from the peaks, still leak enough
+delay via their tails to raise the pre-existing peaks further out.
+Neither adding more sections at a shared radius nor letting each section
+have its own radius fixed this; nor did upweighting the cost near the
+filter’s own peaks specifically, which had no effect at any weight
+tried, since the peaks were never actually the binding constraint — the
+analysis window’s own edges were.</p>
+<p><strong>An unanchored, self-referential objective.</strong> An early
+version of the equi-ripple objective dropped the fixed anchor and
+instead asked only that the tracked peaks match <em>each other</em>.
+This had a critical flaw: with no anchor on absolute level, the
+optimizer discovered it could invent brand-new peaks anywhere and drive
+them to match each other at an arbitrarily high common level, satisfying
+the objective while making the true worst-case group delay far worse
+than doing nothing (peak-to-peak up to roughly 580, against 92.5
+unequalized). This is why the current objective (step 1) fixes <span
+class="math inline">\(D_0\)</span> once, externally, from the
+unequalized filter, before any equalization begins.</p>
+<p><strong>Tracking only the original two peaks.</strong> An earlier
+version of step 3 tracked exactly the filter’s own two original edge
+peaks, refining their locations iteration to iteration but never looking
+for new ones. This is wrong once the free clusters reshape the interior
+of the curve: a 10-iteration run was found to have grown five maxima and
+four minima elsewhere on the curve while the tracked pair sat still and
+falsely reported convergence. The current approach instead re-detects
+the entire extremum set from scratch every iteration, the same way a
+Remez-exchange algorithm re-derives its extremal set each pass.</p>
+<p><strong>Adjusting radius alone after angle convergence.</strong> With
+only the angles free, the least-squares step can only best-fit a
+typically overdetermined set of extrema (nine to eleven, against three
+to five free angles), so some spread in peak heights remains even after
+full angle convergence. The obvious next fix — shrink the tallest
+cluster’s radius to lower its peak, re-optimizing the angles around it —
+made results worse, not better, because a cluster’s bump also props up
+its neighboring valleys, so changing one cluster’s radius in isolation
+misrepresents the joint trade-off. Solving for angles and radii together
+(Phase 2) is what actually helps.</p>
+<p><strong>Cluster count and step size.</strong> Increasing the cluster
+count from three to five, to add angle degrees of freedom against
+roughly the same number of tracked extrema, destabilizes the damping
+tuned for three clusters: at that same step size, Phase 1’s tracked
+extremum count oscillates wildly and Phase 2 diverges outright, with
+radii pinned at their clamp bounds and the deviation spread reaching the
+thousands. A smaller damping restores smooth convergence at five
+clusters, so the step size is tuned to the cluster count actually in use
+rather than fixed once and reused everywhere.</p>
+<h2 id="the-z-to-x-transform">4. The <span
+class="math inline">\(z\)</span>-to-<span
+class="math inline">\(x\)</span> Transform</h2>
+<h3 id="transform-details">4.1 Transform Details</h3>
+<p>Several of the Newton iterations in §2 and §3 work on a filter’s
+poles and zeros directly in <span class="math inline">\(z\)</span>. For
+a narrow band, the mapping between a pole’s position and its effect on
+the filter’s response becomes increasingly ill-conditioned in <span
+class="math inline">\(z\)</span>: a change of a fixed absolute size in a
+pole’s angle or radius corresponds to an ever-smaller fraction of the
+band as the band narrows. It is useful to have a second variable, <span
+class="math inline">\(x\)</span>, that re-expresses the same filter on a
+fixed, band-independent scale.</p>
+<p>For a band of interest <span class="math inline">\([f_1,f_2]\)</span>
+(in cycles), let</p>
+<p><span class="math display">\[
+\omega_0 = \pi(f_1+f_2), \qquad t =
+\tan\!\Big(\frac{\pi(f_2-f_1)}{2}\Big).
+\]</span></p>
+<p>The forward and inverse transforms are</p>
+<p><span class="math display">\[
+x \;=\; \frac{1}{t}\cdot\frac{z\,e^{-j\omega_0} - 1}{z\,e^{-j\omega_0} +
+1}
+\qquad\text{(§ }z\to x\text{)}, \tag{12}
+\]</span></p>
+<p><span class="math display">\[
+z \;=\; e^{j\omega_0}\,\frac{1 + t x}{1 - t x}
+\qquad\text{(§ }x\to z\text{)}. \tag{13}
+\]</span></p>
+<p>This is a Möbius transform centered on the band rather than on the
+origin, chosen so that the band maps onto a fixed reference range
+regardless of where it sits or how wide it is:</p>
+<ul>
+<li>The unit circle maps to the imaginary axis, <span
+class="math inline">\(x = jW\)</span>, with <span
+class="math inline">\(W = \tan\big((\omega-\omega_0)/2\big)/t\)</span>;
+the band itself maps to <span class="math inline">\(W \in
+[-1,1]\)</span> — the same fixed interval at every width and
+center.</li>
+<li><span class="math inline">\(|z|&lt;1\)</span> maps to the left
+half-plane, so a stable filter in <span class="math inline">\(z\)</span>
+is a stable filter in <span class="math inline">\(x\)</span> and vice
+versa.</li>
+<li><span class="math inline">\(z = -e^{j\omega_0}\)</span> (the point
+diametrically opposite the band center on the unit circle) maps to <span
+class="math inline">\(x=\infty\)</span>, and <span
+class="math inline">\(z=\infty\)</span> maps to <span
+class="math inline">\(x = 1/t\)</span>.</li>
+<li>Reflection in the unit circle (<span class="math inline">\(z \mapsto
+1/\bar z\)</span>) becomes reflection in the imaginary axis (<span
+class="math inline">\(x \mapsto -\bar x\)</span>), so an all-pass
+section in <span class="math inline">\(z\)</span> — whose zero is the
+conjugate-reciprocal of its pole — maps to an all-pass section in <span
+class="math inline">\(x\)</span> of the same order, with its zero equal
+to minus the conjugate of its pole.</li>
+</ul>
+<p><strong>Group delay is not preserved point by point.</strong>
+Magnitude and phase are preserved exactly under the map, but group delay
+is a derivative of phase with respect to frequency, and <span
+class="math inline">\(\omega\)</span> and <span
+class="math inline">\(W\)</span> are related nonlinearly, so the chain
+rule introduces a Jacobian factor:</p>
+<p><span class="math display">\[
+\tau_z(\omega) \;=\; \tau_x(W)\cdot J, \qquad
+J = \frac{dW}{d\omega} = \frac{1+t^2W^2}{2t}. \tag{14}
+\]</span></p>
+<p>Because <span class="math inline">\(J\)</span> does not depend on the
+filter’s poles, a pole’s group-delay <em>sensitivity</em> in <span
+class="math inline">\(z\)</span> is simply <span
+class="math inline">\(J\)</span> times its sensitivity in <span
+class="math inline">\(x\)</span> — the two domains agree on where to
+move a pole, just not on the raw group-delay number at a given
+frequency.</p>
+<p><strong>Roots and gain convert exactly</strong>, with no numerical
+fitting: each factor <span class="math inline">\((z-a)\)</span> in the
+<span class="math inline">\(z\)</span>-domain transfer function becomes
+<span class="math inline">\(-(e^{j\omega_0}+a)(x-x_a)/(x-1/t)\)</span>
+under the forward map, and each factor <span
+class="math inline">\((x-b)\)</span> becomes <span
+class="math inline">\((1-tb)(z-z_b)/\big(t(z+e^{j\omega_0})\big)\)</span>
+under the inverse — so a filter’s exact response, not an approximation
+of it, is what appears on the other side. Three edge cases need explicit
+handling: an unequal number of poles and zeros (the excess become roots
+at <span class="math inline">\(x=1/t\)</span> going forward, or at <span
+class="math inline">\(z=\infty\)</span> coming back, and are dropped
+again on any further round trip); and a root landing exactly at <span
+class="math inline">\(z=-e^{j\omega_0}\)</span> (which maps to <span
+class="math inline">\(x=\infty\)</span> and is dropped, its contribution
+folded into the gain instead). A verification suite
+(<code>examples/chk_z2xc_edges.m</code>) confirms round-trip accuracy,
+response equality, and the group-delay identity of Eq. 14 to within
+about <span class="math inline">\(10^{-13}\)</span> across all of these
+cases, including on a real filter from this work’s own examples.</p>
+<p>Implementation: <code>lib/z2xc.m</code> and
+<code>lib/xc2z.m</code>.</p>
+<h3 id="where-it-gives-a-noticeable-improvement">4.2 Where It Gives a
+Noticeable Improvement</h3>
+<p>The transform’s usefulness turns out to depend on which part of the
+design it is applied to.</p>
+<p>Applied to the group-delay-extremum search used by the Newton
+iteration of §2 (step 4), it makes <strong>no real difference</strong>:
+an extremum-finding grid laid out in the <span
+class="math inline">\(x\)</span>-domain’s fixed <span
+class="math inline">\([-1,1]\)</span> range works down to passbands as
+narrow as <span class="math inline">\(10^{-5}\)</span> cycles, where a
+grid of fixed absolute spacing in <span class="math inline">\(z\)</span>
+finds too few extrema to proceed — but a <span
+class="math inline">\(z\)</span>-domain grid whose spacing is simply
+<em>scaled to the band</em>, with no change of variable, matches the
+<span class="math inline">\(x\)</span>-grid’s results exactly. The gain
+there is from scaling the grid to the band, not from the transform
+itself.</p>
+<p>Applied to the all-pass equalizer design of §3, however, the
+transform gives a <strong>real and otherwise-unreachable
+improvement</strong>, because it fixes two problems in the same stroke.
+Each all-pass section there is parametrized by a pole <span
+class="math inline">\((r,\theta)\)</span> in <span
+class="math inline">\(z\)</span>, with its group-delay contribution
+given by the Poisson kernel <span
+class="math inline">\((1-r^2)/(1-2r\cos(\omega-\theta)+r^2)\)</span>. At
+a narrow band, matching that section’s peak width to the band forces
+<span class="math inline">\(r\)</span> close to 1 — its angle <span
+class="math inline">\(\theta\)</span> must be resolved to within a tiny
+fraction of the full circle, and its radius <span
+class="math inline">\(1-r\)</span> must shrink in proportion to the band
+width.</p>
+<p><strong>The scaling problem.</strong> A section’s peak has angular
+half-width of order <span class="math inline">\(1-r\)</span>, so
+tracking a peak inside a band of half-width <span
+class="math inline">\(w\)</span> (in radians) requires <span
+class="math inline">\(1-r=O(w)\)</span> — the radius is squeezed into an
+ever-shrinking neighborhood of the single point <span
+class="math inline">\(r=1\)</span> as <span class="math inline">\(w\to
+0\)</span>, while <span class="math inline">\(\theta\)</span> still
+ranges over the full circle and must merely be resolved to <span
+class="math inline">\(O(w)\)</span> somewhere within it. A generic
+solver’s step sizing (finite differences on the order of a fixed
+fraction of each parameter’s current value, as <code>fminimax</code>
+uses) has no way to know that <span
+class="math inline">\(\theta\)</span> and <span
+class="math inline">\(r\)</span> live on such different absolute scales,
+and that the scale itself keeps shrinking with <span
+class="math inline">\(w\)</span>: a step tuned to move <span
+class="math inline">\(r\)</span> by a sensible amount is either too
+coarse to distinguish nearby <span class="math inline">\(\theta\)</span>
+values or too fine to register any change in <span
+class="math inline">\(r\)</span> at all, depending on <span
+class="math inline">\(w\)</span>.</p>
+<p><strong>The cancellation problem.</strong> Writing <span
+class="math inline">\(r=1-\varepsilon\)</span> and <span
+class="math inline">\(\Delta=\omega-\theta\)</span>, the kernel’s
+denominator is exactly <span class="math display">\[
+1-2r\cos\Delta+r^2 \;=\; (1-r)^2 + 2r(1-\cos\Delta) \;=\; \varepsilon^2
++ 4r\sin^2(\Delta/2), \tag{15}
+\]</span> using <span
+class="math inline">\(1-\cos\Delta=2\sin^2(\Delta/2)\)</span>. But if
+the denominator is instead evaluated the direct way — computing <span
+class="math inline">\(1\)</span>, <span
+class="math inline">\(2r\cos\Delta\)</span>, and <span
+class="math inline">\(r^2\)</span> separately as ordinary floating-point
+numbers of order 1 and summing them — the result is a
+<em>difference</em> of order-1 quantities whose true value is only <span
+class="math inline">\(O(\varepsilon^2)\)</span>. Each order-1 term
+carries floating-point rounding error of about <span
+class="math inline">\(10^{-16}\)</span> (double precision), so the sum’s
+absolute error is also about <span
+class="math inline">\(10^{-16}\)</span>, regardless of <span
+class="math inline">\(\varepsilon\)</span>; the number of correct
+significant digits remaining in a result of size <span
+class="math inline">\(\varepsilon^2\)</span> is therefore only about
+<span class="math inline">\(16+2\log_{10}\varepsilon\)</span>. At the
+narrowest band tested here (<span class="math inline">\(\varepsilon =
+1-r \approx 2.6\times10^{-5}\)</span>, from a <span
+class="math inline">\(5\times10^{-5}\)</span>-cycle band), <span
+class="math inline">\(\varepsilon^2\approx 6.7\times 10^{-10}\)</span>,
+leaving only about 7 correct digits — precisely the loss observed in
+practice, and enough to bury the finite-difference gradient
+<code>fminimax</code> needs (its default step is itself only about <span
+class="math inline">\(10^{-8}\)</span> of the parameter) in rounding
+noise rather than signal. The same style of cancellation would recur at
+<span class="math inline">\(\Delta\to 0\)</span> — evaluating <span
+class="math inline">\(1-\cos\Delta\)</span> directly loses precision the
+same way as <span class="math inline">\(\Delta\)</span> shrinks — which
+is why Eq. 15’s right-hand side avoids <em>both</em> subtractions at
+once: <span class="math inline">\(\varepsilon\)</span> is used directly,
+not recovered by subtracting a stored <span
+class="math inline">\(r\)</span> from 1, and <span
+class="math inline">\(\sin(\Delta/2)\)</span> is evaluated directly
+rather than via <span class="math inline">\(1-\cos\Delta\)</span>, so
+every term entering the sum is already the right order of magnitude and
+nothing of size <span class="math inline">\(\varepsilon^2\)</span> or
+<span class="math inline">\(\Delta^2\)</span> is ever produced by
+subtracting larger near-equal quantities.</p>
+<p>Re-parametrizing each section as an <span
+class="math inline">\(x\)</span>-domain pole <span
+class="math inline">\(-\sigma+jW_p\)</span> (with group-delay
+contribution <span class="math inline">\(J\cdot
+2\sigma/(\sigma^2+(W-W_p)^2)\)</span>, <span
+class="math inline">\(\sigma&gt;0\)</span> for stability, and <span
+class="math inline">\(W\)</span> the unit-circle-image variable of §4.1)
+removes both problems at once, and structurally rather than by a
+case-by-case rewrite: <span class="math inline">\(\sigma\)</span> and
+<span class="math inline">\(W_p\)</span> are both order-1 quantities at
+any band width, by construction of the band-centered transform itself,
+so a generic solver’s step sizing treats them evenhandedly; and the
+kernel’s denominator <span
+class="math inline">\(\sigma^2+(W-W_p)^2\)</span> is a sum of two
+non-negative squared terms, so it can never be the result of subtracting
+two larger near-equal quantities — there is no cancellation left to
+guard against, in this parametrization or any other kernel built from
+it.</p>
+<p>The effect on the actual designs is large. For the automated
+minimax-based equalizer (<code>lib/dsgnEqlzrD.m</code>), the achieved
+peak-to-peak group-delay ripple in <span
+class="math inline">\(z\)</span> degrades from 51.2% of the mean at a
+0.05-cycle band to 167.3% at <span
+class="math inline">\(5\times10^{-5}\)</span> cycles — worse than not
+equalizing at all — while the <span
+class="math inline">\(x\)</span>-domain version holds steady at 51.1%
+across the same range. For the Newton/least-squares iteration actually
+used in §3 (<code>examples/eqlzrD_peakNewtonStep.m</code>), the effect
+is sharper still: the <span class="math inline">\(z\)</span>-domain
+version degrades from 4.39% at 0.05 cycles to 175.6%–175.8% from <span
+class="math inline">\(5\times10^{-3}\)</span> cycles down — its radius
+pinned at the <span class="math inline">\(0.995\)</span> clamp and no
+better than the unequalized filter — while the <span
+class="math inline">\(x\)</span>-domain version
+(<code>examples/eqlzrD_peakNewtonStepX_scld.m</code>) holds 4.39% at
+every width down to <span class="math inline">\(5\times10^{-5}\)</span>
+cycles, with no clamping ever triggered. This is not a hypothetical
+regime: <code>EqualFltr_1_6_0</code>, one of this toolbox’s own
+reference filters, has a passband of about <span
+class="math inline">\(10^{-3}\)</span> cycles, already within the range
+where the plain <span class="math inline">\(z\)</span>-domain
+parametrization visibly degrades. A <span
+class="math inline">\(z\)</span>-domain design can be made to match the
+<span class="math inline">\(x\)</span>-domain result, but only by fixing
+both problems by hand — scaling <span
+class="math inline">\((r,\theta)\)</span>’s limits and starting values
+linearly to the band, and rewriting the kernel to keep <span
+class="math inline">\(1-r\)</span> exact rather than computed by
+subtraction — and doing only one of the two is not enough.</p>
+<h2 id="step-by-step-reference">5. Step-by-Step Reference</h2>
+<p>Both methods are implemented in an open-source MATLAB library. Each
+is run end to end from a single top-level example file, and each step
+below names, in brackets, the library file that implements it (with the
+<code>.m</code> suffix omitted, since these are library files, not
+standalone scripts, unless noted otherwise). §2 and §3 already stated
+each method’s algorithm; this section restates both more precisely, with
+the equations actually evaluated at each step, and says exactly which
+version of each step — the plain <span
+class="math inline">\(z\)</span>-domain form or the <span
+class="math inline">\(x\)</span>-domain form of §4 — is the one
+currently used.</p>
+<h3 id="method-1-in-detail">5.1 Method 1, in Detail</h3>
+<p>A representative top-level example is
+<code>dig_equiGd_1_10_0_scld</code>, one of nine such files in the
+library, each specifying an order and a passband/stop-band/ripple
+combination for a different reference filter. Running it performs steps
+1-5 below; wrapping it in the outer loop of step 6 — done by the
+top-level file <code>equiGd_Ap_scld</code>, which runs all nine —
+completes the procedure. None of these steps currently uses the <span
+class="math inline">\(x\)</span>-domain transform of §4: §4.2 found it
+unnecessary here, since a frequency grid scaled directly to the passband
+in <span class="math inline">\(z\)</span> already gives the same
+result.</p>
+<ol type="1">
+<li><strong>Normalize</strong> <code>[nrmlzSpecsD]</code>. Shift the
+passband to be centered at zero and pre-warp every edge for the bilinear
+transform of step 3.</li>
+<li><strong>Design the prototype</strong> <code>[LinPhFltr]</code>.
+Produce an order-<span class="math inline">\(N\)</span>, all-pole
+continuous-time filter whose group delay is equi-ripple across a fixed
+normalized band, for the specified passband ripple <span
+class="math inline">\(A_p\)</span>.</li>
+<li><strong>Map to the digital domain</strong>
+<code>[cont2Digital]</code>. Apply the bilinear transform, then shift
+and un-warp back onto the actual passband. The prototype’s pole at
+infinity (multiplicity <span class="math inline">\(N\)</span>) becomes
+<span class="math inline">\(N\)</span> zeros at the Nyquist frequency
+<span class="math inline">\(z=-1\)</span>.</li>
+<li><strong>Re-equalize the group delay</strong>
+<code>[adaptP2_scld, fndZeroCrs3_scld]</code>. Locate the current
+configuration’s group-delay extrema <span
+class="math inline">\(\{w_k\}_{k=1}^K\)</span> (§4.2’s
+fixed-but-band-scaled grid), and drive them toward a classical Chebyshev
+alternation — odd-indexed extrema toward one level <span
+class="math inline">\(T_1\)</span>, even-indexed extrema toward <span
+class="math inline">\(T_2=T_1-\Delta T\)</span>, for a caller-specified
+ripple size <span class="math inline">\(\Delta T\)</span> — rather than
+solving for the optimal ripple level as an extra unknown, which keeps
+the update linear: <span class="math display">\[
+Y_k \;=\; \begin{cases}\tau(w_k)-T_1 &amp; k \text{ odd} \\
+\tau(w_k)-T_2 &amp; k \text{ even}\end{cases}. \tag{16}
+\]</span> Each iteration solves the linear least-squares system <span
+class="math inline">\(S\,\Delta p = Y\)</span> for a perturbation <span
+class="math inline">\(\Delta p\)</span> to every pole’s real and
+imaginary parts, where <span class="math inline">\(S\)</span> is the
+closed-form sensitivity of each <span
+class="math inline">\(\tau(w_k)\)</span> to those coordinates (plus one
+further row enforcing a realizability constraint on the perturbation),
+and takes a small, fixed, damped step <span class="math inline">\(p
+\leftarrow p - 0.05\,\Delta p\)</span>, repeating for up to 200
+iterations with any pole exceeding radius <span
+class="math inline">\(0.995\)</span> clamped back to it.</li>
+<li><strong>Place the loss zeros</strong>
+<code>[place_polesdLP5]</code>. Move <span
+class="math inline">\(n_i\)</span> of the <span
+class="math inline">\(N\)</span> zeros to <span
+class="math inline">\(z=-1\)</span> and adjust the remaining <span
+class="math inline">\(n_p\)</span> with the same style of damped
+least-squares update — now driving every stop-band loss minimum toward a
+common level — evaluated in that function’s own, longer-standing
+stop-band transform (<code>z2ySbTrnsf1</code>), unrelated to §4’s
+transform.</li>
+<li><strong>Hold the passband edge</strong>
+<code>[equiGdDigitalAp_scld]</code>. Re-run steps 2-5 on a design
+passband widened by a factor <span class="math inline">\(k\)</span>
+about the true passband’s center, and adjust <span
+class="math inline">\(k\)</span> by a damped secant step on <span
+class="math inline">\(\log(\text{achieved
+band})\)</span> against <span class="math inline">\(\log k\)</span>,
+<span class="math display">\[
+\log k^{(i+1)} \;=\; \log k^{(i)} \;-\; \frac{\log
+b^{(i)}}{\text{slope}^{(i)}}, \qquad
+\text{slope}^{(i)} = \frac{\log b^{(i)}-\log b^{(i-1)}}{\log
+k^{(i)}-\log k^{(i-1)}}, \tag{17}
+\]</span> discarding, for both this step and the slope above, any trial
+whose group-delay ripple exceeds a basic sanity bound and stepping back
+toward the last accepted trial instead — until the achieved band <span
+class="math inline">\(b\)</span> is within a small tolerance of the
+target.</li>
+</ol>
+<h3 id="method-2-in-detail">5.2 Method 2, in Detail</h3>
+<p>A representative top-level example is
+<code>dsgnEqlzrD_peakNewton_manual</code>, which builds a cluster
+equalizer for one reference filter over its ordinary, wide passband;
+<code>shrink_peakNewton_scld</code> runs the same two-phase schedule
+with every <span class="math inline">\(z\)</span>-domain quantity below
+replaced by its <span class="math inline">\(x\)</span>-domain
+counterpart, to demonstrate steps 3-5 at bands as narrow as <span
+class="math inline">\(5\times10^{-5}\)</span> cycles. §4.2 found the
+<span class="math inline">\(x\)</span>-domain form necessary at such
+widths, so it is the one given here; the plain <span
+class="math inline">\(z\)</span>-domain <span
+class="math inline">\((r,\theta)\)</span> form of §3.1 is the special
+case <span class="math inline">\(\sigma=(1-r)/((1+r)t)\)</span>, <span
+class="math inline">\(W_p=\tan((\theta-\omega_0)/2)/t\)</span> at
+whatever width makes that substitution well conditioned.</p>
+<ol type="1">
+<li><strong>Fix the anchor.</strong> Compute <span
+class="math inline">\(D_0\)</span> once from the unequalized filter’s
+own passband extrema, and hold it fixed for the rest of the
+procedure.</li>
+<li><strong>Initialize the clusters.</strong> Choose <span
+class="math inline">\(M\)</span> clusters of <span
+class="math inline">\(c_i\)</span> stacked sections each, spread their
+starting frequencies <span class="math inline">\(W_{p,i}\)</span> across
+the transformed passband <span class="math inline">\([-1,1]\)</span>,
+and give them all a common starting <span
+class="math inline">\(\sigma_0\)</span>.</li>
+<li><strong>Detect the current extrema</strong>
+<code>[eqlzrD_peakNewtonStepX_scld]</code>. Locate every local extremum
+of the combined group delay over the passband expanded by 10%, and
+refine each within its own detected bracket — never a fixed-width
+window, which was found (§3.2) to lock onto the wrong extremum once two
+genuine extrema sit closer together than that width.</li>
+<li><strong>Phase 1 — equalize the frequencies.</strong> With every
+<span class="math inline">\(\sigma_i\)</span> fixed, form the
+gain-weighted deviation from the anchor at each extremum, <span
+class="math display">\[
+w_k \;=\; \big|\tau(f_k)-D_0\big|\cdot|H(f_k)|, \tag{18}
+\]</span> and its closed-form derivative with respect to each cluster’s
+frequency, <span class="math display">\[
+\frac{\partial \tau(\omega)}{\partial W_{p,i}} \;=\; c_i\,J\,
+\frac{4\sigma_i(W-W_{p,i})}{\big(\sigma_i^2+(W-W_{p,i})^2\big)^2},
+\qquad J = \frac{1+t^2W^2}{2t}. \tag{19}
+\]</span> Assemble these into a Jacobian <span
+class="math inline">\(J_w\)</span> of the weighted deviations and solve,
+via the Moore-Penrose pseudoinverse (the number of tracked extrema and
+the number of clusters are unrelated and change call to call), <span
+class="math display">\[
+\Delta W_p \;=\; J_w^{+}\big(\bar w\,\mathbf 1 - \mathbf w\big), \qquad
+\bar w = \frac1K\sum_k w_k, \tag{20}
+\]</span> for the step that drives every <span
+class="math inline">\(w_k\)</span> toward their common mean, and apply a
+damped fraction <span class="math inline">\(W_p \leftarrow W_p +
+\alpha_1\Delta W_p\)</span>. Repeat with step 3 until the deviation
+spread stops improving.</li>
+<li><strong>Phase 2 — equalize frequencies and radii jointly.</strong>
+Free every <span class="math inline">\(\sigma_i\)</span> as well, add
+the matching derivative <span class="math display">\[
+\frac{\partial \tau(\omega)}{\partial \sigma_i} \;=\; c_i\,J\,
+\frac{2\big((W-W_{p,i})^2-\sigma_i^2\big)}{\big(\sigma_i^2+(W-W_{p,i})^2\big)^2}
+\tag{21}
+\]</span> as a second block of Jacobian columns, and repeat the update
+of step 4 with a separate, smaller damping <span
+class="math inline">\(\alpha_2\)</span>, clamping every <span
+class="math inline">\(\sigma_i\)</span> to <span
+class="math inline">\([\sigma_{\min},\sigma_{\max}]\)</span> (the
+original <span class="math inline">\(r\in[0.3,0.995]\)</span> limits,
+converted to <span class="math inline">\(\sigma\)</span> at a fixed
+reference bandwidth). This phase does not converge monotonically (§3.2),
+so track the best (smallest-spread) configuration seen and stop once it
+fails to improve for a set number of steps, keeping that best
+configuration.</li>
+<li><strong>Return the equalizer.</strong> Report the final <span
+class="math inline">\(\{(W_{p,i},\sigma_i,c_i)\}\)</span> and the
+resulting group delay, converting each pole back to <span
+class="math inline">\(z\)</span> with Eq. 13 for realization.</li>
+</ol>
+<p>Because every quantity in steps 3-5 is expressed in <span
+class="math inline">\(x\)</span>-domain, band-unit terms — <span
+class="math inline">\(W_{p,i}\)</span>, <span
+class="math inline">\(\sigma_i\)</span>, and the kernel of Eq. 19/21
+itself — this description, and the code implementing it, is unchanged
+whether the target passband is <span class="math inline">\(0.05\)</span>
+cycles wide or <span class="math inline">\(5\times10^{-5}\)</span>; only
+<span class="math inline">\(t\)</span> and <span
+class="math inline">\(\omega_0\)</span> (Eq. 12) differ.</p>
+<h2 id="overview-of-the-best-examples">6. Overview of the Best
+Examples</h2>
+<p>This section collects the current best results for each method, drawn
+from the working notes behind this paper
+(<code>Eqlzr_scld_results.md</code>, <code>ScldGD.md</code>,
+<code>doc/ComplexEqualizationIIR.md</code>).</p>
+<h3 id="method-1-the-dig_equigd-series">6.1 Method 1: the
+<code>dig_equiGd</code> Series</h3>
+<p>Nine reference filters, spanning orders and passband/stop-band
+combinations, are carried through the full procedure of §5.1, including
+step 6’s band-widening loop. Recommending a single design-band factor
+<span class="math inline">\(k\)</span> per filter is itself part of the
+result: widening to <span class="math inline">\(6\times\)</span> the
+passband half-width (§2.2) holds the <span
+class="math inline">\(A_p\)</span> edge at <span
+class="math inline">\([f_{p1},f_{p2}]\)</span> for all nine, with the
+stop-band left comfortably clear of its 20 dB target in every case, so
+it is the variant given below (<code>equiGdDigitalAp_scld</code> with
+<span class="math inline">\(\text{ws}=6\times\)</span>; see
+<code>equiGd_Ap_scld</code> for all nine filters in one run). Before
+step 6 was added, every one of these filters held <span
+class="math inline">\(A_p\)</span> over only 0.25-0.37 of the specified
+passband.</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>filter</th>
+<th><span class="math inline">\(A_p\)</span> (dB)</th>
+<th>achieved <span class="math inline">\(A_p\)</span>-band<span
+class="math inline">\(/\)</span>target</th>
+<th>loss at edge (dB)</th>
+<th>GD p2p</th>
+<th>stop-band (dB)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>1_6_0</code></td>
+<td>1.00</td>
+<td>1.000</td>
+<td>1.00</td>
+<td>0.93%</td>
+<td>63.0</td>
+</tr>
+<tr class="even">
+<td><code>1_10_0</code></td>
+<td>3.01</td>
+<td>1.001</td>
+<td>3.02</td>
+<td>0.34%</td>
+<td>140.1</td>
+</tr>
+<tr class="odd">
+<td><code>1_12_0</code></td>
+<td>3.01</td>
+<td>0.998</td>
+<td>3.04</td>
+<td>2.36%</td>
+<td>173.9</td>
+</tr>
+<tr class="even">
+<td><code>1_15_0</code></td>
+<td>3.01</td>
+<td>1.017</td>
+<td>2.92</td>
+<td>2.31%</td>
+<td>170.8</td>
+</tr>
+<tr class="odd">
+<td><code>15_0_0</code></td>
+<td>3.01</td>
+<td>1.000</td>
+<td>3.01</td>
+<td>2.28%</td>
+<td>152.9</td>
+</tr>
+<tr class="even">
+<td><code>3_4_0</code></td>
+<td>1.00</td>
+<td>0.999</td>
+<td>1.00</td>
+<td>0.54%</td>
+<td>45.1</td>
+</tr>
+<tr class="odd">
+<td><code>3_10_0</code></td>
+<td>3.01</td>
+<td>1.000</td>
+<td>3.06</td>
+<td>0.31%</td>
+<td>150.7</td>
+</tr>
+<tr class="even">
+<td><code>5_0_0</code></td>
+<td>3.01</td>
+<td>0.998</td>
+<td>3.02</td>
+<td>1.98%</td>
+<td>145.1</td>
+</tr>
+<tr class="odd">
+<td><code>5_10_0</code></td>
+<td>3.01</td>
+<td>1.007</td>
+<td>2.98</td>
+<td>2.16%</td>
+<td>166.3</td>
+</tr>
+</tbody>
+</table>
+<p><code>5_0_0</code> and <code>5_10_0</code> needed the selection-logic
+fix of §2.2’s last paragraph to reach this table at all; every other row
+was already reachable before that fix.</p>
+<h3 id="method-2-the-all-pass-cluster-equalizer">6.2 Method 2: the
+All-Pass Cluster Equalizer</h3>
+<p><strong>Effect of cluster count, on the toolbox’s primary reference
+filter.</strong> Run through the two-phase procedure of §5.2
+(<code>dsgnEqlzrD_peakNewton_manual</code>) at the filter’s ordinary
+0.05-cycle-wide passband, more clusters give a better nominal result at
+the cost of a worse expanded-band one — the trade-off already noted in
+§3.2:</p>
+<table>
+<thead>
+<tr class="header">
+<th>configuration</th>
+<th>nominal p2p</th>
+<th>expanded-band p2p</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>unequalized</td>
+<td>69.0</td>
+<td>92.5</td>
+</tr>
+<tr class="even">
+<td>3 clusters of 5 (angle + joint radius)</td>
+<td>16.73</td>
+<td>117.6</td>
+</tr>
+<tr class="odd">
+<td>5 clusters of 5 (angle + joint radius)</td>
+<td><strong>13.94</strong></td>
+<td>139.26</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Effect of band width, on a second reference filter
+(<code>dsgnEqlzrD_manual</code>, unequalized p2p 176%).</strong> This is
+where §4/§5’s <span class="math inline">\(x\)</span>-domain form
+matters: with 5 clusters of 5 stages started at 10/30/50/70/90% of the
+band, the <span class="math inline">\(z\)</span>-domain and <span
+class="math inline">\(x\)</span>-domain Newton iterations agree at the
+filter’s ordinary width and diverge sharply as the band narrows.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>passband width (cycles)</th>
+<th><span class="math inline">\(z\)</span>-domain <span
+class="math inline">\((\theta,r)\)</span></th>
+<th><span class="math inline">\(x\)</span>-domain <span
+class="math inline">\((W_p,\sigma)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(5\times10^{-2}\)</span></td>
+<td>4.39%</td>
+<td>4.38%</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(5\times10^{-3}\)</span></td>
+<td>80.79% (clamped)</td>
+<td><strong>4.39%</strong></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(5\times10^{-4}\)</span></td>
+<td>175.59% (clamped)</td>
+<td><strong>4.39%</strong></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(5\times10^{-5}\)</span></td>
+<td>175.81% (clamped)</td>
+<td><strong>4.39%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The <span class="math inline">\(x\)</span>-domain equalizer gives the
+identical design at every width in the table (no clamping is ever
+triggered), while the <span class="math inline">\(z\)</span>-domain
+version is no better than not equalizing at all from <span
+class="math inline">\(5\times10^{-4}\)</span> cycles down.</p>
+<p><strong>Generalization to a much wider passband.</strong> The same
+procedure, applied unmodified to a third filter with a passband nine
+times wider than the first (<code>csc_fltr_1_8_0</code>, <span
+class="math inline">\([0.025, 0.475]\)</span>, via
+<code>eqlz_csc_newton_1_8_0</code>), needed only its starting radius and
+step sizes re-tuned (a lower <span
+class="math inline">\(r_0\approx0.82\)</span> for the wider band, per
+§3.1’s rule that wider passbands need broader starting bumps): 5
+clusters took the unequalized 35.90 nominal p2p to 23.80, and 7 clusters
+reached 12.54, at the cost of a larger expanded-band penalty (66.34)
+than the narrow-band filter ever showed.</p>
+<p><strong>A deployed case with a separate, open issue.</strong>
+<code>EqualFltr_1_6_0</code>, one of the toolbox’s own named reference
+designs, reaches 0.19% group-delay ripple under this procedure — but
+only 9.3 dB of stop-band loss against a 50 dB target, an unrelated
+shortfall in the filter’s own stop-band design that group-delay
+equalization neither causes nor fixes. It is listed here as a reminder
+that the two concerns are independent: a filter can have excellent group
+delay and a stop-band problem at the same time, and this paper’s methods
+address only the former.</p>
+</body>
+</html>

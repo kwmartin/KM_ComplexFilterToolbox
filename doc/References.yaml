@@ -17,8 +17,10 @@ intro: |
   developing this toolbox but cannot be included in the repository because
   of copyright. Each entry gives the full reference and a short note on how
   it relates to the toolbox. IEEE papers can be obtained from IEEE Xplore
-  using the reference or the DOI given. Documents that can be shared are in
-  the repository's \texttt{doc} folder and are listed in the last section.
+  using the reference or the DOI given. Closely related work that is freely
+  available online is listed, with links, in its own section. Documents that
+  can be shared are in the repository's \texttt{doc} folder and are listed
+  in the last section.
 
   The bibliographic details were compiled from the documents themselves.
   Details that could not be confirmed that way are marked
@@ -111,6 +113,22 @@ groups:
       obtained from continuous-time prototypes with a bilinear transform.
       Related to the toolbox's \texttt{dig\_equiGd} and
       \texttt{dig\_linPh} designs.
+  - key: alijan2010
+    cite: >-
+      M. Alijan, ``DSP compensation for distortion in RF filters,'' M.Sc.
+      thesis, Dept. Elect. Comput. Eng., Univ. of Saskatchewan, Saskatoon,
+      SK, Canada, Apr.~2010.
+    file: Alijan_TC-SSU-04052010164240.pdf
+    note: >-
+      Compensates the asymmetric (hence complex-baseband) amplitude and
+      group-delay distortion of the RF bandpass filter in a CATV QAM
+      modulator: a complex FIR filter for the amplitude, and a low-order
+      complex all-pass IIR filter for the group delay, whose poles are
+      optimized by a quasi-Newton method with the radii limited to 0.99.
+      Reports that the group-delay optimization is much less effective than
+      the amplitude optimization and very sensitive to the pole positions.
+      The closest earlier complex-filter group-delay equalizer; no code or
+      coefficients are given.
   - key: zivaljevic2014
     cite: >-
       D. \v{Z}ivaljevi\'c, N. Stamenkovi\'c, and J. \v{Z}ivani\'c,
@@ -316,6 +334,43 @@ groups:
       ch.~6, ``Transfer functions,'' Nov.~2004.
     file: am04_ch6-3nov04.pdf
     note: Transfer functions and their relation to other system descriptions.
+
+- title: Related Work Available Online
+  entries:
+  - key: munir2014
+    cite: >-
+      J. Munir, A. Mezghani, I. Slim, and J. A. Nossek, ``Chromatic
+      dispersion compensation using complex-valued all-pass filter,'' in
+      \textit{Proc. 22nd Eur. Signal Process. Conf. (EUSIPCO)}, Lisbon,
+      Portugal, 2014, pp.~396--400.
+    url: https://www.eurasip.org/Proceedings/Eusipco/Eusipco2014/HTML/papers/1569924013.pdf
+    note: >-
+      Equalizes a complex-baseband all-pass channel (optical-fibre
+      chromatic dispersion) with a cascade of first-order complex all-pass
+      sections, optimized in pole radius and angle. The section form and its
+      group delay are the same as in the toolbox's cluster equalizers, and
+      the paper is a clear, recent introduction to complex all-pass
+      equalization. A filter-bank extension is at arXiv:1403.1732.
+  - key: abel2006
+    cite: >-
+      J. S. Abel and J. O. Smith, ``Robust design of very high-order
+      allpass dispersion filters,'' in \textit{Proc. Int. Conf. Digital
+      Audio Effects (DAFx-06)}, Montreal, QC, Canada, 2006, pp.~13--18.
+    url: https://www.dafx.de/paper-archive/2006/papers/p_013.pdf
+    note: >-
+      Fits very high-order all-pass cascades to a target group delay by
+      dividing the band into regions of equal delay area, which also fixes
+      the order. Related to the delay-area estimate of the number of
+      all-pass sections used in the toolbox (\texttt{estAllPassOrder}).
+  - key: quelhas2004
+    cite: >-
+      M. F. Qu\'elhas, A. Petraglia, and M. R. Petraglia, ``Efficient group
+      delay equalization of discrete-time IIR filters,'' in \textit{Proc.
+      12th Eur. Signal Process. Conf. (EUSIPCO)}, Vienna, Austria, 2004.
+    url: https://www.eurasip.org/Proceedings/Eusipco/Eusipco2004/defevent/papers/cr1483.pdf
+    note: >-
+      Pole-allocation estimates and computer-aided refinement for
+      real-coefficient all-pass group-delay equalizers of elliptic filters.
 
 # Shareable documents already in the repository's doc/ folder.
 in_repository:

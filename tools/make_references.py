@@ -23,7 +23,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from make_ieee_tex import DocError, fill, need, runLatex  # noqa: E402
+from make_ieee_tex import DocError, fill, need, runLatex, warnControlChars  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CONTENT = REPO_ROOT / "doc" / "References.yaml"
@@ -96,7 +96,9 @@ def main():
     args = ap.parse_args()
 
     content = Path(args.content).resolve()
-    doc = yaml.safe_load(content.read_text(encoding="utf-8"))
+    text = content.read_text(encoding="utf-8")
+    warnControlChars(text, content.name)
+    doc = yaml.safe_load(text)
     tmpls = yaml.safe_load(Path(args.templates).read_text(encoding="utf-8"))
     try:
         tex, n = buildTex(doc, tmpls)

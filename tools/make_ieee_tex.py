@@ -8,8 +8,9 @@ The flow (explained in doc/make_tex_flow.md):
   2. build the front matter: author blocks, keywords, bibliography
   3. addItms() walks the content's item tree; each item becomes
      setTmplt(templates[type], dct)
-  4. assemble the whole file from the "document" template
-  5. replace the inline markers in the body (xx/zz/aa/bb/cc ... yy)
+  4. replace the inline markers in the body (xx/zz/aa/bb/cc ... yy) and
+     number the references in order of first citation (ref_order)
+  5. assemble the whole file from the "document" template
   6. write <out-dir>/<value>.tex and run pdflatex until references settle
   7. report pages against page_limit, undefined references and
      citations, overfull boxes, and citation/bibliography mismatches
@@ -158,10 +159,37 @@ def addItms(itms, tmpls, where="items"):
     return "\n\n".join(out)
 
 
+def warnControlChars(text, name):
+    """Warn about control characters (other than tab/newline/CR) in a YAML
+    file: they usually come from a backslash sequence such as \\t or \\a
+    written into the file by a script, turning \\textit into a tab plus
+    "extit"."""
+    bad = [(n + 1, ln) for n, ln in enumerate(text.splitlines())
+           if re.search(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", ln) or "\t" in ln.lstrip("\t")]
+    for n, ln in bad[:10]:
+        print(f"warning: {name}:{n}: control character in {ln.strip()[:60]!r}")
+    return len(bad)
+
+
 def applyMarkers(tex):
     for pat, rep in MARKERS:
         tex = pat.sub(rep, tex)
     return tex
+
+
+def orderRefs(refs, body, how):
+    """IEEE numbers references in the order they are first cited
+    (ref_order: cited, the default); ref_order: yaml keeps the YAML order.
+    References never cited go last, in YAML order (report() flags them)."""
+    if how == "yaml":
+        return refs
+    if how != "cited":
+        raise DocError(f"ref_order must be 'cited' or 'yaml', not '{how}'")
+    first = {}
+    for grp in re.findall(r"\\cite\{([^}]*)\}", body):
+        for k in grp.split(","):
+            first.setdefault(k.strip(), len(first))
+    return sorted(refs, key=lambda r: first.get(r.get("key"), len(first) + refs.index(r)))
 
 
 def buildTex(doc, tmpls):
@@ -176,7 +204,8 @@ def buildTex(doc, tmpls):
             "name": need(a, "name", at),
             "affiliation": " \\\\\n".join(lines),
         }, at))
-    refs = doc.get("references") or []
+    body = applyMarkers(addItms(need(doc, "items", "doc"), tmpls))
+    refs = orderRefs(doc.get("references") or [], body, doc.get("ref_order", "cited"))
     bib = ""
     if refs:
         items = "\n".join(fill(tmpls, "bibitem", {"key": need(r, "key", f"references[{k}]"),
@@ -185,7 +214,6 @@ def buildTex(doc, tmpls):
                           for k, r in enumerate(refs))
         bib = fill(tmpls, "bibliography", {"widest": "0" * len(str(len(refs))),
                                            "items": items}, "references")
-    body = applyMarkers(addItms(need(doc, "items", "doc"), tmpls))
     bib = applyMarkers(bib)
     preamble = fill(tmpls, "preamble",
                     {"figures_dir": doc.get("figures_dir", "../../figures/")}, "preamble")
@@ -265,7 +293,9 @@ def main():
     args = ap.parse_args()
 
     content = Path(args.content).resolve()
-    doc = yaml.safe_load(content.read_text(encoding="utf-8"))
+    text = content.read_text(encoding="utf-8")
+    warnControlChars(text, content.name)
+    doc = yaml.safe_load(text)
     tmpls = yaml.safe_load(Path(args.templates).read_text(encoding="utf-8"))
     try:
         tex = buildTex(doc, tmpls)

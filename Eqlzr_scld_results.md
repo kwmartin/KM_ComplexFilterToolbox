@@ -220,6 +220,48 @@ item below.
    - `eqlz_csc_1_8_0`, `eqlz_csc_newton_1_8_0` and `dsgnEqlzrD_staged_demo`
      have not been measured.
 
+## Paper draft started: `doc/CmplxFltrGrpDly.md`
+
+A paper draft pulling all of the above (and the earlier `_scld` work) into
+a single narrative was started 2026-09-24 in `doc/CmplxFltrGrpDly.md`.
+Sections written so far:
+
+1. **Introduction** — overview contrasting the two methods: an
+   analog-linear-phase-prototype design (Method 1, this file) vs. a
+   cascaded all-pass equalizer built from pole clusters (Method 2, from
+   `doc/ComplexEqualizationIIR.md`).
+2. **Method 1** — the current 6-step algorithm (normalize, design the
+   continuous prototype, map to digital, re-equalize group delay, place
+   loss zeros, hold the passband edge), plus alternatives investigated
+   (margin sizing, Newton scheme choice, holding $A_p$ at wp, selection
+   robustness).
+3. **Method 2** — the current 6-step Newton/least-squares cluster
+   algorithm, plus alternatives investigated (from
+   `doc/ComplexEqualizationIIR.md`'s exploration history).
+4. **The $z$-to-$x$ transform** — the band-centred Möbius transform in
+   detail (`z2xc`/`xc2z`), then where it does and doesn't help: no real
+   difference for Method 1's extremum search (a band-scaled $z$-grid
+   matches it), but a real, structural fix for Method 2's narrow-band
+   all-pass parametrization (fixes both the badly-scaled-parameters
+   problem and a cancellation in the Poisson-kernel denominator).
+5. **Step-by-step reference** — both methods restated precisely, with
+   equations and library file names in brackets, one top-level example
+   file each (`dig_equiGd_1_10_0_scld`/`equiGd_Ap_scld` for Method 1;
+   `dsgnEqlzrD_peakNewton_manual`/`shrink_peakNewton_scld` for Method 2).
+6. **Overview of the best examples** — the 9-filter `dig_equiGd` table
+   from this file (§ above), plus Method 2's cluster-count table and
+   narrow-band $z$-vs-$x$ table from `doc/ComplexEqualizationIIR.md` and
+   `ScldGD.md` section 9, a generalization note to a third, 9x-wider
+   filter, and `EqualFltr_1_6_0` flagged as a deployed case with its own
+   separate, still-open stop-band shortfall.
+
+Not yet written: any section past 6 (results/discussion/conclusion, if
+those are wanted), and the open items listed just above (root-causing
+`5_10_0`'s ws=4x instability, the `adaptP3`/passband-loss-drift item,
+`EqualFltr_1_6_0`'s stop-band, and the three unmeasured examples) have
+not been folded into the paper — they are candidates for a "current
+limitations" section if one is added. Continuing at work next.
+
 ## How to re-run
 
 ```matlab

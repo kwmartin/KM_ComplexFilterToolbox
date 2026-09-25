@@ -1,0 +1,45 @@
+# string.Template layouts for tools/make_references.py (doc/References.pdf).
+# Filled with setTmplt = lambda tmpl, dct : Template(tmpl).substitute(dct).
+# A literal "$" must be written "$$".
+
+document: |
+  \documentclass[11pt]{article}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage[margin=1in]{geometry}
+  \usepackage{amsmath,amssymb}
+  \usepackage[hyphens]{url}
+  \usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue]{hyperref}
+  \setlength{\parskip}{4pt}
+
+  \title{${title}}
+  \author{${author}}
+  \date{${date}}
+
+  \begin{document}
+  \maketitle
+
+  ${intro}
+
+  ${groups}
+
+  \end{document}
+
+group: |-
+  \section{${title}}
+  \begin{description}
+  ${entries}
+  \end{description}
+
+# one reference: its number, the citation, optional DOI/URL link, and the note
+entry: |-
+  \item[{[${num}]}] ${cite}${link}\\
+  \emph{Relevance:} ${note}
+
+doi_link: ' DOI: \href{https://doi.org/${doi}}{${doi}}.'
+
+url_link: ' Available: \url{${url}}'
+
+repo_entry: |-
+  \item[{[${num}]}] ${cite}${link}\\
+  \emph{In the repository:} \texttt{${file}}. ${note}

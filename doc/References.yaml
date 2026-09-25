@@ -1,0 +1,347 @@
+# Source for doc/References.pdf, built by tools/make_references.py (see
+# doc/make_tex_flow.md, section 12). Lists documents used in developing the
+# toolbox that cannot be redistributed here (copyright), with how to find
+# them. Add new entries to the right group; text is raw LaTeX.
+#
+# Entry keys:
+#   key    short name, reusable as a \cite key in papers
+#   cite   the reference, IEEE style
+#   doi    optional; printed as a link
+#   url    optional; printed as a link
+#   file   optional; the local copy in ../docs (not printed)
+#   note   why the document matters to this toolbox
+title: References for the KM Complex Filter Toolbox
+author: Kenneth Martin, Granite SemiCom Inc.
+intro: |
+  This document lists books, papers, reports and manuals that were used in
+  developing this toolbox but cannot be included in the repository because
+  of copyright. Each entry gives the full reference and a short note on how
+  it relates to the toolbox. IEEE papers can be obtained from IEEE Xplore
+  using the reference or the DOI given. Documents that can be shared are in
+  the repository's \texttt{doc} folder and are listed in the last section.
+
+  The bibliographic details were compiled from the documents themselves.
+  Details that could not be confirmed that way are marked
+  \emph{to be confirmed}. The list will be extended as the work continues;
+  it is generated from \texttt{doc/References.yaml} by
+  \texttt{tools/make\_references.py}.
+
+groups:
+- title: Complex Signals and Complex Filters
+  entries:
+  - key: martin2004
+    cite: >-
+      K. W. Martin, ``Complex signal processing is not complex,''
+      \textit{IEEE Trans. Circuits Syst. I, Reg. Papers}, vol.~51, no.~9,
+      pp.~1823--1836, Sept.~2004.
+    file: CmplxSgnlPrcssng.pdf (manuscript version Complex_Paper.pdf)
+    note: >-
+      Tutorial on complex signals and complex transfer functions in wireless
+      systems, including complex filters, image-reject mixers and low-IF
+      receivers. The background for everything in the toolbox.
+  - key: snelgrove1982
+    cite: >-
+      W. M. Snelgrove, ``Intermediate-function synthesis,'' Ph.D.
+      dissertation, Dept. Elect. Eng., Univ. of Toronto, Toronto, ON,
+      Canada, 1982.
+    file: 1982_snelgrove_phd.pdf
+    note: >-
+      A vector-space approach to the design of active filters, with
+      algorithms for computer-aided design. Background from the group that
+      introduced complex filters (see the Snelgrove et al.\ report in the
+      last section).
+  - key: muto2000
+    cite: >-
+      C. Muto, ``A new extended frequency transformation for complex analog
+      filter design,'' \textit{IEICE Trans. Fundamentals}, vol.~E83-A,
+      no.~6, pp.~934--940, June 2000.
+    file: Muto_Complex_Filters.pdf
+    note: >-
+      A frequency transformation that maps arbitrary passband and stopband
+      edges of a complex analog filter onto a normalized lowpass filter. An
+      alternative to the transformed-variable approach used in the toolbox.
+  - key: yu1999
+    cite: >-
+      L. Yu and W. M. Snelgrove, ``A novel adaptive mismatch cancellation
+      system for quadrature IF radio receivers,'' \textit{IEEE Trans.
+      Circuits Syst. II}, vol.~46, no.~6, pp.~789--801, June 1999.
+    file: Snelgrove_Img_Cncl.pdf
+    note: >-
+      I/Q gain and phase mismatch in quadrature IF receivers, and its
+      adaptive cancellation. Application context for complex filters.
+
+- title: Approximation of Complex IIR Filters, Transformed Variables and Group Delay
+  entries:
+  - key: martin2005
+    cite: >-
+      K. W. Martin, ``Approximation of complex IIR bandpass filters without
+      arithmetic symmetry,'' \textit{IEEE Trans. Circuits Syst. I, Reg.
+      Papers}, vol.~52, no.~4, pp.~794--803, Apr.~2005.
+    doi: 10.1109/TCSI.2005.844363
+    file: Approximation_of_complex_IIR_bandpass_filters_without_arithmetic_symmetry.pdf
+    note: >-
+      The approximation algorithms on which the toolbox's continuous-time
+      design routines are based: equi-ripple and monotonic passbands,
+      arbitrary stopbands, and loss-pole placement.
+  - key: temes1968
+    cite: >-
+      H. J. Orchard and G. C. Temes, ``Filter design using transformed
+      variables,'' \textit{IEEE Trans. Circuit Theory}, vol.~CT-15,
+      no.~4, pp.~385--408, Dec.~1968.
+    file: FilterDesignUsingTrnsfrmdVariables_01082870.pdf
+    note: >-
+      The classical paper on filter approximation in transformed variables.
+      The toolbox's $z$-to-$y$ and band-centred $z$-to-$x$ transforms follow
+      this approach.
+  - key: martin2016
+    cite: >-
+      K. Martin, ``Direct approximation of complex IIR filters,''
+      manuscript, Granite SemiCom Inc., Toronto, ON, Canada, 2016.
+    file: CmplxFlt.pdf
+    note: >-
+      The author's manuscript on approximating complex IIR filters directly,
+      for both continuous-time and sampled filters.
+  - key: martin2019gd
+    cite: >-
+      K. Martin, ``Equiripple group-delay IIR digital filters,''
+      manuscript, Granite SemiCom Inc., Toronto, ON, Canada, 2019.
+    file: EquirippleGroupDelayFilter.pdf
+    note: >-
+      The author's manuscript on equi-ripple group-delay digital filters
+      obtained from continuous-time prototypes with a bilinear transform.
+      Related to the toolbox's \texttt{dig\_equiGd} and
+      \texttt{dig\_linPh} designs.
+  - key: zivaljevic2014
+    cite: >-
+      D. \v{Z}ivaljevi\'c, N. Stamenkovi\'c, and J. \v{Z}ivani\'c,
+      ``Sharp cutoff filters with monotonic passband response,'' in
+      \textit{Proc. IEEE Conf.}, 2014 (conference name to be confirmed;
+      ISBN 978-1-4799-5817-7).
+    file: Dragana_Živaljević.pdf
+    note: >-
+      Filters with monotonic passbands and sharp cutoff. Related to the
+      toolbox's monotonic-passband approximation option.
+
+- title: Filter Realization and Design Tools
+  entries:
+  - key: martin2018sfg
+    cite: >-
+      K. Martin, ``Bilinear-z digital filters based on SFGs,'' manuscript,
+      Granite SemiCom Inc., Toronto, ON, Canada, 2018.
+    file: BilinearBasedonSFGs.pdf
+    note: >-
+      Applying the bilinear-z transform to integrator-based signal-flow-graph
+      filters, and how the resulting delay-free loops can be handled.
+  - key: martin2018ladder
+    cite: >-
+      K. Martin, ``Complex ladder filter realizations,'' manuscript, Granite
+      SemiCom Inc., Toronto, ON, Canada, 2018.
+    file: ComplexLadderFilterRealizations.pdf (earlier version LddrSnythCnfrnc.pdf)
+    note: >-
+      Extends passive ladder synthesis to transfer functions with
+      non-conjugate loss poles, that is, to complex filters.
+  - key: ouslis1991
+    cite: >-
+      C. Ouslis, M. Snelgrove, and A. S. Sedra, ``A filter designer's
+      filter design aid: filtorX,'' 1991 (venue to be confirmed).
+    file: Ouslis91.pdf
+    note: >-
+      The filtorX filter-design language, with minimax optimization of
+      filter responses. An early example of an integrated filter design
+      tool.
+  - key: silveira1993
+    cite: >-
+      B. M. Silveira, C. Ouslis, and A. S. Sedra, ``Passive ladder
+      synthesis in filtorX,'' in \textit{Proc. IEEE Int. Symp. Circuits
+      Syst. (ISCAS)}, 1993, pp.~1431--1434.
+    file: Siveira_FiltorX.pdf
+    note: >-
+      Ladder-synthesis primitives in filtorX, including a ladder derived
+      from a bandpass transfer function.
+
+- title: Filter Banks and Transmultiplexers
+  entries:
+  - key: padmanabhan1991
+    cite: >-
+      M. Padmanabhan and K. Martin, ``Resonator-based filter-banks for
+      frequency-domain applications,'' \textit{IEEE Trans. Circuits Syst.},
+      vol.~38, no.~10, pp.~1145--1159, Oct.~1991.
+    file: Resonator_FilterBanks.pdf
+    note: >-
+      Filter banks based on a digital simulation of a singly terminated
+      ladder, with $O(N)$ complexity. Background for the toolbox's filter
+      bank examples.
+  - key: martin1992icassp
+    cite: >-
+      K. Martin and M. Padmanabhan, ``Resonator-in-a-loop filter banks
+      based on a Lerner grouping of outputs,'' in \textit{Proc. IEEE Int.
+      Conf. Acoust., Speech, Signal Process. (ICASSP)}, 1992, vol.~IV,
+      pp.~IV-329--IV-332.
+    file: Resonator-In-A-Loop-Filter-Banks.pdf
+    note: >-
+      Resonator-in-a-loop filter banks with alternating-sign (Lerner)
+      grouping of the outputs, giving much lower side lobes.
+  - key: padmanabhan1992icassp
+    cite: >-
+      M. Padmanabhan and K. Martin, ``Some further results on
+      modulated/extended lapped transforms,'' in \textit{Proc. IEEE Int.
+      Conf. Acoust., Speech, Signal Process. (ICASSP)}, 1992, vol.~IV,
+      pp.~IV-265--IV-268.
+    file: Modulated_Extended_Lapped_Transforms.pdf
+    note: >-
+      Perfect-reconstruction conditions for modulated and extended lapped
+      transforms, and an efficient filter structure for them.
+  - key: padmanabhan1993
+    cite: >-
+      M. Padmanabhan and K. Martin, ``Filter banks for time-recursive
+      implementation of transforms,'' \textit{IEEE Trans. Circuits Syst.
+      II}, vol.~40, no.~1, pp.~41--50, Jan.~1993.
+    file: Filter_Banks_Transforms.pdf
+    note: >-
+      A general filter-bank structure that implements an arbitrary transform
+      recursively in time, with low complexity for the DFT and DCT.
+  - key: martin1998
+    cite: >-
+      K. W. Martin, ``Small side-lobe filter design for multitone
+      data-communication applications,'' \textit{IEEE Trans. Circuits Syst.
+      II}, vol.~45, no.~8, pp.~1155--1161, Aug.~1998.
+    file: Small_SideLobe_FilterBnks.pdf
+    note: >-
+      Channel-bank filters built from weighted sums of neighbouring inverse
+      Fourier transform filters, with much better stopbands.
+  - key: mirabbasi2002
+    cite: >-
+      S. Mirabbasi and K. Martin, ``Design of prototype filter for
+      near-perfect-reconstruction overlapped complex-modulated
+      transmultiplexers,'' in \textit{Proc. IEEE Int. Symp. Circuits Syst.
+      (ISCAS)}, 2002, vol.~1.
+    doi: 10.1109/ISCAS.2002.1009967
+    file: SmallSideLobe_with_Shahriar_01009967.pdf
+    note: >-
+      Prototype-filter design for overlapped complex-modulated
+      transmultiplexers.
+  - key: mirabbasi2003
+    cite: >-
+      S. Mirabbasi and K. Martin, ``Overlapped complex-modulated
+      transmultiplexer filters with simplified design and superior
+      stopbands,'' \textit{IEEE Trans. Circuits Syst. II}, vol.~50, no.~8,
+      pp.~456--469, Aug.~2003.
+    doi: 10.1109/TCSII.2003.813592
+    file: Mirabbasi_Complex_TransMxs_01220780.pdf
+    note: >-
+      The journal version: a unified prototype-filter design for all
+      overlap factors, with high stopband attenuation and fast side-lobe
+      fall-off.
+  - key: saramaki2002
+    cite: >-
+      T. Saram\"aki and R. Bregovi\'c, ``Multirate systems and filter
+      banks,'' in \textit{Multirate Systems: Design and Applications},
+      G. Jovanovic-Dolecek, Ed. Hershey, PA: Idea Group Publishing, 2002,
+      ch.~2.
+    file: FilterBanks.pdf
+    note: >-
+      A survey of multirate systems and filter banks.
+
+- title: Numerical Methods for Polynomial Roots
+  entries:
+  - key: numrec
+    cite: >-
+      W. H. Press, S. A. Teukolsky, W. T. Vetterling, and B. P. Flannery,
+      \textit{Numerical Recipes in C}, Cambridge, U.K.: Cambridge Univ.
+      Press, Sec.~9.5, ``Roots of polynomials'' (edition to be confirmed).
+    file: FindingRoors_f9-5.pdf (duplicate PolyZeros.pdf)
+    note: >-
+      Polynomial root finding and the ill-conditioning of high-order
+      polynomials. Accurate root finding matters throughout the toolbox,
+      which works with poles and zeros rather than polynomial coefficients.
+  - key: lang1994
+    cite: >-
+      M. Lang and B.-C. Frenzel, ``A new and efficient program for finding
+      all polynomial roots,'' Tech. Rep.~9308, Dept. Elect. Comput. Eng.,
+      Rice Univ., Houston, TX, USA, Apr.~1994.
+    file: Lan1993Non9ANewandEff.PS
+    note: >-
+      A fast and accurate program for finding all the roots of a polynomial.
+  - key: muller
+    cite: >-
+      Textbook excerpt, ch.~2, ``Solution of nonlinear equations
+      $f(x)=0$,'' section on Muller's method, pp.~92--96 (source book to be
+      confirmed).
+    file: MullersMethodProof.pdf
+    note: >-
+      Muller's method, used in the toolbox to refine polynomial roots when
+      solving Feldtkeller's equation.
+  - key: jia2018
+    cite: >-
+      Y.-B. Jia, ``Roots of polynomials,'' Com S 477/577 course notes,
+      Iowa State Univ., Ames, IA, USA, 2018.
+    file: polyroots.pdf
+    note: Course notes on polynomial root finding.
+  - key: pardyjak2006
+    cite: >-
+      E. Pardyjak, ``Roots of polynomials,'' lecture 5 slides, 2006
+      (institution to be confirmed).
+    file: Lect5_RootsofPolynomials.pdf
+    note: Lecture slides on polynomial root finding.
+  - key: gsl
+    cite: >-
+      M. Galassi \textit{et al.}, \textit{GNU Scientific Library Reference
+      Manual}, release 2.5, 2018.
+    url: https://www.gnu.org/software/gsl/
+    file: GNU_GSL_Scientific_Lib_gsl-ref.pdf
+    note: >-
+      Reference manual for the GNU Scientific Library, including its
+      polynomial root finders. Freely available from the URL.
+
+- title: Circuit and System Analysis
+  entries:
+  - key: mccalla1988
+    cite: >-
+      W. J. McCalla, \textit{Fundamentals of Computer-Aided Circuit
+      Simulation}. Boston, MA, USA: Kluwer Academic Publishers, 1988,
+      ch.~7, ``Pole-zero evaluation.''
+    file: 978-1-4613-2011-1_7
+    note: >-
+      Computing the poles and zeros of circuit transfer functions, and the
+      numerical problems involved.
+  - key: hspice
+    cite: >-
+      \textit{HSPICE User's Manual}, ch.~24, ``Performing pole/zero
+      analysis,'' 1998 (publisher to be confirmed).
+    file: chapter_24.pdf
+    note: Pole/zero analysis in a commercial circuit simulator.
+  - key: astrom2004
+    cite: >-
+      K. J. \AA{}str\"om and R. M. Murray, \textit{Feedback Systems}, draft,
+      ch.~6, ``Transfer functions,'' Nov.~2004.
+    file: am04_ch6-3nov04.pdf
+    note: Transfer functions and their relation to other system descriptions.
+
+# Shareable documents already in the repository's doc/ folder.
+in_repository:
+- key: snelgrove1981
+  cite: >-
+    W. M. Snelgrove, A. S. Sedra, G. R. Lang, and P. O. Brackett, ``Complex
+    analog filters,'' unpublished, 1981.
+  file: doc/snelgrove_cmplx.pdf
+  note: >-
+    The report that introduced the $y^2$ transformed variable for complex
+    analog filters. Shared with the author's permission.
+
+# In ../docs but deliberately not listed (kept here so they are not
+# reconsidered each time).
+not_listed:
+- file: VAMS-LRM-2-4.pdf
+  reason: Verilog-AMS language reference; not related to the toolbox.
+- file: TrnsLnModdelling_TMtrx.pdf
+  reason: PairGain wireline loop-model generator user's manual (scanned); not related.
+- file: 2port_parameters.odt
+  reason: Contains no text.
+- file: CmplxFlt.txt
+  reason: Text copy of CmplxFlt.pdf.
+- file: Complex_Paper.pdf
+  reason: Manuscript version of martin2004 (listed there).
+- file: PolyZeros.pdf
+  reason: Duplicate of FindingRoors_f9-5.pdf.
+- file: LddrSnythCnfrnc.pdf
+  reason: Earlier version of martin2018ladder (listed there).

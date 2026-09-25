@@ -209,7 +209,7 @@ def runLatex(tex_path, max_passes=4):
     for _ in range(max_passes):
         r = subprocess.run(["pdflatex", "-interaction=nonstopmode", "-halt-on-error",
                             tex_path.name], cwd=tex_path.parent,
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, errors="replace")
         log = tex_path.with_suffix(".log").read_text(errors="replace")
         if r.returncode != 0:
             err = [l for l in log.splitlines() if l.startswith("!")]

@@ -290,3 +290,27 @@ tools/md2ieee_yaml.py doc/CmplxFltrGrpDly.md doc/ieee/CmplxFltrGrpDly_full.yaml 
 
 **After that the YAML is the source.** Don't re-run the converter over it,
 or the hand edits are lost.
+
+## 12. The same flow for other documents: `References.pdf`
+
+`doc/References.pdf` is a public list of the documents used in developing
+the toolbox that can't be redistributed (they are kept locally in
+`../docs`). It is built the same way as the paper, with a smaller
+generator:
+
+| File | Role |
+|---|---|
+| `doc/References.yaml` | the content: topic groups; each entry has `key`, `cite`, optional `doi`/`url`, `file` (the local copy, not printed) and `note`. It also has `in_repository` (documents in `doc/` that can be shared) and `not_listed` (documents deliberately left out, with the reason) |
+| `tools/references_templates.yaml` | article-class layouts: `document`, `group`, `entry`, `doi_link`, `url_link`, `repo_entry` |
+| `tools/make_references.py` | loads both YAMLs, fills one template per entry and group, runs pdflatex in `tools/build/references/`, and copies the PDF to `doc/References.pdf`. It reuses `fill`, `need` and `runLatex` from `make_ieee_tex.py` |
+
+**To add a reference:**
+
+1. Put the document in `../docs`.
+2. Add an entry to the right group in `doc/References.yaml`. Mark anything
+   that can't be confirmed from the document itself as *to be confirmed*.
+3. Run `tools/make_references.py`.
+4. Commit the YAML and the PDF. Both have `.gitignore` exceptions.
+
+An entry's `key` can be reused as the `\cite` key in a paper's YAML, so a
+paper's `references:` list can be copied from this file.

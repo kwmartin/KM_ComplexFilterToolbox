@@ -41,6 +41,10 @@ settings.mat
 # Exception: the description of the IEEE .tex generation flow (process only,
 # no paper content; see MakePaper.md)
 !/doc/make_tex_flow.md
+# Exception: the public list of references that cannot be redistributed
+# (built from doc/References.yaml by tools/make_references.py)
+!/doc/References.yaml
+!/doc/References.pdf
 
 # The conference paper draft (see MakePaper.md) must not be public until
 # after the conference: its source (doc/CmplxFltrGrpDly.md, already covered

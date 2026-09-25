@@ -1,0 +1,105 @@
+# A small example paper for tools/make_ieee_tex.py that uses every item type
+# and every marker (see doc/make_tex_flow.md). It holds no paper content and
+# is safe to commit; copy it to doc/ieee/<name>.yaml to start a new paper.
+#   tools/make_ieee_tex.py tools/ieee_example.yaml     -> tools/build/ieee_example.pdf
+type: doc
+value: ieee_example                  # output name (build/ieee_example.tex/.pdf)
+class_options: conference
+page_limit: 4                        # checked after the build; omit for no limit
+figures_dir: ../../examples/Figures/ # relative to the build folder -> \graphicspath
+title: An Example of a Generated IEEE Conference Paper
+authors:
+- name: Kenneth Martin
+  affiliation:
+  - '\textit{Granite SemiCom Inc.}'
+  - Toronto ON, Canada
+  email: martin@granitesemi.com
+abstract: |
+  This example shows each kind of item the generator understands: sections,
+  paragraphs, equations, figures, tables, lists, raw LaTeX and references.
+  The abstract itself is plain text, as IEEE asks.
+keywords: [complex filters, document generation, templates]
+
+items:
+- type: section
+  value: Introduction
+  reference: intro
+  items:
+  - type: text
+    value: |
+      Paragraphs are raw LaTeX, so maths such as $\tau(\omega)$ is written
+      directly. Markers keep the YAML short: Section~xxsec:methodyy is a
+      reference, zzgdyy an equation reference, ccmartin2005yy a citation,
+      and aaemphasisyy and bbbold textyy are emphasis. Words such as
+      accuracy, abbreviation and puzzle are left alone.
+
+- type: section
+  value: Method
+  reference: method
+  items:
+  - type: subsctn
+    value: Group Delay
+    reference: gd
+    items:
+    - type: text
+      value: |
+        The group delay of $H(z)$ at $z=e^{j\omega}$ is
+    - type: equation
+      reference: gd
+      items:
+      - '\tau(\omega) = -\frac{d\,\arg H(e^{j\omega})}{d\omega}.'
+    - type: text
+      value: |
+        Several aligned lines (\texttt{align: true}) share one number:
+    - type: equation
+      reference: jac
+      align: true
+      items:
+      - '\tau_z(\omega) &= \tau_x(W)\,J, \\'
+      - 'J &= \frac{1+t^2W^2}{2t}.'
+  - type: subsctn
+    value: Steps
+    items:
+    - type: enums
+      items:
+      - Design the prototype.
+      - Map it to the digital domain, as in zzgdyy.
+      - Equalize the group delay.
+    - type: list
+      items:
+      - A bulleted item.
+      - Another one, citing ccmartin2005,toolboxyy.
+    - type: dscrpts
+      items:
+      - title: Method 1
+        text: Equi-ripple group delay from an analog prototype.
+      - title: Method 2
+        text: A cascade of all-pass clusters.
+
+- type: section
+  value: Results
+  items:
+  - type: text
+    value: |
+      Fig.~xxfig:exampleyy shows a figure one column wide, and
+      Table~xxtab:exampleyy a table with its caption above it.
+  - type: figure
+    value: An example figure, one column wide.
+    file: EqualFltr_1_6_0.png
+    reference: fig:example
+  - type: table
+    value: An Example Table
+    reference: tab:example
+    columns: l c c
+    header: [configuration, nominal, expanded]
+    rows:
+    - [unequalized, '69.15', '92.53']
+    - [5 clusters, '14.06', '139.26']
+  - type: raw
+    value: '\IEEEtriggeratref{2}'
+
+references:
+- key: martin2005
+  text: 'K. Martin, ``Approximation of complex IIR bandpass filters without arithmetic symmetry,'''' \textit{IEEE Trans. Circuits Syst. I}, vol. 52, no. 4, pp. 794--803, Apr. 2005.'
+- key: toolbox
+  text: '\url{https://github.com/kwmartin/KM_ComplexFilterToolbox}.'

@@ -1,0 +1,128 @@
+# string.Template layouts used by tools/make_ieee_tex.py (see
+# doc/make_tex_flow.md). Each entry is filled with
+#     setTmplt = lambda tmpl, dct : Template(tmpl).substitute(dct)
+# from a dictionary the generator builds for one item. A literal "$" in a
+# template must be written "$$"; maths belongs in the content YAML, where it
+# needs no escaping.
+
+# The IEEEtran preamble, copied from
+# /home/Dropbox/doc/Papers/IEEE/TransformedVariables/ComplexFilters_TrnsfrmdVariables.tex
+# with \usepackage{cite} added (sorted, compressed citations, as the
+# IEEEtran HOWTO recommends), \usepackage{url} (line breaks in \url{}) and
+# \graphicspath for the figures folder.
+preamble: |
+  \usepackage{cite}
+  \usepackage{amsmath,amssymb,amsfonts}
+  \usepackage{algorithmic}
+  \usepackage{graphicx}
+  \usepackage{textcomp}
+  \usepackage{xcolor}
+  \usepackage{listings}
+  \usepackage{url}
+
+  \lstset{language=Matlab}
+  \lstset{tabsize=2}
+  \lstset{flexiblecolumns=true}
+
+  \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+      T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+  \graphicspath{{${figures_dir}}}
+
+document: |
+  \documentclass[${class_options}]{IEEEtran}
+  ${preamble}
+  \begin{document}
+
+  \title{${title}}
+
+  \author{${authors}}
+
+  \maketitle
+
+  \begin{abstract}
+  ${abstract}
+  \end{abstract}
+
+  \begin{IEEEkeywords}
+  ${keywords}
+  \end{IEEEkeywords}
+
+  ${body}
+
+  ${bibliography}
+
+  \end{document}
+
+# one author; blocks are joined with "\and" (side-by-side columns)
+author_block: |-
+  \IEEEauthorblockN{${name}}
+  \IEEEauthorblockA{${affiliation}}
+
+label: '\label{${label}}'
+
+section: |-
+  \${cmd}{${title}}${label}
+
+  ${body}
+
+text: '${value}'
+
+# one numbered equation; several lines (align: true) share its number
+equation: |-
+  \begin{equation}${label}
+  ${body}
+  \end{equation}
+
+equation_lines: |-
+  \begin{aligned}
+  ${lines}
+  \end{aligned}
+
+figure: |-
+  \begin{figure${star}}[${position}]
+  \centering
+  \includegraphics[width=${width}${widthref}]{${file}}
+  \caption{${caption}}${label}
+  \end{figure${star}}
+
+# IEEE puts table captions above the table
+table: |-
+  \begin{table${star}}[${position}]
+  \renewcommand{\arraystretch}{1.2}
+  \caption{${caption}}${label}
+  \centering
+  \begin{tabular}{${columns}}
+  \hline
+  ${header} \\
+  \hline
+  ${rows}
+  \hline
+  \end{tabular}
+  \end{table${star}}
+
+table_row: '${cells} \\'
+
+list: |-
+  \begin{${env}}
+  ${items}
+  \end{${env}}
+
+# IEEEtran description lists need the label width set to the widest label
+dscrpt_list: |-
+  \begin{description}[\IEEEsetlabelwidth{${widest}}]
+  ${items}
+  \end{description}
+
+list_item: '\item ${value}'
+
+dscrpt_item: '\item[${title}] ${text}'
+
+raw: '${value}'
+
+bibliography: |-
+  \begin{thebibliography}{${widest}}
+  ${items}
+  \end{thebibliography}
+
+bibitem: '\bibitem{${key}} ${text}'

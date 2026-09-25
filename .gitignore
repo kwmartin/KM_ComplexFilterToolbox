@@ -38,6 +38,9 @@ settings.mat
 # excluded.
 /doc/*
 !/doc/snelgrove_cmplx.pdf
+# Exception: the description of the IEEE .tex generation flow (process only,
+# no paper content; see MakePaper.md)
+!/doc/make_tex_flow.md
 
 # The conference paper draft (see MakePaper.md) must not be public until
 # after the conference: its source (doc/CmplxFltrGrpDly.md, already covered

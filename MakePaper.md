@@ -131,13 +131,16 @@ one.
 |---|---|
 | `fig_m1_mag` | Method 1, `1_10_0`: magnitude of the final design (Ap held at wp) |
 | `fig_m1_gd` | Method 1, `1_10_0`: group delay of the final design |
+| `fig_m2_gd0` | Method 2: group delay of the primary reference filter before equalization |
 | `fig_m2_gd` | Method 2: group delay after equalization with 5 clusters of 5 sections |
 | `fig_m2w_mag` | Method 2, wide band (`csc_fltr_1_8_0`): magnitude after equalization (7 clusters of 5) |
+| `fig_m2w_gd0` | Method 2, wide band (`csc_fltr_1_8_0`): group delay before equalization |
 | `fig_m2w_gd` | Method 2, wide band (`csc_fltr_1_8_0`): group delay after equalization (7 clusters of 5) |
 
 Figure rules (set by the author):
 
-- Each figure shows **one design, the final best one**.
+- Each figure shows **one design**: the final best one, or (for Method 2)
+  the filter before equalization, in its own figure.
 - Each figure has **two solid curves**, the passband zoom and the full
   band, in the **same units**: dB for magnitude, samples for group delay.
 - There are no band-edge marker lines (`markEdges` false) and no
@@ -208,7 +211,19 @@ pdfimages -list tools/build/CmplxFltrGrpDly.pdf                       # empty = 
 pdftoppm -f 10 -l 10 -r 60 -png tools/build/CmplxFltrGrpDly.pdf page  # look at a page
 ```
 
-## 7. Later phase: the IEEE version
+## 7. The IEEE version
+
+**Status (2026-09-25): the generator is in place** (`tools/make_ieee_tex.py`,
+YAML content plus `string.Template` layouts). `doc/make_tex_flow.md`
+explains the whole flow.
+
+- **Full length:** `doc/ieee/CmplxFltrGrpDly_full.yaml` gives a 10-page
+  IEEE-format version with all the detail. It was converted from the
+  Markdown draft by `tools/md2ieee_yaml.py`, then edited by hand.
+- **Submission:** `doc/ieee/CmplxFltrGrpDly_conf.yaml` will be cut down
+  from the full version to the page limit.
+
+The plan below still applies to the cut-down version.
 
 This is the plan; it has not been done yet.
 

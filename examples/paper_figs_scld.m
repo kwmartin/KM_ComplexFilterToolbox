@@ -8,13 +8,15 @@
 %   fig_m1_mag, fig_m1_gd  Method 1, dig_equiGd 1_10_0: the design with Ap
 %                          held at wp (equiGdDigitalAp_scld, ws = 6x wp), as
 %                          in the paper's section 6.1 table
-%   fig_m2_gd              Method 2: group delay of dsgnEqlzrD_peakNewton_
-%                          manual's filter after equalization (5 clusters
-%                          of 5 sections, the same two-phase schedule)
-%   fig_m2w_mag, fig_m2w_gd  Method 2 on the wide-band filter csc_fltr_1_8_0
-%                          (passband 0.025-0.475 Hz): magnitude and group
-%                          delay after equalization with 7 clusters of 5
-%                          sections (eqlz_csc_newton_1_8_0's schedule)
+%   fig_m2_gd0, fig_m2_gd  Method 2: group delay of dsgnEqlzrD_peakNewton_
+%                          manual's filter before and after equalization
+%                          (5 clusters of 5 sections, the same two-phase
+%                          schedule)
+%   fig_m2w_mag, fig_m2w_gd0, fig_m2w_gd  Method 2 on the wide-band filter
+%                          csc_fltr_1_8_0 (passband 0.025-0.475 Hz):
+%                          magnitude, and group delay before and after
+%                          equalization with 7 clusters of 5 sections
+%                          (eqlz_csc_newton_1_8_0's schedule)
 %
 % Takes about 5 minutes (mostly the Ap loop).
 
@@ -50,6 +52,9 @@ H = cscd.getSystem();
 [~, stats] = estAllPassOrder(H, wp_);
 gdH0 = stats.gdH(:);
 anchor = mean(gdH0(islocalmax(gdH0, 'MinProminence', 5)));
+[~, ~, r0] = plotGdTwo(H, wp_, ws_, struct('markEdges', false, ...
+    'file', fullfile(figDir, 'fig_m2_gd0')));
+fprintf('Method 2 GD p2p over wp before equalization: %.2f%%\n', r0.p2pPct);
 
 clusterTheta = 2*pi*(wp_(1) + linspace(0.10, 0.90, 5)*diff(wp_));
 clusterR = 0.925*ones(1, 5);
@@ -123,6 +128,10 @@ wi = repelem(clusterR, clusterCount).*exp(1j*repelem(clusterTheta, clusterCount)
 Heq = eqlzrDClass(wi(:), 1).applyTo(H);
 [~, ~, rm] = plotMgTwo(Heq, wp_, ws_, struct('Ap', Ap, 'markEdges', false, ...
     'file', fullfile(figDir, 'fig_m2w_mag')));
+[~, ~, r0] = plotGdTwo(H, wp_, ws_, struct('markEdges', false, ...
+    'file', fullfile(figDir, 'fig_m2w_gd0')));
+fprintf('csc_fltr_1_8_0 before equalization: GD over wp %.2f-%.2f samples\n', ...
+    min(r0.gdz(r0.fz >= wp_(1) & r0.fz <= wp_(2))), max(r0.gdz(r0.fz >= wp_(1) & r0.fz <= wp_(2))));
 [~, ~, r] = plotGdTwo(Heq, wp_, ws_, struct('markEdges', false, ...
     'file', fullfile(figDir, 'fig_m2w_gd')));
 [~, ~, gdU] = AnlzDH(H, 2*pi*r.fz);

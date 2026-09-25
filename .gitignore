@@ -51,3 +51,6 @@ settings.mat
 # by /doc/* above), its figures (doc/figures/, also covered by /doc/*) and
 # its rendered copies stay local (they live in Dropbox) and out of git.
 /tools/build/
+
+# Python bytecode caches (tools/*.py import each other)
+__pycache__/

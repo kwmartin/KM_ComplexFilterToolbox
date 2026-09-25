@@ -262,6 +262,21 @@ those are wanted), and the open items listed just above (root-causing
 not been folded into the paper — they are candidates for a "current
 limitations" section if one is added. Continuing at work next.
 
+**To view or print the draft**: `tools/render_paper.py` converts it to a
+Chrome-viewable HTML file (MathJax-rendered math) and a print-quality PDF
+(compiled by `pdflatex`), via `pandoc`.
+
+```
+tools/render_paper.py                # doc/CmplxFltrGrpDly.{html,pdf} + tools/build/ copy
+tools/render_paper.py --view html    # also opens the HTML in Chrome
+```
+
+The `tools/build/` copy is committed (so it's viewable without pandoc/
+pdflatex/chrome installed); the `doc/` copy is a local, uncommitted
+convenience copy, since `doc/` already holds copyrighted reference
+material excluded from git (`--no-doc-copy` skips it). See the script's
+own `--help` for more.
+
 ## How to re-run
 
 ```matlab

@@ -291,11 +291,11 @@ tools/render_paper.py                # doc/CmplxFltrGrpDly.{html,pdf} + tools/bu
 tools/render_paper.py --view html    # also opens the HTML in Chrome
 ```
 
-The `tools/build/` copy is committed (so it's viewable without pandoc/
-pdflatex/chrome installed); the `doc/` copy is a local, uncommitted
-convenience copy, since `doc/` already holds copyrighted reference
-material excluded from git (`--no-doc-copy` skips it). See the script's
-own `--help` for more.
+**2026-09-25: the paper is no longer in git.** It can't be public until
+after the conference, so `doc/CmplxFltrGrpDly.md`, `doc/figures/` and
+`tools/build/` are now in `.gitignore` and were untracked (they remain in
+the history before that commit). They live only in the Dropbox copy of
+the repo. The whole process is described in `MakePaper.md`.
 
 ## How to re-run
 

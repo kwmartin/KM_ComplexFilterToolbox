@@ -16,13 +16,11 @@ Usage:
 If markdown_file is omitted, this defaults to doc/CmplxFltrGrpDly.md.
 
 Every run does the actual pandoc/pdflatex build in --build-dir (default
-tools/build/) -- that copy is meant to be committed and pushed, so it's
-available without needing pandoc/pdflatex/chrome installed elsewhere. The
-final .html/.pdf are then also copied into --doc-dir (default doc/) as a
-local, throwaway convenience copy for viewing/printing right away; doc/
-already holds copyrighted reference material excluded from git (see
-Issues.md issue 2), so this copy is not meant to be committed from there.
-Use --no-doc-copy to skip it.
+tools/build/). The final .html/.pdf are then also copied into --doc-dir
+(default doc/) for viewing/printing next to the source; --no-doc-copy
+skips that. Neither copy is committed: the paper draft, its figures and
+its renders are kept out of git until after the conference (.gitignore;
+see MakePaper.md).
 
 Figures: the paper refers to images as figures/<name> with no extension
 (written by examples/paper_figs_scld.m into doc/figures/ as both .pdf and
@@ -204,13 +202,13 @@ def main():
     )
     ap.add_argument(
         "--build-dir", default=str(DEFAULT_BUILD_DIR),
-        help=f"where the build happens; meant to be committed "
+        help=f"where the build happens; not committed "
              f"(default: {DEFAULT_BUILD_DIR.relative_to(REPO_ROOT)})",
     )
     ap.add_argument(
         "--doc-dir", default=str(DEFAULT_DOC_DIR),
-        help=f"where the local convenience copy goes; not meant to be "
-             f"committed from here (default: {DEFAULT_DOC_DIR.relative_to(REPO_ROOT)})",
+        help=f"where the local convenience copy goes; not "
+             f"committed (default: {DEFAULT_DOC_DIR.relative_to(REPO_ROOT)})",
     )
     ap.add_argument(
         "--no-doc-copy", action="store_true",

@@ -38,5 +38,9 @@ settings.mat
 # excluded.
 /doc/*
 !/doc/snelgrove_cmplx.pdf
-# Exception: the paper's own figures (examples/paper_figs_scld.m)
-!/doc/figures/
+
+# The conference paper draft (see MakePaper.md) must not be public until
+# after the conference: its source (doc/CmplxFltrGrpDly.md, already covered
+# by /doc/* above), its figures (doc/figures/, also covered by /doc/*) and
+# its rendered copies stay local (they live in Dropbox) and out of git.
+/tools/build/

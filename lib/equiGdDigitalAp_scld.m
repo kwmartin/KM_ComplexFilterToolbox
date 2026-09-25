@@ -23,11 +23,22 @@ function [H, info] = equiGdDigitalAp_scld(p, px, ni, wp, ws, as, Ap, deltGD, use
 %   Meeting Ap at wp needs enough transition band: with ws only 2x wp at
 %   orders 7-11 the stopband collapses to 4-12 dB. ws of 4-6x wp works.
 %
+%   The k -> b map is not smooth: adaptP2_scld/place_polesdLP5 occasionally
+%   converge to a numerically broken design at some k (group-delay p2p in
+%   the hundreds of percent) sitting right next to well-behaved designs at
+%   nearby k. b alone does not flag this -- a broken design can have b very
+%   close to 1. So the final choice, and the secant slope used to pick the
+%   next k, both ignore designs whose gdP2pPct exceeds SANE_GD_MULT times
+%   the k=1 baseline's gdP2pPct (floored at SANE_GD_FLOOR%); if a step lands
+%   on such a design, the next k backs off halfway (in log k) toward the
+%   last sane k instead of extrapolating from the bad point. See
+%   Eqlzr_scld_results.md ("5_0_0 and 5_10_0").
+%
 %   info has fields k (the final design-band factor), apBand (b), edgeLoss
 %   (dB at the wp edges), gdP2pPct (group-delay p2p over wp, % of mean),
 %   stopLoss (minimum stopband loss relative to the passband peak, dB),
-%   iters, and history (one row per design: k, b, edgeLoss, gdP2pPct,
-%   stopLoss).
+%   iters, sane (true if the returned design passed the gdP2pPct check),
+%   and history (one row per design: k, b, edgeLoss, gdP2pPct, stopLoss).
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2026  Kenneth Martin
@@ -51,6 +62,8 @@ function [H, info] = equiGdDigitalAp_scld(p, px, ni, wp, ws, as, Ap, deltGD, use
   end
   AP_TOL = 0.005;
   KEEP_OUT = 0.95;
+  SANE_GD_MULT = 5;
+  SANE_GD_FLOOR = 10;
 
   fc = mean(wp);
   hw = diff(wp)/2;
@@ -62,11 +75,13 @@ function [H, info] = equiGdDigitalAp_scld(p, px, ni, wp, ws, as, Ap, deltGD, use
   kMax = KEEP_OUT*room/hw;
 
   history = zeros(0, 5);
+  sane = false(0, 1);
   designs = {};
-  logk = [];
-  logb = [];
+  logkSane = [];
+  logbSane = [];
   k = 1;
   overshot = false;
+  gd0 = [];
   for it = 1:maxIters
     wpk = fc + [-1 1]*hw*k;
     [~, Hk] = evalc('equiGdDigital_scld(p, px, ni, wpk, ws, as, Ap, deltGD, useWs)');
@@ -74,29 +89,51 @@ function [H, info] = equiGdDigitalAp_scld(p, px, ni, wp, ws, as, Ap, deltGD, use
     r = measureAp(Hk, wp, ws1, ws2, Ap);
     history(end+1, :) = [k, r.apBand, r.edgeLoss, r.gdP2pPct, r.stopLoss]; %#ok<AGROW>
     designs{end+1} = Hk; %#ok<AGROW>
-    logk(end+1) = log(k); %#ok<AGROW>
-    logb(end+1) = log(r.apBand); %#ok<AGROW>
-    if abs(r.apBand - 1) < AP_TOL
+    if it == 1
+      gd0 = r.gdP2pPct;
+    end
+    saneThresh = max(SANE_GD_FLOOR, SANE_GD_MULT*gd0);
+    isSane = isfinite(r.gdP2pPct) && r.gdP2pPct <= saneThresh;
+    sane(end+1, 1) = isSane; %#ok<AGROW>
+    if isSane && abs(r.apBand - 1) < AP_TOL
       break
     end
-    if it == 1
-      logkNew = logk(end) - logb(end);
-    else
-      slope = (logb(end) - logb(end-1))/(logk(end) - logk(end-1));
-      if isfinite(slope) && slope > 0.1
-        logkNew = logk(end) - logb(end)/slope;
+    if isSane
+      logkSane(end+1) = log(k); %#ok<AGROW>
+      logbSane(end+1) = log(r.apBand); %#ok<AGROW>
+      if numel(logkSane) == 1
+        logkNew = logkSane(end) - logbSane(end);
       else
-        logkNew = logk(end) - logb(end);
+        slope = (logbSane(end) - logbSane(end-1))/(logkSane(end) - logkSane(end-1));
+        if isfinite(slope) && slope > 0.1
+          logkNew = logkSane(end) - logbSane(end)/slope;
+        else
+          logkNew = logkSane(end) - logbSane(end);
+        end
+        crossed = sign(logbSane(end)) ~= sign(logbSane(end-1));
+        if crossed && overshot
+          logkNew = logkSane(end) + 0.5*(logkNew - logkSane(end));
+        end
+        overshot = overshot || crossed;
       end
-      crossed = sign(logb(end)) ~= sign(logb(end-1));
-      if crossed && overshot
-        logkNew = logk(end) + 0.5*(logkNew - logk(end));
-      end
-      overshot = overshot || crossed;
+    else
+      % this k produced a numerically broken design (large gdP2pPct) even
+      % though b can look close to 1 -- don't trust it for the secant
+      % slope; back off halfway (in log k) toward the last sane k instead
+      logkNew = 0.5*(log(k) + logkSane(end));
     end
     k = min(exp(logkNew), kMax);
   end
-  [~, best] = min(abs(history(:, 2) - 1));
+  saneHist = history(sane, :);
+  if isempty(saneHist)
+    [~, best] = min(abs(history(:, 2) - 1));
+    info.sane = false;
+  else
+    [~, bestSane] = min(abs(saneHist(:, 2) - 1));
+    saneIdx = find(sane);
+    best = saneIdx(bestSane);
+    info.sane = true;
+  end
   H = designs{best};
   info.k = history(best, 1);
   info.apBand = history(best, 2);

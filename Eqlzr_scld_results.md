@@ -110,6 +110,64 @@ relative to the passband peak.
 | | ws 4x* | 3.80 | 0.629 | 163.3 | **469%** | 296.9 | 8 |
 | | ws 6x* | 1.87 | 1.137 | 233.7 | **465%** | 447.4 | 8 |
 
+### 2026-09-24 update: `equiGdDigitalAp_scld`'s selection logic was picking broken designs
+
+Investigated the "5_0_0 and 5_10_0 fail" line above. First checked the
+obvious alternative — shaping `as` to demand more attenuation far from the
+passband and less near it — and ruled it out on inspection, not by testing:
+`place_polesdLP5` hardcodes `asy = 20*ones(size(wsy))` internally (it never
+reads the caller's `as` at all), and `5_0_0` has `ni=15, np=0` — every loss
+zero is already pinned at Nyquist, so there are zero free stopband zeros to
+reshape regardless.
+
+Traced `equiGdDigitalAp_scld`'s `info.history` instead. The real bug: it
+picked "best" by `min|apBand-1|` alone, with no check on whether the design
+itself was sane. The k -> apBand map is not smooth (unlike the 6 specs that
+already worked) — `adaptP2_scld`/`place_polesdLP5` sometimes converge to a
+numerically broken design (group-delay p2p in the hundreds or thousands of
+percent) at some k, sitting right next to well-behaved designs at nearby k,
+and a broken design can have apBand deceptively close to 1. For `5_0_0` at
+ws=6x the old code picked k=3.11 (apBand=0.92, but GD p2p=1135%) over k=4.16
+in the very same run (apBand=1.16, GD p2p=2.49%, edge loss 2.22dB) sitting
+right there in the history. Separately, once `k` clamped to `kMax`, the old
+secant step kept re-proposing the same clamped k with no progress check —
+`5_0_0`'s ws=4x run spent 5 of 8 iterations re-evaluating an identical
+broken design at k=3.8.
+
+Fixed both in `lib/equiGdDigitalAp_scld.m`: a design only counts as "sane" if
+its GD p2p is below `max(10%, 5x the k=1 baseline's GD p2p)`; final selection
+and the secant slope both ignore insane samples; hitting an insane sample now
+backs off halfway (in log k) toward the last known-good k instead of
+extrapolating from it or re-trying the same clamped value.
+
+Results, re-run with the fix:
+
+| spec | variant | k | Ap band | wp-edge loss | GD p2p | stop | sane picks / total |
+|---|---|---|---|---|---|---|---|
+| 5_0_0 | ws=4x | 2.826 | 0.998 | 3.02 (Ap 3.01) | **1.98%** | 52.5 | 4/6 |
+| 5_0_0 | ws=6x | 2.826 | 0.998 | 3.02 (Ap 3.01) | **1.98%** | 145.1 | 4/6 |
+| 5_10_0 | ws=4x | 2.744 | 0.456 | 14.85 | 0.84% | 232.0 | 3/8 |
+| 5_10_0 | ws=6x | 3.676 | 1.007 | 2.98 (Ap 3.01) | **2.16%** | 166.3 | 4/8 |
+
+**`5_0_0` is fully solved** — both ws=4x and ws=6x converge to the same
+excellent design: the wp edge lands almost exactly on Ap, GD p2p is under 2%,
+and the stopband is 52-145 dB against a 20 dB spec.
+
+**`5_10_0` is solved at ws=6x, still short at ws=4x.** At ws=6x the fix finds
+an equally good design (edge loss 2.98dB vs Ap=3.01dB, GD p2p 2.16%, 166dB
+stopband) after passing through two more broken samples (194% and 771% GD
+p2p) along the way — the sanity filter and backoff route around them
+correctly. At ws=4x, `kMax` is capped at 3.8 by the loss-pole-proximity
+constraint, and every k in the reachable range from about 2.95 up to that cap
+is broken except for a lucky exact hit at 3.23 in one run; the best *reliable*
+sane pick only reaches apBand=0.46. So the underlying instability (in
+`adaptP2_scld` and/or `place_polesdLP5` for this 5-zeros-at-Nyquist,
+10-free-loss-pole configuration) is real, but ws=6x has enough room to widen
+past the unstable region entirely, while ws=4x's kMax traps the search inside
+it. Practical takeaway: **use ws=6x for `5_10_0`**, not ws=4x; if ws must stay
+near 4x, the instability itself would need to be root-caused. Left as an open
+item below.
+
 ### Reading the results
 
 - **ws = 6x wp works for 6 of the 9 specs:** `1_6_0`, `1_10_0`, `1_12_0`,
@@ -136,9 +194,14 @@ relative to the passband peak.
 
 ## Suggested next steps
 
-1. **Investigate `5_0_0` and `5_10_0` under the Ap loop.** The failure is
-   probably in `place_polesdLP5` or `adaptP2_scld` with a widened band and
-   many zeros at infinity. Look at the per-iteration `info.history`.
+1. ~~Investigate `5_0_0` and `5_10_0` under the Ap loop.~~ Done 2026-09-24 —
+   see the update above. `5_0_0` is solved (a selection-logic bug in
+   `equiGdDigitalAp_scld`, not the inner solvers). `5_10_0` still needs its
+   inner-solver instability root-caused: unlike `5_0_0`, most of the sampled
+   k range produces broken designs (400-2000% GD p2p), not just one bad
+   point next to good ones — trace `adaptP2_scld`'s and `place_polesdLP5`'s
+   own iteration internals (not just `equiGdDigitalAp_scld`'s outer history)
+   at one of the broken k values to see which one is diverging and why.
 2. **Try an in-loop fix instead of the outer loop.** Restrict `adaptP2`'s
    equalization to the extrema inside the design band, so it stops squeezing
    the prototype's equal-ripple region into wp. This might keep the Ap edge

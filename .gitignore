@@ -33,4 +33,8 @@ settings.mat
 # deliberately kept out of git (see Issues.md issue 2): copyrighted
 # material, staged outside the repo at /home/Dropbox/Matlab/Complex/docs
 # instead. Re-populated locally from time to time; never commit.
-/doc/
+# Exception: snelgrove_cmplx.pdf - not copyrighted, author's permission
+# obtained to make it available (2026-09-25). 1982_snelgrove_phd.pdf stays
+# excluded.
+/doc/*
+!/doc/snelgrove_cmplx.pdf

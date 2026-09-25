@@ -8,7 +8,8 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
 %   dotted) says which filter.
 %
 %   H    a zpk, or a cell of up to 3 zpk (e.g. {Hbase, Hfinal})
-%   wp   passband edges in cycles, [f1 f2]
+%   wp   passband edges in cycles/sample, [f1 f2] (labelled Hz: the
+%        sample rate is taken as 1 Hz)
 %   ws   stopband edges in cycles, e.g. [-0.499 ws1 ws2 0.499] as used by
 %        the design functions; the inner edges are marked on the full-band
 %        view. May be [].
@@ -25,6 +26,10 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
 %     .ymin        bottom of the full-band view (default: 40 dB below the
 %                  highest stopband level, floored at -200)
 %     .zoomColor .fullColor   default 'b' and 'r'
+%     .alignZero   put 0 dB at the same height on both y-axes (default
+%                  true; needs 0 dB inside the zoom's y-range)
+%     .markEdges   draw dotted lines at the wp edges (zoom) and the inner
+%                  ws edges (full band) (default true)
 %     .legendLoc   legend location (default 'southoutside', horizontal)
 %     .newFig      open a new figure (default true)
 %     .file        if given, also export file.pdf and file.png with
@@ -58,6 +63,8 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
   end
   opts = setOpt(opts, 'normalize', true);
   opts = setOpt(opts, 'zoomMargin', 0.1);
+  opts = setOpt(opts, 'markEdges', true);
+  opts = setOpt(opts, 'alignZero', true);
   opts = setOpt(opts, 'legendLoc', 'southoutside');
   opts = setOpt(opts, 'zoomColor', 'b');
   opts = setOpt(opts, 'fullColor', 'r');
@@ -72,7 +79,9 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
   f = (-0.5:1e-4:0.5).';
   width = wp(2) - wp(1);
   xz = wp + [-1 1]*opts.zoomMargin*width;
-  fz = linspace(xz(1), xz(2), 2001).';
+  xz = [max(xz(1), -0.5), min(xz(2), 0.5)];   % stay within one period
+  % include the exact wp edges, where the response is often steepest
+  fz = unique([linspace(xz(1), xz(2), 2001).'; wp(:)]);
   inWp = fz >= wp(1) & fz <= wp(2);
   dB = zeros(numel(f), nF);
   dBz = zeros(numel(fz), nF);
@@ -102,9 +111,10 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
   zoom.color = opts.zoomColor;
   zoom.xAxis = 'bottom';  zoom.yAxis = 'left';
   zoom.xlim = xz;  zoom.ylim = zy;
-  zoom.xlabel = 'Passband frequency (cycles)';
+  zoom.xlabel = 'Passband frequency (Hz)';
   zoom.ylabel = 'Passband gain (dB)';
   zoom.xlines = wp;
+  if ~opts.markEdges, zoom.xlines = []; end
 
   % ---- full band (top/right) ----
   [ws1, ws2] = innerEdges(ws, wp);
@@ -119,10 +129,17 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
   full.x = f;  full.y = dB;
   full.color = opts.fullColor;
   full.xAxis = 'top';  full.yAxis = 'right';
-  full.xlim = [-0.5 0.5];  full.ylim = [ymin, max(dB(:)) + 5];
-  full.xlabel = 'Frequency (cycles)';
+  fTop = max(dB(:)) + 5;
+  if opts.alignZero && zy(1) < 0 && zy(2) > 0
+    % 0 dB sits a fraction zy(2)/(zy(2) - zy(1)) down from the top of the
+    % zoom; give the full band the same fraction: fTop/(fTop - ymin)
+    fTop = zy(2)*ymin/zy(1);
+  end
+  full.xlim = [-0.5 0.5];  full.ylim = [ymin, fTop];
+  full.xlabel = 'Frequency (Hz)';
   full.ylabel = 'Gain (dB)';
   full.xlines = [ws1 ws2];
+  if ~opts.markEdges, full.xlines = []; end
 
   if opts.newFig
     fig = figure('Position', [800 100 800 800]);

@@ -129,9 +129,26 @@ one.
 
 | Figure | Content |
 |---|---|
-| `fig_m1_mag` | Method 1, `1_10_0`: magnitude, base design against the design with Ap held |
-| `fig_m1_gd` | Method 1, `1_10_0`: group delay; the zoom shows % deviation from each design's mean |
-| `fig_m2_gd` | Method 2: group delay, unequalized against 5 clusters of 5 sections |
+| `fig_m1_mag` | Method 1, `1_10_0`: magnitude of the final design (Ap held at wp) |
+| `fig_m1_gd` | Method 1, `1_10_0`: group delay of the final design |
+| `fig_m2_gd` | Method 2: group delay after equalization with 5 clusters of 5 sections |
+| `fig_m2w_mag` | Method 2, wide band (`csc_fltr_1_8_0`): magnitude after equalization (7 clusters of 5) |
+| `fig_m2w_gd` | Method 2, wide band (`csc_fltr_1_8_0`): group delay after equalization (7 clusters of 5) |
+
+Figure rules (set by the author):
+
+- Each figure shows **one design, the final best one**.
+- Each figure has **two solid curves**, the passband zoom and the full
+  band, in the **same units**: dB for magnitude, samples for group delay.
+- There are no band-edge marker lines (`markEdges` false) and no
+  stopband masking (masking breaks the curve into dashes).
+- The two y-axes are aligned: 0 dB is at the same height in both
+  magnitude views (`alignZero`), and the maximum group delay in the zoom
+  window is at the same height in both group-delay views (`alignMax`).
+  Both are on by default. The group-delay zoom's range covers its whole
+  window, so peaks just outside the passband are not clipped.
+- Frequency axes are labelled in Hz (the sample rate is taken as 1 Hz,
+  so the numbers equal cycles/sample); group delay stays in samples.
 
 The plotting functions are in `lib/`:
 

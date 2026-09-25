@@ -8,7 +8,8 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
 %   dotted) says which filter. Group delay is in samples, from AnlzDH.
 %
 %   H    a zpk, or a cell of up to 3 zpk (e.g. {Hunequalized, Hequalized})
-%   wp   passband edges in cycles, [f1 f2]
+%   wp   passband edges in cycles/sample, [f1 f2] (labelled Hz: the
+%        sample rate is taken as 1 Hz)
 %   ws   stopband edges in cycles (inner edges marked on the full-band
 %        view), or []
 %   opts (all optional):
@@ -19,14 +20,18 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
 %     .zoomRelPct  plot the zoom as each filter's deviation from its own
 %                  mean over wp, in % of that mean (default false). Use it
 %                  to compare the ripple of filters whose delays differ.
-%     .zoomYlim    override the zoom's y-limits (default: the range over
-%                  wp, padded by 25% of its spread, so the ripple fills the
-%                  view and the rise outside wp is clipped; not below 0 for
-%                  absolute group delay that is non-negative over wp)
+%     .zoomYlim    override the zoom's y-limits (default: from the minimum
+%                  over wp up to the maximum over the whole zoom window, so
+%                  peaks just outside wp are not clipped, padded by 25% of
+%                  the wp spread; not below 0 for absolute group delay that
+%                  is non-negative over wp)
 %     .gdMaxFctr   full-band y-range is [min(0, min over wp),
 %                  gdMaxFctr*max over wp] (default 3). The limits clip
 %                  the spikes near stopband zeros; the data are not edited.
 %     .fullYlim    override the full-band y-limits
+%     .alignMax    put the maximum group delay in the zoom window at the
+%                  same height on both y-axes (default true; not with
+%                  zoomRelPct)
 %     .maskDb      if given, hide the group delay (NaN) wherever the gain is
 %                  more than maskDb dB below the passband peak, where it
 %                  has no practical meaning
@@ -34,6 +39,8 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
 %                  (ignored with zoomRelPct)
 %     .legendLoc   legend location (default 'southoutside', horizontal)
 %     .zoomColor .fullColor   default 'b' and 'r'
+%     .markEdges   draw dotted lines at the wp edges (zoom) and the inner
+%                  ws edges (full band) (default true)
 %     .newFig      open a new figure (default true)
 %     .file        if given, also export file.pdf and file.png with
 %                  savePaperFig (.widthIn, .heightIn, .fontSize passed on)
@@ -66,6 +73,8 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
     error('plotGdTwo plots at most 3 filters');
   end
   opts = setOpt(opts, 'zoomMargin', 0.1);
+  opts = setOpt(opts, 'markEdges', true);
+  opts = setOpt(opts, 'alignMax', true);
   opts = setOpt(opts, 'zoomRelPct', false);
   opts = setOpt(opts, 'legendLoc', 'southoutside');
   opts = setOpt(opts, 'gdMaxFctr', 3);
@@ -82,7 +91,9 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
   f = (-0.5:1e-4:0.5).';
   width = wp(2) - wp(1);
   xz = wp + [-1 1]*opts.zoomMargin*width;
-  fz = linspace(xz(1), xz(2), 2001).';
+  xz = [max(xz(1), -0.5), min(xz(2), 0.5)];   % stay within one period
+  % include the exact wp edges, where the response is often steepest
+  fz = unique([linspace(xz(1), xz(2), 2001).'; wp(:)]);
   inWp = fz >= wp(1) & fz <= wp(2);
   gd = zeros(numel(f), nF);
   gdz = zeros(numel(fz), nF);
@@ -114,7 +125,7 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
   else
     lo = min(zWp(:));  hi = max(zWp(:));
     pad = 0.25*max(hi - lo, 1e-3*max(abs([lo hi])));
-    zy = [lo - pad, hi + pad];
+    zy = [lo - pad, max(max(gdZoom(:)), hi) + pad];
     if ~opts.zoomRelPct && lo >= 0
       zy(1) = max(zy(1), 0);
     end
@@ -123,9 +134,10 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
   zoom.color = opts.zoomColor;
   zoom.xAxis = 'bottom';  zoom.yAxis = 'left';
   zoom.xlim = xz;  zoom.ylim = zy;
-  zoom.xlabel = 'Passband frequency (cycles)';
+  zoom.xlabel = 'Passband frequency (Hz)';
   zoom.ylabel = 'Passband GD (samples)';
   zoom.xlines = wp;
+  if ~opts.markEdges, zoom.xlines = []; end
   if opts.zoomRelPct
     zoom.ylabel = 'Passband GD deviation (%)';
   elseif isfield(opts, 'gdRef')
@@ -138,14 +150,23 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
     fy = opts.fullYlim;
   else
     fy = [min(0, min(gdWp(:))), opts.gdMaxFctr*max(gdWp(:))];
+    if opts.alignMax && ~opts.zoomRelPct
+      % the zoom maximum h sits a fraction rTop = (zy(2) - h)/diff(zy)
+      % down from the top of the zoom; choose the full band's top so it
+      % sits the same fraction down there: (fTop - h) = rTop*(fTop - fy(1))
+      h = max(max(gdz(:)), max(gdWp(:)));
+      rTop = (zy(2) - h)/diff(zy);
+      fy(2) = (h - rTop*fy(1))/(1 - rTop);
+    end
   end
   full.x = f;  full.y = gd;
   full.color = opts.fullColor;
   full.xAxis = 'top';  full.yAxis = 'right';
   full.xlim = [-0.5 0.5];  full.ylim = fy;
-  full.xlabel = 'Frequency (cycles)';
+  full.xlabel = 'Frequency (Hz)';
   full.ylabel = 'GD (samples)';
   full.xlines = [ws1 ws2];
+  if ~opts.markEdges, full.xlines = []; end
 
   if opts.newFig
     fig = figure('Position', [800 100 800 800]);

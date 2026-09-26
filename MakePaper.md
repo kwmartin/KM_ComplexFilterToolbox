@@ -131,6 +131,7 @@ one.
 |---|---|
 | `fig_m1_mag` | Method 1, `1_10_0`: magnitude of the final design (Ap held at wp) |
 | `fig_m1_gd` | Method 1, `1_10_0`: group delay of the final design |
+| `fig_m2_mag` | Method 2: magnitude after equalization with 5 clusters of 5 sections (unchanged from before, by construction) |
 | `fig_m2_gd0` | Method 2: group delay of the primary reference filter before equalization |
 | `fig_m2_gd` | Method 2: group delay after equalization with 5 clusters of 5 sections |
 | `fig_m2w_mag` | Method 2, wide band (`csc_fltr_1_8_0`): magnitude after equalization (7 clusters of 5) |
@@ -184,6 +185,12 @@ versions had problems that only showed when viewed:
 - two designs at different delays flattened each other's ripple;
 - a reference line was misleading;
 - the legend covered the curves.
+- an example's magnitude figure was never written at all: the text and
+  the built PDF (with figure numbers auto-assigned from source order)
+  both looked plausible on their own, and the gap only showed up when
+  the PDF was read start to end and a figure number was missing. Check
+  the figure count against the figure script's own list, not just that
+  the ones present look right.
 
 ## 6. Rendering and checking a draft
 

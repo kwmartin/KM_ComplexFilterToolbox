@@ -19,6 +19,8 @@ preamble: |
   \usepackage{xcolor}
   \usepackage{listings}
   \usepackage{url}
+  \usepackage{enumitem}
+  \setlist{noitemsep, topsep=2pt}
 
   \lstset{language=Matlab}
   \lstset{tabsize=2}

@@ -1,6 +1,6 @@
-function savePaperFig(fig, file, widthIn, heightIn, fontSize)
-%   savePaperFig(fig, file, widthIn, heightIn, fontSize) exports fig for
-%   the paper: file.pdf (vector, for the pdflatex build) and file.png
+function savePaperFig(fig, file, widthIn, heightIn, fontSize, refit)
+%   savePaperFig(fig, file, widthIn, heightIn, fontSize, refit) exports fig
+%   for the paper: file.pdf (vector, for the pdflatex build) and file.png
 %   (300 dpi, for the HTML build). file has no extension; its folder is
 %   created if needed.
 %
@@ -10,6 +10,14 @@ function savePaperFig(fig, file, widthIn, heightIn, fontSize)
 %   TightInset, so tick labels and axis labels on all four sides (as
 %   plotTwo produces) are not cut off. The on-screen figure keeps the new
 %   size.
+%
+%   refit (default true): the TightInset refit assumes every axes in the
+%   figure is one overlaid plotTwo box meant to fill the whole figure, and
+%   moves them all to one shared, unioned position -- correct for a single
+%   box, but wrong for two plotTwo boxes placed side by side in one figure
+%   (it would pull both to the same spot). Pass false for that case, and
+%   give plotTwo's own .pos a rectangle with margin already sized for the
+%   tick labels at this fontSize.
 %
 %   Toolbox for the Design of Complex Filters
 %   Copyright (C) 2026  Kenneth Martin
@@ -31,6 +39,7 @@ function savePaperFig(fig, file, widthIn, heightIn, fontSize)
   if nargin < 3 || isempty(widthIn), widthIn = 3.5; end
   if nargin < 4 || isempty(heightIn), heightIn = 2.8; end
   if nargin < 5 || isempty(fontSize), fontSize = 8; end
+  if nargin < 6 || isempty(refit), refit = true; end
 
   set(fig, 'Units', 'inches');
   p = get(fig, 'Position');
@@ -50,36 +59,39 @@ function savePaperFig(fig, file, widthIn, heightIn, fontSize)
     end
   end
 
-  % refit: the union of every axes' TightInset (normalized units) is the
-  % margin needed on each side, plus a small gap
-  drawnow;
-  set(ax, 'Units', 'normalized');
-  ti = zeros(numel(ax), 4);
-  for i = 1:numel(ax)
-    ti(i, :) = get(ax(i), 'TightInset');
-  end
-  m = max(ti, [], 1) + 0.01;
-  % a legend outside the axes (below or above) needs its own strip
-  for l = lg(:).'
-    set(l, 'Units', 'normalized');
-    lp = get(l, 'Position');
-    if strcmpi(get(l, 'Location'), 'southoutside')
-      m(2) = m(2) + lp(4) + 0.01;
-    elseif strcmpi(get(l, 'Location'), 'northoutside')
-      m(4) = m(4) + lp(4) + 0.01;
+  if refit
+    % refit: the union of every axes' TightInset (normalized units) is the
+    % margin needed on each side, plus a small gap. Only correct when
+    % every axes in the figure is one overlaid box meant to fill it.
+    drawnow;
+    set(ax, 'Units', 'normalized');
+    ti = zeros(numel(ax), 4);
+    for i = 1:numel(ax)
+      ti(i, :) = get(ax(i), 'TightInset');
     end
-  end
-  newPos = [m(1), m(2), 1 - m(1) - m(3), 1 - m(2) - m(4)];
-  set(ax, 'Position', newPos);
-  % put an outside legend in its strip, centred under (or over) the axes
-  drawnow;
-  for l = lg(:).'
-    lp = get(l, 'Position');
-    xc = newPos(1) + newPos(3)/2 - lp(3)/2;
-    if strcmpi(get(l, 'Location'), 'southoutside')
-      set(l, 'Position', [xc, 0.005, lp(3), lp(4)]);
-    elseif strcmpi(get(l, 'Location'), 'northoutside')
-      set(l, 'Position', [xc, 1 - lp(4) - 0.005, lp(3), lp(4)]);
+    m = max(ti, [], 1) + 0.01;
+    % a legend outside the axes (below or above) needs its own strip
+    for l = lg(:).'
+      set(l, 'Units', 'normalized');
+      lp = get(l, 'Position');
+      if strcmpi(get(l, 'Location'), 'southoutside')
+        m(2) = m(2) + lp(4) + 0.01;
+      elseif strcmpi(get(l, 'Location'), 'northoutside')
+        m(4) = m(4) + lp(4) + 0.01;
+      end
+    end
+    newPos = [m(1), m(2), 1 - m(1) - m(3), 1 - m(2) - m(4)];
+    set(ax, 'Position', newPos);
+    % put an outside legend in its strip, centred under (or over) the axes
+    drawnow;
+    for l = lg(:).'
+      lp = get(l, 'Position');
+      xc = newPos(1) + newPos(3)/2 - lp(3)/2;
+      if strcmpi(get(l, 'Location'), 'southoutside')
+        set(l, 'Position', [xc, 0.005, lp(3), lp(4)]);
+      elseif strcmpi(get(l, 'Location'), 'northoutside')
+        set(l, 'Position', [xc, 1 - lp(4) - 0.005, lp(3), lp(4)]);
+      end
     end
   end
 

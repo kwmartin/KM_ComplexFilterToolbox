@@ -5,19 +5,27 @@
 % .png (for the HTML build); doc/CmplxFltrGrpDly.md refers to them as
 % figures/<name> with no extension (tools/render_paper.py picks the type).
 %
-%   fig_m1_mag, fig_m1_gd  Method 1, dig_equiGd 1_10_0: the design with Ap
-%                          held at wp (equiGdDigitalAp_scld, ws = 6x wp), as
-%                          in the paper's section 6.1 table
-%   fig_m2_mag, fig_m2_gd0, fig_m2_gd  Method 2: magnitude (unchanged by
-%                          the all-pass equalizer) and group delay before
-%                          and after equalization, of dsgnEqlzrD_peakNewton_
-%                          manual's filter (5 clusters of 5 sections, the
-%                          same two-phase schedule)
-%   fig_m2w_mag, fig_m2w_gd0, fig_m2w_gd  Method 2 on the wide-band filter
-%                          csc_fltr_1_8_0 (passband 0.025-0.475 Hz):
-%                          magnitude, and group delay before and after
-%                          equalization with 7 clusters of 5 sections
-%                          (eqlz_csc_newton_1_8_0's schedule)
+% Each example gets ONE combined figure (combinedMagGdFig, below):
+% magnitude on the left, group delay on the right (one curve, or two
+% overlaid by colour for a before/after comparison), each panel about
+% half a column wide -- see ReductionPlan.md's "Figure strategy for
+% Section VI". This replaced one magnitude + one-or-two group-delay
+% figures per example.
+%
+%   fig_m1_combined   Method 1, dig_equiGd 1_10_0: the design with Ap
+%                      held at wp (equiGdDigitalAp_scld, ws = 6x wp), as
+%                      in the paper's section 6.1 table. No before/after:
+%                      one curve in each panel.
+%   fig_m2_combined    Method 2: magnitude (unchanged by the all-pass
+%                      equalizer, so shown once) and group delay before
+%                      and after equalization, overlaid, of
+%                      dsgnEqlzrD_peakNewton_manual's filter (5 clusters
+%                      of 5 sections, the same two-phase schedule)
+%   fig_m2w_combined   Method 2 on the wide-band filter csc_fltr_1_8_0
+%                      (passband 0.025-0.475 Hz): magnitude, and group
+%                      delay before/after overlaid, equalization with 7
+%                      clusters of 5 sections (eqlz_csc_newton_1_8_0's
+%                      schedule)
 %
 % Takes about 5 minutes (mostly the Ap loop).
 
@@ -36,10 +44,7 @@ ws6 = [-0.499 -6*hw 6*hw 0.499];
 [~, Hap, info] = evalc('equiGdDigitalAp_scld(p, px, ni, wp, ws6, as, Ap, deltGD, useWs)');
 fprintf('1_10_0 Ap-held: k = %.3f, Ap band = %.3f, edge loss = %.2f dB\n', ...
     info.k, info.apBand, info.edgeLoss);
-plotMgTwo(Hap, wp, ws6, struct('Ap', Ap, 'markEdges', false, ...
-    'file', fullfile(figDir, 'fig_m1_mag')));
-[~, ~, r] = plotGdTwo(Hap, wp, ws6, struct('markEdges', false, ...
-    'file', fullfile(figDir, 'fig_m1_gd')));
+[~, r] = combinedMagGdFig(Hap, Hap, wp, ws6, Ap, {}, fullfile(figDir, 'fig_m1_combined'));
 fprintf('1_10_0 GD p2p over wp: %.2f%%\n', r.p2pPct);
 
 %% Method 2: 5 clusters of 5 all-pass sections (dsgnEqlzrD_peakNewton_manual)
@@ -53,9 +58,6 @@ H = cscd.getSystem();
 [~, stats] = estAllPassOrder(H, wp_);
 gdH0 = stats.gdH(:);
 anchor = mean(gdH0(islocalmax(gdH0, 'MinProminence', 5)));
-[~, ~, r0] = plotGdTwo(H, wp_, ws_, struct('markEdges', false, ...
-    'file', fullfile(figDir, 'fig_m2_gd0')));
-fprintf('Method 2 GD p2p over wp before equalization: %.2f%%\n', r0.p2pPct);
 
 clusterTheta = 2*pi*(wp_(1) + linspace(0.10, 0.90, 5)*diff(wp_));
 clusterR = 0.925*ones(1, 5);
@@ -85,15 +87,13 @@ end
 [~, clusterTheta, clusterR] = best{:};
 wi = repelem(clusterR, clusterCount).*exp(1j*repelem(clusterTheta, clusterCount));
 Heq = eqlzrDClass(wi(:), 1).applyTo(H);
-[~, ~, rm] = plotMgTwo(Heq, wp_, ws_, struct('Ap', Ap, 'markEdges', false, ...
-    'file', fullfile(figDir, 'fig_m2_mag')));
+[rm, r] = combinedMagGdFig(Heq, {H, Heq}, wp_, ws_, Ap, {'before', 'after'}, ...
+    fullfile(figDir, 'fig_m2_combined'));
 dBw = rm.dBz(rm.fz >= wp_(1) & rm.fz <= wp_(2));
 inStop = rm.f <= 0 | rm.f >= 0.5;
 fprintf('Method 2 passband ripple %.3f dB, min stopband loss %.1f dB\n', ...
     -min(dBw), -max(rm.dB(inStop)));
-[~, ~, r] = plotGdTwo(Heq, wp_, ws_, struct('markEdges', false, ...
-    'file', fullfile(figDir, 'fig_m2_gd')));
-fprintf('Method 2 GD p2p over wp after equalization: %.2f%%\n', r.p2pPct);
+fprintf('Method 2 GD p2p over wp: before %.2f%%, after %.2f%%\n', r.p2pPct(1), r.p2pPct(2));
 
 %% Method 2, wide band: csc_fltr_1_8_0, 7 clusters of 5 (eqlz_csc_newton_1_8_0)
 p = [-0.45 -0.40 -0.35 -0.30 0.3 0.35 0.4 0.45];
@@ -133,27 +133,22 @@ end
 [~, clusterTheta, clusterR] = best{:};
 wi = repelem(clusterR, clusterCount).*exp(1j*repelem(clusterTheta, clusterCount));
 Heq = eqlzrDClass(wi(:), 1).applyTo(H);
-[~, ~, rm] = plotMgTwo(Heq, wp_, ws_, struct('Ap', Ap, 'markEdges', false, ...
-    'file', fullfile(figDir, 'fig_m2w_mag')));
-[~, ~, r0] = plotGdTwo(H, wp_, ws_, struct('markEdges', false, ...
-    'file', fullfile(figDir, 'fig_m2w_gd0')));
-fprintf('csc_fltr_1_8_0 before equalization: GD over wp %.2f-%.2f samples\n', ...
-    min(r0.gdz(r0.fz >= wp_(1) & r0.fz <= wp_(2))), max(r0.gdz(r0.fz >= wp_(1) & r0.fz <= wp_(2))));
-[~, ~, r] = plotGdTwo(Heq, wp_, ws_, struct('markEdges', false, ...
-    'file', fullfile(figDir, 'fig_m2w_gd')));
-[~, ~, gdU] = AnlzDH(H, 2*pi*r.fz);
+[rm, r] = combinedMagGdFig(Heq, {H, Heq}, wp_, ws_, Ap, {'before', 'after'}, ...
+    fullfile(figDir, 'fig_m2w_combined'));
 inWp = r.fz >= wp_(1) & r.fz <= wp_(2);
+fprintf('csc_fltr_1_8_0 before equalization: GD over wp %.2f-%.2f samples\n', ...
+    min(r.gdz(inWp, 1)), max(r.gdz(inWp, 1)));
 fe = stats.f(:);
 [~, ~, gdUe] = AnlzDH(H, 2*pi*fe);
 [~, ~, gdEe] = AnlzDH(Heq, 2*pi*fe);
-gE = r.gdz(inWp);
+gE = r.gdz(inWp, 2);
 fprintf(['csc_fltr_1_8_0, 7 clusters: GD over wp %.2f-%.2f samples (mean %.2f), ' ...
     'p2p %.2f samples (%.2f%%); unequalized p2p %.2f samples\n'], min(gE), max(gE), ...
-    mean(gE), max(gE) - min(gE), r.p2pPct, max(gdU(inWp)) - min(gdU(inWp)));
+    mean(gE), max(gE) - min(gE), r.p2pPct(2), max(r.gdz(inWp, 1)) - min(r.gdz(inWp, 1)));
 fprintf('  expanded band %.3f-%.3f Hz: p2p %.2f samples (unequalized %.2f)\n', ...
     fe(1), fe(end), max(gdEe) - min(gdEe), max(gdUe) - min(gdUe));
 fprintf('  radii %s\n', mat2str(clusterR, 3));
-dBw = rm.dBz(inWp);
+dBw = rm.dBz(rm.fz >= wp_(1) & rm.fz <= wp_(2));
 inStop = rm.f <= 0 | rm.f >= 0.5;
 fprintf('  passband ripple %.3f dB, min stopband loss %.1f dB\n', -min(dBw), -max(rm.dB(inStop)));
 

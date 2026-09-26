@@ -20,7 +20,14 @@ function [ax1, ax2, h1, h2] = plotTwo(c1, c2, figTitle, opts)
 %     .x .y            data; .y may be a matrix with one column per curve
 %                      (e.g. one per filter), and .x a vector or a matrix
 %                      of the same size
-%     .color           default 'r' for c1, 'b' for c2
+%     .color           default 'r' for c1, 'b' for c2. A single value
+%                      colours the axis ticks/labels and every curve (as
+%                      before). A cell array of values, one per column of
+%                      .y, gives each curve its own colour instead, while
+%                      the axis ticks/labels/marker-lines keep this set's
+%                      default identity colour ('r' for c1, 'b' for c2) --
+%                      the pair still reads as "which view", with colour
+%                      now free to also say "which curve".
 %     .lineStyle       cell of styles, one per column of .y;
 %                      default {'-', '--', ':'}
 %     .xAxis .yAxis    'top'/'bottom' and 'left'/'right'; defaults as above
@@ -41,6 +48,15 @@ function [ax1, ax2, h1, h2] = plotTwo(c1, c2, figTitle, opts)
 %     .legendLoc    default 'best'; 'northoutside'/'southoutside' give a
 %                   horizontal legend
 %     .linkX        link the two x-axes' limits (default false)
+%     .pos          axes Position (default [0.13 0.11 0.72 0.72], leaving
+%                   room for the top x-axis and title); pass a narrower
+%                   rectangle to place this plotTwo box side by side with
+%                   another one in the same figure (see plotGdTwo's/
+%                   plotMgTwo's own .pos)
+%     .linkTag      appdata key for this call's axis-position link
+%                   object (default 'plotTwoLink'); pass a distinct tag
+%                   for each plotTwo call sharing one figure, or the
+%                   second call's link silently replaces the first's
 %
 %   Returns both axes handles and the line handles of each set.
 %
@@ -73,9 +89,11 @@ if ~isfield(opts, 'grid') || isempty(opts.grid), opts.grid = 1; end
 if ~isfield(opts, 'legendNames'), opts.legendNames = {}; end
 if ~isfield(opts, 'legendLoc') || isempty(opts.legendLoc), opts.legendLoc = 'best'; end
 if ~isfield(opts, 'linkX') || isempty(opts.linkX), opts.linkX = false; end
+if ~isfield(opts, 'pos') || isempty(opts.pos), opts.pos = [0.13 0.11 0.72 0.72]; end
+if ~isfield(opts, 'linkTag') || isempty(opts.linkTag), opts.linkTag = 'plotTwoLink'; end
 
 fig = opts.fig;
-pos = [0.13 0.11 0.72 0.72];     % leaves room for the top x-axis and title
+pos = opts.pos;     % leaves room for the top x-axis and title, by default
 
 % ---- Axes 1 (bottom layer, white) ----
 ax1 = axes('Parent', fig, 'Position', pos, 'Box', 'off', 'Color', 'w');
@@ -92,7 +110,7 @@ end
 
 % keep the axes aligned on resize; store the link objects so they stay alive
 hl = linkprop([ax1 ax2], {'Position', 'InnerPosition'});
-setappdata(fig, 'plotTwoLink', hl);
+setappdata(fig, opts.linkTag, hl);
 if opts.linkX
     linkaxes([ax1 ax2], 'x');
 end
@@ -129,7 +147,7 @@ function h = drawSet(ax, c)
 %   draws every column of c.y on ax and sets up ax's axis locations,
 %   colours, limits, labels and marker lines
 set(ax, 'XAxisLocation', c.xAxis, 'YAxisLocation', c.yAxis, ...
-    'XColor', c.color, 'YColor', c.color);
+    'XColor', c.axisColor, 'YColor', c.axisColor);
 y = c.y;
 if isvector(y), y = y(:); end
 x = c.x;
@@ -137,21 +155,35 @@ if isvector(x), x = repmat(x(:), 1, size(y, 2)); end
 nCurves = size(y, 2);
 h = gobjects(1, nCurves);
 for k = 1:nCurves
-    h(k) = line(ax, x(:, k), y(:, k), 'Color', c.color, ...
+    h(k) = line(ax, x(:, k), y(:, k), 'Color', c.color{min(k, numel(c.color))}, ...
         'LineStyle', c.lineStyle{min(k, numel(c.lineStyle))}, 'LineWidth', c.lineWidth);
 end
 xlim(ax, c.xlim);  ylim(ax, c.ylim);
 xlabel(ax, c.xlabel);  ylabel(ax, c.ylabel);
 for xv = c.xlines(:).'
-    line(ax, [xv xv], c.ylim, 'Color', c.color, 'LineStyle', ':', 'LineWidth', 0.75);
+    line(ax, [xv xv], c.ylim, 'Color', c.axisColor, 'LineStyle', ':', 'LineWidth', 0.75);
 end
 for yv = c.ylines(:).'
-    line(ax, c.xlim, [yv yv], 'Color', c.color, 'LineStyle', ':', 'LineWidth', 0.75);
+    line(ax, c.xlim, [yv yv], 'Color', c.axisColor, 'LineStyle', ':', 'LineWidth', 0.75);
 end
 end
 
 function c = setDefaults(c, col, xAx, yAx)
 if ~isfield(c,'color')     || isempty(c.color),     c.color = col;     end
+if ischar(c.color) || (isnumeric(c.color) && isvector(c.color))
+    % one colour for both the axis identity (ticks/labels/marker lines)
+    % and every curve -- exactly the previous behaviour
+    c.axisColor = c.color;
+    c.color = {c.color};
+else
+    % a cell of colours, one per curve: the axis keeps this set's own
+    % identity colour -- the first curve's colour, which by convention is
+    % the caller's usual single-filter colour for this set (e.g. 'b' for
+    % zoom, 'r' for full) -- and curves are told apart by colour instead.
+    % (Not `col`: that is plotTwo's own generic c1/c2 default ('r'/'b'),
+    % which does not know which of zoom/full it was actually called for.)
+    c.axisColor = c.color{1};
+end
 if ~isfield(c,'lineWidth') || isempty(c.lineWidth), c.lineWidth = 1.5; end
 if ~isfield(c,'lineStyle') || isempty(c.lineStyle), c.lineStyle = {'-', '--', ':'}; end
 if ischar(c.lineStyle), c.lineStyle = {c.lineStyle}; end

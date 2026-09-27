@@ -1,0 +1,135 @@
+Running examples/*.m with 150s timeout each. Logs/summary in tools/reports/20260921_115714
+OK      (13s)     examples/csc_fltr_1_10_0.m
+OK      (15s)     examples/csc_fltr_1_12_0.m
+OK      (13s)     examples/csc_fltr_1_2_0.m
+OK      (13s)     examples/cscFltr_1_2_0.m
+OK      (15s)     examples/csc_fltr_1_2_1b.m
+OK      (12s)     examples/csc_fltr_1_2_1.m
+OK      (14s)     examples/cscFltr_1_2.m
+OK      (13s)     examples/csc_fltr_1_6_0.m
+OK      (15s)     examples/csc_fltr_1_6_1.m
+OK      (13s)     examples/csc_fltr_1_7_0.m
+OK      (13s)     examples/csc_fltr_1_8_0b.m
+OK      (15s)     examples/csc_fltr_1_8_0c.m
+OK      (12s)     examples/csc_fltr_1_8_0.m
+OK      (15s)     examples/csc_fltr_1_8_1.m
+OK      (8s)     examples/dbg.m
+OK      (16s)     examples/design_examples.m
+OK      (14s)     examples/dfltr_1_2.m
+OK      (10s)     examples/dfltr_1_6_1.m
+OK      (17s)     examples/dfltr_1_7_0.m
+OK      (10s)     examples/dfltr_1_7_1.m
+OK      (11s)     examples/dfltr_1_8_0b.m
+OK      (17s)     examples/dfltr_1_8_0c.m
+OK      (23s)     examples/dfltr_1_8_0.m
+OK      (12s)     examples/dfltr_2_6_2.m
+OK      (16s)     examples/dig_equiGd_1_10_0.m
+OK      (26s)     examples/dig_equiGd_1_15_0.m
+OK      (16s)     examples/dig_equiGd_15_0_0.m
+OK      (15s)     examples/dig_equiGd_1_6_0.m
+OK      (19s)     examples/dig_equiGd_3_4_0.m
+OK      (18s)     examples/dig_equiGd_5_0_0.m
+FAILED  (10s)     examples/dig_equiGd_5_10_0.m -- LinPhFltr(n=18, deltT=0.01, ap=3.0103): fsolve could not find a conjugate-symmetric equi-ripple solution, even via continuation from deltT=0.25 (best residual 263.2 direct, 8.221 via continuation) - no valid real filter found for this spec
+OK      (10s)     examples/dig_fltr_0_2_0.m
+OK      (11s)     examples/dig_fltr_1_2_0.m
+OK      (10s)     examples/dig_fltr_1_2.m
+OK      (12s)     examples/dig_fltr_1_3_1.m
+OK      (10s)     examples/dig_fltr_1_4.m
+OK      (11s)     examples/dig_fltr_1_5_1.m
+OK      (21s)     examples/dig_fltr_2_10_1.m
+OK      (11s)     examples/dig_fltr_2_5_1.m
+OK      (16s)     examples/dig_fltr_2_6_1.m
+OK      (19s)     examples/dig_fltr_2_7_1.m
+OK      (21s)     examples/dig_fltr_2_8_1.m
+OK      (20s)     examples/dig_fltr_2_9_1.m
+OK      (12s)     examples/dig_fltr_3_5_1.m
+OK      (11s)     examples/dig_fltr_3_6_1.m
+FAILED  (7s)     examples/dig_linPh_0_2_0.m -- Unrecognized function or variable 'px'.
+OK      (15s)     examples/dig_linPh_1_2_0b.m
+FAILED  (7s)     examples/dig_linPh_1_2_0.m -- Unrecognized function or variable 'px'.
+FAILED  (13s)     examples/dig_linPh_1_4_0.m -- place_polesdLP3: only found 5 independent stop-band loss minima for 5 free pole(s) after freezing colliding poles for 5 iterations - pole placement halted
+FAILED  (13s)     examples/dig_linPh_1_6_0.m -- place_polesdLP3: only found 2 independent stop-band loss minima for 2 free pole(s) after freezing colliding poles for 5 iterations - pole placement halted
+FAILED  (15s)     examples/dig_linPh_1_8_0.m -- place_polesdLP3: only found 2 independent stop-band loss minima for 4 free pole(s) after freezing colliding poles for 5 iterations - pole placement halted
+FAILED  (10s)     examples/DLddrFltr_1_2_0.m -- Undefined function 'normrnd' for input arguments of type 'double'.
+FAILED  (11s)     examples/DLddrFltr_1_4_0.m -- Undefined function 'normrnd' for input arguments of type 'double'.
+FAILED  (10s)     examples/DLddrFltr_1_6_0.m -- Undefined function 'normrnd' for input arguments of type 'double'.
+FAILED  (9s)     examples/DLddrFltr_1_8_0.m -- Unrecognized function or variable 'lim'.
+SKIP (function file)  examples/dsgnEquiRplGD.m
+OK      (7s)     examples/dsgn_fltr2.m
+FAILED  (13s)     examples/ECG1.m -- Invalid file identifier. Use fopen to generate a valid file identifier.
+FAILED  (11s)     examples/ECGrial1.m -- Invalid file identifier. Use fopen to generate a valid file identifier.
+OK      (39s)     examples/EqualFltr_1_6_0.m
+OK      (21s)     examples/EqualRipple_1_6_0.m
+OK      (9s)     examples/exmpl0.m
+OK      (10s)     examples/exmpl10.m
+OK      (9s)     examples/exmpl_1_1_0.m
+OK      (11s)     examples/exmpl11.m
+FAILED  (10s)     examples/exmpl12.m -- Unable to resolve the name 'X5.K'.
+OK      (10s)     examples/exmpl_1_5_0b.m
+OK      (11s)     examples/exmpl_1_5_0.m
+FAILED  (10s)     examples/exmpl_1_5_1.m -- Unrecognized function or variable 'X2o'.
+OK      (12s)     examples/exmpl1.m
+OK      (10s)     examples/exmpl_2_1b.m
+OK      (11s)     examples/exmpl_2_1c.m
+OK      (10s)     examples/exmpl_2_1.m
+OK      (11s)     examples/exmpl_2_5_0.m
+OK      (10s)     examples/exmpl2.m
+OK      (9s)     examples/exmpl3.m
+FAILED  (10s)     examples/exmpl4.m -- Not enough input arguments.
+FAILED  (11s)     examples/exmpl_5_1_1.m -- Unrecognized function or variable 'X2o'.
+OK      (10s)     examples/exmpl5.m
+OK      (11s)     examples/exmpl6.m
+OK      (10s)     examples/exmpl7.m
+OK      (11s)     examples/exmpl8.m
+OK      (17s)     examples/exmpl9.m
+OK      (11s)     examples/exmpl.m
+FAILED  (10s)     examples/exmpl_r1b.m -- Pole Removals Failed
+OK      (10s)     examples/exmpl_r1.m
+OK      (18s)     examples/Fbnk_1_10_0.m
+OK      (18s)     examples/Fbnk_1_12_0.m
+OK      (24s)     examples/Fbnk_1_14_0.m
+FAILED  (11s)     examples/Fbnk_1_8_0.m -- Not enough input arguments.
+OK      (10s)     examples/fltr_0_5_0.m
+OK      (12s)     examples/fltr_1_10_0b.m
+OK      (13s)     examples/fltr_1_10_0.m
+OK      (11s)     examples/fltr_1_2_0b.m
+OK      (10s)     examples/fltr_1_2_0.m
+OK      (11s)     examples/fltr_1_5_0.m
+OK      (12s)     examples/fltr_1_5_1b.m
+OK      (11s)     examples/fltr_1_5_1.m
+OK      (11s)     examples/fltr_1_6_0.m
+OK      (11s)     examples/fltr_1_8_0.m
+OK      (12s)     examples/fltr_1_9_0.m
+OK      (9s)     examples/fltr1.m
+OK      (12s)     examples/fltr_2_0_0B.m
+OK      (11s)     examples/fltr_2_0_0.m
+OK      (10s)     examples/fltr_2_2_2.m
+OK      (10s)     examples/fltr_2_5_0.m
+OK      (11s)     examples/fltr_2_6_0.m
+OK      (10s)     examples/fltr_2_7_1.m
+OK      (10s)     examples/fltr2.m
+OK      (10s)     examples/fltr_3_6_0.m
+OK      (12s)     examples/fltr_3_8_1.m
+OK      (16s)     examples/FltrBnk_1_4_0.m
+OK      (11s)     examples/FltrBnk_1_4_2e.m
+OK      (15s)     examples/FltrBnk_1_6_0e.m
+OK      (18s)     examples/FltrBnk_1_6_0.m
+OK      (12s)     examples/FltrBnk_1_8_0.m
+OK      (11s)     examples/FltrBnk_tst2.m
+OK      (12s)     examples/FltrBnk_tst.m
+OK      (10s)     examples/flt_tmp.m
+FAILED  (11s)     examples/mkFltr_exmpl.m -- Too many output arguments.
+FAILED  (6s)     examples/mkYaml.m -- Unable to resolve the name 'yaml.ReadYaml'.
+FAILED  (7s)     examples/shortDat.m -- Unrecognized function or variable 'win'.
+OK      (7s)     examples/startup.m
+SKIP (function file)  examples/test.m
+OK      (6s)     examples/tst_digital2Cont.m
+OK      (12s)     examples/tst_getEvnOdd.m
+FAILED  (12s)     examples/tstTFops.m -- Pole Removals Failed
+
+=== Summary ===
+OK:      103
+FAILED:  22
+TIMEOUT: 0
+SKIPPED: 2
+Total wall time: 1577s

@@ -91,7 +91,7 @@ figure: |-
 # IEEE puts table captions above the table
 table: |-
   \begin{table${star}}[${position}]
-  \renewcommand{\arraystretch}{1.2}
+  \renewcommand{\arraystretch}{1.0}
   \caption{${caption}}${label}
   \centering
   \begin{tabular}{${columns}}

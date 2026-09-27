@@ -21,20 +21,24 @@ function [ax1, ax2, h1, h2] = plotTwo(c1, c2, figTitle, opts)
 %                      (e.g. one per filter), and .x a vector or a matrix
 %                      of the same size
 %     .color           default 'r' for c1, 'b' for c2. A single value
-%                      colours the axis ticks/labels and every curve (as
-%                      before). A cell array of values, one per column of
-%                      .y, gives each curve its own colour instead, while
-%                      the axis ticks/labels/marker-lines keep this set's
-%                      default identity colour ('r' for c1, 'b' for c2) --
-%                      the pair still reads as "which view", with colour
-%                      now free to also say "which curve".
+%                      colours the axis ticks/labels and every curve. A
+%                      cell array of values, one per column of .y, gives
+%                      each curve its own colour instead -- but then
+%                      .axisColor must be given too (see below): with more
+%                      than one curve colour, no single one of them can
+%                      safely stand in for "which view this is".
+%     .axisColor       colour of the axis ticks/labels/marker-lines,
+%                      independent of the curves' own colour(s). Default:
+%                      same as .color, when .color is a single value.
+%                      Required when .color is a cell.
 %     .lineStyle       cell of styles, one per column of .y;
 %                      default {'-', '--', ':'}
+%     .lineWidth       default 1.5; a cell array, one per column of .y,
+%                      gives each curve its own width instead
 %     .xAxis .yAxis    'top'/'bottom' and 'left'/'right'; defaults as above
 %     .xlim .ylim      [min max]; default is the finite data range
 %     .xlabel .ylabel  axis label strings
 %     .name            legend entry for this set (char), as in plot_dam_ph1
-%     .lineWidth       default 1.5
 %     .xlines .ylines  positions of dotted vertical/horizontal marker lines
 %                      drawn on this set's axes, in its colour
 %
@@ -132,7 +136,8 @@ if ~isempty(opts.legendNames)
     hp = gobjects(1, nNames);
     for k = 1:nNames
         hp(k) = line(ax2, NaN, NaN, 'Color', 'k', ...
-            'LineStyle', styles{min(k, numel(styles))}, 'LineWidth', c1.lineWidth);
+            'LineStyle', styles{min(k, numel(styles))}, ...
+            'LineWidth', c1.lineWidth{min(k, numel(c1.lineWidth))});
     end
     lgd = legend(ax2, hp, opts.legendNames, 'Location', opts.legendLoc);
     if any(strcmpi(opts.legendLoc, {'northoutside', 'southoutside'}))
@@ -156,7 +161,8 @@ nCurves = size(y, 2);
 h = gobjects(1, nCurves);
 for k = 1:nCurves
     h(k) = line(ax, x(:, k), y(:, k), 'Color', c.color{min(k, numel(c.color))}, ...
-        'LineStyle', c.lineStyle{min(k, numel(c.lineStyle))}, 'LineWidth', c.lineWidth);
+        'LineStyle', c.lineStyle{min(k, numel(c.lineStyle))}, ...
+        'LineWidth', c.lineWidth{min(k, numel(c.lineWidth))});
 end
 xlim(ax, c.xlim);  ylim(ax, c.ylim);
 xlabel(ax, c.xlabel);  ylabel(ax, c.ylabel);
@@ -170,21 +176,28 @@ end
 
 function c = setDefaults(c, col, xAx, yAx)
 if ~isfield(c,'color')     || isempty(c.color),     c.color = col;     end
+hasAxisColor = isfield(c,'axisColor') && ~isempty(c.axisColor);
 if ischar(c.color) || (isnumeric(c.color) && isvector(c.color))
     % one colour for both the axis identity (ticks/labels/marker lines)
-    % and every curve -- exactly the previous behaviour
-    c.axisColor = c.color;
+    % and every curve -- exactly the previous behaviour, unless the caller
+    % gave an explicit .axisColor
+    if ~hasAxisColor, c.axisColor = c.color; end
     c.color = {c.color};
 else
-    % a cell of colours, one per curve: the axis keeps this set's own
-    % identity colour -- the first curve's colour, which by convention is
-    % the caller's usual single-filter colour for this set (e.g. 'b' for
-    % zoom, 'r' for full) -- and curves are told apart by colour instead.
-    % (Not `col`: that is plotTwo's own generic c1/c2 default ('r'/'b'),
-    % which does not know which of zoom/full it was actually called for.)
-    c.axisColor = c.color{1};
+    % a cell of colours, one per curve: the axis keeps its own identity
+    % colour, independent of the curves' colours -- the caller must set
+    % .axisColor explicitly (e.g. always 'b' for a zoom set, 'r' for a
+    % full-band set), since with more than one curve colour there is no
+    % single curve colour that can stand in for "which view this is"
+    % (e.g. a before/after pair coloured cyan/red has neither colour
+    % matching the zoom/full blue/red identity convention).
+    if ~hasAxisColor
+        error('plotTwo:noAxisColor', ...
+            'c.axisColor is required when c.color is a cell (per-curve colours)');
+    end
 end
 if ~isfield(c,'lineWidth') || isempty(c.lineWidth), c.lineWidth = 1.5; end
+if ~iscell(c.lineWidth), c.lineWidth = {c.lineWidth}; end
 if ~isfield(c,'lineStyle') || isempty(c.lineStyle), c.lineStyle = {'-', '--', ':'}; end
 if ischar(c.lineStyle), c.lineStyle = {c.lineStyle}; end
 if ~isfield(c,'xAxis')     || isempty(c.xAxis),     c.xAxis = xAx;     end

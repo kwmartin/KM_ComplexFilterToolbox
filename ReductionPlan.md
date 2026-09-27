@@ -343,3 +343,118 @@ Changes made after review of the first draft of this plan:
 5. **Extended-version wording changed**: "available on request from the
    author" now, "available at [library/publisher site]" after the
    conference — not a repository path.
+
+## Round 2 (2026-09-27): from 5 pages to the 4.0 limit
+
+Round 1 (above) got `CmplxFltrGrpDly_conf.yaml` from 11 pages down to 5 —
+close to, but not quite at, the 4.0 hard limit anticipated in this
+document's Context section. This round closes that last gap.
+
+### What's different this time
+
+Round 1's levers were mostly **content removal** (whole subsections,
+whole figures) sized by word count, because the paper was more than
+double the target length. At 5 pages against a 4-page limit, the
+remaining overflow is much smaller — well under half a page, all of it
+landing on page 5 (Table I, Table II, Fig. 3, and the tail of the
+References). That changes the diagnosis: direct inspection of the built
+PDF and its `.log` found the overflow is driven at least as much by a
+**layout placement problem** as by leftover content volume.
+
+**Key finding:** Table I is built as a double-column-spanning `table*`
+(`span: 2` in the yaml). In two-column IEEEtran, a `table*`/`figure*`
+float can only be placed at the very top of a full page — it can't tuck
+into leftover column space the way a normal `table`/`figure` can. Table I
+can't slot in below Fig. 2 on page 4, so it (and everything queued after
+it) gets pushed to a fresh page 5. This is fixable by shortening its
+header text enough to fit one column and dropping `span: 2` — no content
+loss, and likely the single biggest lever available at this stage.
+
+**Second finding:** comparing `_conf.yaml` against `_full.yaml` again
+(now that Round 1's cuts are in place) shows most surviving sections are
+already compressed to roughly half their full-length word count (§1:
+46%, §4: 51%, §6/Results: 49%) — except §2.1/§3.1, the "Algorithm"
+subsections, which are essentially untouched (532/545 and 413/414 words).
+If a text cut is still needed this round, that's where the untapped
+slack is, not in sections Round 1 already worked over.
+
+### Ranked list of options
+
+| # | Change | Est. savings | Effort | Risk |
+|---|--------|---------------|--------|------|
+| 1 | De-star Table I: shorten header text enough to drop `span: 2`, letting it place as a normal single-column `table` instead of forcing a fresh page-top | Structural — likely unlocks most/all of the needed page | Low | Low — layout only, caption/data untouched |
+| 2 | Tables I & II: `\renewcommand{\arraystretch}{1.2}` → `1.0` in `tools/ieee_templates.yaml`'s `table` template (currently a fixed 20% extra row height on every table) | ~0.3–0.4 in total | Trivial | Very low — cosmetic row spacing only |
+| 3 | Shrink the three combined figures via a per-figure `width:` override in the yaml (e.g. `0.85\columnwidth` instead of the implicit `1.0\columnwidth` default) | ~0.85 in per figure shrunk | Trivial — pure LaTeX-side scale, no MATLAB rerun | Low — quick to preview at several widths |
+| 4 | Table II (`tab:m2_width`) duplicates the paragraph right below it almost verbatim; shrink to 2 rows or drop in favor of that sentence | ~0.3–0.6 in | Low | Low-medium — loses an at-a-glance table, prose already carries the claim |
+| 5 | Two throwaway "simpler alternatives... found wanting" pointer sentences (ends of §2.1, §3.1) — already gesture at Round-1-cut content, can compress further | ~0.05 in | Trivial | Very low |
+| 6 | If still short: edit §2.1/§3.1 ("Algorithm") — the only body text not already compressed once this round | ~0.3–0.8 in | Medium | Medium — core technical content |
+| 7 | Drop one figure entirely — Fig. 1 (redundant with prose + Table I) or Fig. 3 (framed as a secondary confirmatory result; literally the figure landing on page 5 today) | ~2.6 in — likely enough alone | Low | Medium — loses a visual, not just words |
+| 8 | Manual `\vspace{-Npt}` squeezes around figure/section spacing | Small, unpredictable | Low effort, fragile | Low-medium — can look hand-hacked |
+
+Dead end, already checked: bibliography font size — IEEEtran already
+auto-sets it to 8pt; no further override is available to remove.
+
+### Recommendation
+
+Try the cheap, content-preserving structural fixes first, stopping as
+soon as the build hits 4 pages: (1) de-star Table I, (2) `arraystretch`
+1.2→1.0 on both tables + trim/drop Table II, (3) if still over, scale
+down 1–2 figures' `width:`. Only fall back to (6) editing §2.1/§3.1 prose
+or (7) dropping a whole figure if the layout-only fixes above aren't
+enough — this round's overflow looks like a placement problem more than
+a true content overage, so it's worth exhausting the zero-content-loss
+options before cutting anything.
+
+Full analysis: `/home/martin/.claude/plans/next-we-need-to-distributed-sphinx.md`.
+
+### Status: items 1–5 done, still 5 pages — the gap is bigger than it first looked
+
+Implemented and rebuilt (backups: `doc/ieee/CmplxFltrGrpDly_conf.yaml.round2-items1-2.bak`
+and `...round2-items3-5.bak`; tracked-file changes committed as
+`fb8032c`):
+
+1. De-starred Table I (shortened headers: `band/target`, `edge(dB)`,
+   `stop(dB)`, etc.) — now a single-column `table`, 0 overfull hboxes.
+2. `arraystretch` 1.2 → 1.0 in `tools/ieee_templates.yaml`.
+3. All three figures given `width: 0.85` in the yaml.
+4. Table II (`tab:m2_width`) cut from 4 rows to 2 (narrowest + widest).
+5. Both "simpler alternatives were tried and found wanting..." pointer
+   sentences (§2.1, §3.1) compressed further.
+
+**Result: still 5 pages.** Table I's de-star fix worked as diagnosed
+(0 overfull hboxes, and page 4 absorbed both tables), but it turned out
+to be a wash on total page count: page 4 was *already* fully packed
+edge-to-edge before this round's changes (confirmed both before and
+after), so moving content onto it just relocated which content overflows
+to page 5, rather than shrinking the total. Items 3–5 bought real,
+measured savings — column 2 of page 5 is now completely empty (all 15
+references fit in column 1) — but only about 1 inch total.
+
+Direct pixel measurement of the rebuilt page 5 (not word-count estimate):
+column 1 still holds **~8.25 inches of genuine content** (cross-checked
+against the `.log` — no underfull `\vbox`, so this isn't artificial
+stretch). Page 4 has zero slack (both columns end on the identical last
+line). So reaching 4 pages needs the *document's total length* to drop
+by close to that 8.25 in (~43% of a page) — roughly 400 words'
+equivalent at this paper's density (~50 words/column-inch, from the
+log's "56 lines/column"). The cheap, layout-only, zero-content-loss tier
+(items 1–5) is exhausted; closing the rest requires removing real
+content, not rearranging it.
+
+### Next session: closing the remaining ~8.25 in gap
+
+Recommended order (not yet implemented — decide/confirm before
+proceeding):
+
+| # | Change | Est. savings | Cost |
+|---|--------|---------------|------|
+| 1 | Gut §IV-B ("Where It Gives a Noticeable Improvement") to 2–3 sentences: keep the conclusion + numbers (z-domain degrades to 175.6–175.8%; x-domain holds 4.39% at every width), cut the scaling/cancellation derivation, point to the extended version | ~5–6 in — the single biggest lever available | Loses the paper's one from-first-principles derivation (a justification for a design choice already made, not a result) |
+| 2 | Drop Fig. 1 (`fig_m1_combined`) entirely — its content (k=3.25, 74.45 samples, 0.34% ripple) is already fully stated in prose and in Table I | ~2.5 in | Loses a visual, not a claim — the number survives in two other places |
+| 3 | *(only if 1+2 aren't enough)* Lightly trim §2.1/§3.1 "Algorithm" prose (untouched since the full version, 532/413 words) — tighten wording ~15–20%, remove no steps | ~3–4 in | Touches the paper's core technical description — highest-value content, use only to close a small remaining gap |
+| 4 | *(last resort)* Drop the wide-band generalization story — the "Generalization to a much wider passband" paragraph + Fig. 3 — replaced with a one-line pointer to the extended version; also needs a small abstract edit ("narrow-band and wide-band examples" → drop "and wide-band") | ~5–5.6 in | Highest cost of the four: removes the paper's only evidence the method generalizes to a much wider passband, currently a claim in the abstract |
+
+1 + 2 together (~7.5–8.5 in) land right in the needed range — do those
+first, rebuild, and check before deciding whether 3 or 4 is needed at
+all. Verification commands are in the "Verification" section above
+(`tools/make_ieee_tex.py`, `pdfinfo ... | grep Pages`,
+`grep Overfull ...log`).

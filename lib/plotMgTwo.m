@@ -29,7 +29,12 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
 %                  highest stopband level, floored at -200)
 %     .zoomColor .fullColor   default 'b' and 'r'; each may be a cell of
 %                  colours, one per filter, instead of a single colour --
-%                  see plotTwo.m's .color
+%                  see plotTwo.m's .color. The zoom/full axes themselves
+%                  always stay blue/red (.zoomAxisColor/.fullAxisColor,
+%                  below) regardless of the curve colours chosen here.
+%     .zoomAxisColor .fullAxisColor   the zoom/full axis ticks' and
+%                  labels' own colour, independent of the curve colours
+%                  above (default 'b' and 'r')
 %     .alignZero   put 0 dB at the same height on both y-axes (default
 %                  true; needs 0 dB inside the zoom's y-range)
 %     .markEdges   draw dotted lines at the wp edges (zoom) and the inner
@@ -78,6 +83,8 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
   opts = setOpt(opts, 'legendLoc', 'southoutside');
   opts = setOpt(opts, 'zoomColor', 'b');
   opts = setOpt(opts, 'fullColor', 'r');
+  opts = setOpt(opts, 'zoomAxisColor', 'b');
+  opts = setOpt(opts, 'fullAxisColor', 'r');
   opts = setOpt(opts, 'newFig', true);
   opts = setOpt(opts, 'title', '');
   opts = setOpt(opts, 'names', {});
@@ -120,6 +127,7 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
   end
   zoom.x = fz;  zoom.y = dBz;
   zoom.color = opts.zoomColor;
+  zoom.axisColor = opts.zoomAxisColor;
   if isfield(opts, 'lineStyle') && ~isempty(opts.lineStyle), zoom.lineStyle = opts.lineStyle; end
   zoom.xAxis = 'bottom';  zoom.yAxis = 'left';
   zoom.xlim = xz;  zoom.ylim = zy;
@@ -140,6 +148,7 @@ function [ax1, ax2, r] = plotMgTwo(H, wp, ws, opts)
   end
   full.x = f;  full.y = dB;
   full.color = opts.fullColor;
+  full.axisColor = opts.fullAxisColor;
   if isfield(opts, 'lineStyle') && ~isempty(opts.lineStyle), full.lineStyle = opts.lineStyle; end
   full.xAxis = 'top';  full.yAxis = 'right';
   fTop = max(dB(:)) + 5;

@@ -1,23 +1,38 @@
-function [rm, r] = combinedMagGdFig(Hmag, Hgd, wp, ws, Ap, names, file)
-%   [rm, r] = combinedMagGdFig(Hmag, Hgd, wp, ws, Ap, names, file) makes
-%   one combined paper figure: magnitude (left, via plotMgTwo) and group
-%   delay (right, via plotGdTwo -- one curve, or two overlaid and
-%   colour-coded when Hgd is a 2-element cell) side by side, each panel
-%   about a third of a column wide. See ReductionPlan.md's "Figure
-%   strategy for Section VI".
+function [rm, r] = combinedMagGdFig(Hmag, Hgd, wp, ws, Ap, names, file, beforeStyle)
+%   [rm, r] = combinedMagGdFig(Hmag, Hgd, wp, ws, Ap, names, file, beforeStyle)
+%   makes one combined paper figure: magnitude (left, via plotMgTwo) and
+%   group delay (right, via plotGdTwo -- one curve, or two filters x two
+%   views (zoom, full) = four overlaid and colour/style-coded curves when
+%   Hgd is a 2-element cell) side by side, each panel about a third of a
+%   column wide. See ReductionPlan.md's "Figure strategy for Section VI".
 %
 %   Hmag   a single zpk. Magnitude is unaffected by the all-pass
 %          equalizer, so there is never a before/after pair to show for
 %          it -- pass whichever of the before/after filters is convenient
 %          (they give identical magnitude).
-%   Hgd    a zpk, or a 2-element cell {Hbefore, Hafter} to overlay both
-%          on the same axes, colour-coded: solid blue for the first curve,
-%          solid red for the second, in both the zoom and full-band views.
+%   Hgd    a zpk, or a 2-element cell {Hbefore, Hafter} to overlay both on
+%          the same axes, each in both its zoom and full-band views: four
+%          curves total, no two the same colour. "After" is solid,
+%          heavier -- more emphatic, the figure's main point -- blue in
+%          the passband zoom, red in the full band. "Before" is thin --
+%          visually secondary throughout -- light green in the passband
+%          zoom (beforeStyle.zoomColor), grey in the full band
+%          (beforeStyle.color). Zoom is blue/green, full is red/grey;
+%          before/after is thin/heavy -- colour and weight together, not
+%          shape/x-extent, now tell all four apart.
 %   wp, ws, Ap   as in plotMgTwo/plotGdTwo.
 %   names  unused for now (no legend is drawn -- it tended to obscure the
 %          curves at this panel size; color alone tells the two curves
 %          apart). Kept as an argument in case a legend is wanted again.
 %   file   passed to savePaperFig (no extension).
+%   beforeStyle   struct overriding the "before" curves' .color (full-band
+%          colour, default grey), .zoomColor (passband colour, default
+%          light green), .lineStyle, .lineWidth (default: thin solid,
+%          width 0.75, so neither competes with the "after" curves). Every
+%          combined figure with a before/after pair uses this same default
+%          unless a caller overrides it -- don't override it per-caller
+%          just to get the standard look; that's how Fig 2 and Fig 3
+%          drifted apart the first time.
 %
 %   rm, r  the plotMgTwo/plotGdTwo return structs (r.p2pPct(k) is the k-th
 %          curve's group-delay peak-to-peak, in % of its mean).
@@ -39,6 +54,13 @@ function [rm, r] = combinedMagGdFig(Hmag, Hgd, wp, ws, Ap, names, file)
 %   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
 
+  if nargin < 8 || isempty(beforeStyle), beforeStyle = struct(); end
+  beforeStyle = setOpt(beforeStyle, 'color', [0.5 0.5 0.5]);
+  beforeStyle = setOpt(beforeStyle, 'zoomColor', [0.56 0.83 0.56]);
+  beforeStyle = setOpt(beforeStyle, 'lineStyle', '-');
+  beforeStyle = setOpt(beforeStyle, 'lineWidth', 0.75);
+
+  widthIn = 3.5;   % must match the savePaperFig call below
   fig = figure('Position', [800 100 900 460]);
   posL = [0.14 0.22 0.25 0.60];
   posR = [0.65 0.22 0.25 0.60];
@@ -48,14 +70,19 @@ function [rm, r] = combinedMagGdFig(Hmag, Hgd, wp, ws, Ap, names, file)
   gdOpts = struct('markEdges', false, 'newFig', false, 'fig', fig, ...
       'pos', posR, 'linkTag', 'gdLink', 'legend', false);
   if numel(Hgd) > 1
-    % solid blue for the first curve, solid red for the second, in both
-    % views -- no legend (it tended to obscure the curves); the caption
-    % text says which curve is before/after
-    gdOpts.zoomColor = {'b', 'r'};
-    gdOpts.fullColor = {'b', 'r'};
-    gdOpts.lineStyle = {'-', '-'};
+    % four traces on screen, four colours: passband zoom is blue (after)
+    % / light green (before), full band is red (after) / grey (before) --
+    % matching the zoom axis's own blue and the full axis's own red (see
+    % .zoomAxisColor/.fullAxisColor below). The "after" pair stays solid
+    % and heavier -- more emphatic, the figure's main point; "before" stays
+    % thin -- visually secondary throughout. No legend (it tended to
+    % obscure the curves); the caption text says which is which.
+    gdOpts.zoomColor = {beforeStyle.zoomColor, 'b'};
+    gdOpts.fullColor = {beforeStyle.color, 'r'};
+    gdOpts.lineStyle = {beforeStyle.lineStyle, '-'};
+    gdOpts.lineWidth = {beforeStyle.lineWidth, 1.5};
   end
-  [~, ~, r] = plotGdTwo(Hgd, wp, ws, gdOpts);
+  [ax1, ax2, r] = plotGdTwo(Hgd, wp, ws, gdOpts);
   % a narrow passband makes MATLAB auto-scale the bottom (zoom) x-tick
   % labels with a "x10^-3"-style exponent, which overlaps the axis label
   % at this small panel size. Turning the exponent off alone just leaves
@@ -70,5 +97,11 @@ function [rm, r] = combinedMagGdFig(Hmag, Hgd, wp, ws, Ap, names, file)
           'XTickLabel', arrayfun(@(v) sprintf('%.4f', v), ticks, 'UniformOutput', false));
     end
   end
-  savePaperFig(fig, file, 3.5, 2.3, 7, false);
+  savePaperFig(fig, file, widthIn, 2.3, 7, false);
+end
+
+function s = setOpt(s, name, val)
+  if ~isfield(s, name) || isempty(s.(name))
+    s.(name) = val;
+  end
 end

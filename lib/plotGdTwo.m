@@ -42,7 +42,21 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
 %     .legendLoc   legend location (default 'southoutside', horizontal)
 %     .zoomColor .fullColor   default 'b' and 'r'; each may be a cell of
 %                  colours, one per filter, instead of a single colour --
-%                  see plotTwo.m's .color
+%                  see plotTwo.m's .color. The zoom/full axes themselves
+%                  always stay blue/red (.zoomAxisColor/.fullAxisColor,
+%                  below) regardless of the curve colours chosen here.
+%     .zoomAxisColor .fullAxisColor   the zoom/full axis ticks' and
+%                  labels' own colour, independent of the curve colours
+%                  above (default 'b' and 'r')
+%     .lineWidth   passed through to plotTwo.m's .lineWidth (default 1.5;
+%                  a cell gives each filter its own width) for BOTH zoom
+%                  and full; .zoomLineWidth/.fullLineWidth override it for
+%                  one view only (e.g. a thinner full-band trace than its
+%                  zoom counterpart, so the same filter's two views --
+%                  otherwise identical in colour -- read as distinct
+%                  curves instead of one)
+%     .lineStyle   likewise passed to both views; .zoomLineStyle/
+%                  .fullLineStyle override one view only
 %     .markEdges   draw dotted lines at the wp edges (zoom) and the inner
 %                  ws edges (full band) (default true)
 %     .newFig      open a new figure (default true)
@@ -90,6 +104,8 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
   opts = setOpt(opts, 'gdMaxFctr', 3);
   opts = setOpt(opts, 'zoomColor', 'b');
   opts = setOpt(opts, 'fullColor', 'r');
+  opts = setOpt(opts, 'zoomAxisColor', 'b');
+  opts = setOpt(opts, 'fullAxisColor', 'r');
   opts = setOpt(opts, 'newFig', true);
   opts = setOpt(opts, 'title', '');
   opts = setOpt(opts, 'names', {});
@@ -143,7 +159,17 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
   end
   zoom.x = fz;  zoom.y = gdZoom;
   zoom.color = opts.zoomColor;
-  if isfield(opts, 'lineStyle') && ~isempty(opts.lineStyle), zoom.lineStyle = opts.lineStyle; end
+  zoom.axisColor = opts.zoomAxisColor;
+  if isfield(opts, 'zoomLineStyle') && ~isempty(opts.zoomLineStyle)
+    zoom.lineStyle = opts.zoomLineStyle;
+  elseif isfield(opts, 'lineStyle') && ~isempty(opts.lineStyle)
+    zoom.lineStyle = opts.lineStyle;
+  end
+  if isfield(opts, 'zoomLineWidth') && ~isempty(opts.zoomLineWidth)
+    zoom.lineWidth = opts.zoomLineWidth;
+  elseif isfield(opts, 'lineWidth') && ~isempty(opts.lineWidth)
+    zoom.lineWidth = opts.lineWidth;
+  end
   zoom.xAxis = 'bottom';  zoom.yAxis = 'left';
   zoom.xlim = xz;  zoom.ylim = zy;
   zoom.xlabel = 'Passband frequency (Hz)';
@@ -173,7 +199,17 @@ function [ax1, ax2, r] = plotGdTwo(H, wp, ws, opts)
   end
   full.x = f;  full.y = gd;
   full.color = opts.fullColor;
-  if isfield(opts, 'lineStyle') && ~isempty(opts.lineStyle), full.lineStyle = opts.lineStyle; end
+  full.axisColor = opts.fullAxisColor;
+  if isfield(opts, 'fullLineStyle') && ~isempty(opts.fullLineStyle)
+    full.lineStyle = opts.fullLineStyle;
+  elseif isfield(opts, 'lineStyle') && ~isempty(opts.lineStyle)
+    full.lineStyle = opts.lineStyle;
+  end
+  if isfield(opts, 'fullLineWidth') && ~isempty(opts.fullLineWidth)
+    full.lineWidth = opts.fullLineWidth;
+  elseif isfield(opts, 'lineWidth') && ~isempty(opts.lineWidth)
+    full.lineWidth = opts.lineWidth;
+  end
   full.xAxis = 'top';  full.yAxis = 'right';
   full.xlim = [-0.5 0.5];  full.ylim = fy;
   full.xlabel = 'Frequency (Hz)';

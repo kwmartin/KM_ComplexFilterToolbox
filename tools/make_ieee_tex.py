@@ -220,6 +220,9 @@ def buildTex(doc, tmpls):
     return fill(tmpls, "document", {
         "class_options": doc.get("class_options", "conference"),
         "preamble": preamble.rstrip(),
+        # optional per-document preamble lines (yaml key extra_preamble),
+        # emitted after the shared preamble so a doc can override its settings
+        "extra_preamble": str(doc.get("extra_preamble", "")).rstrip(),
         "title": need(doc, "title", "doc"),
         "authors": "\n\\and\n".join(authors),
         "abstract": str(need(doc, "abstract", "doc")).strip(),

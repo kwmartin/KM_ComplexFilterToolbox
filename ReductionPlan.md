@@ -458,3 +458,53 @@ first, rebuild, and check before deciding whether 3 or 4 is needed at
 all. Verification commands are in the "Verification" section above
 (`tools/make_ieee_tex.py`, `pdfinfo ... | grep Pages`,
 `grep Overfull ...log`).
+
+### Layout-only spacing pass (2026-09-28): remaining gap is now ~6.2 in, not 8.25
+
+A zero-content-loss template change (`tools/ieee_templates.yaml`
+preamble) tightened all the vertical glue that was still at IEEEtran's
+generous defaults:
+
+- `\textfloatsep`/`\dbltextfloatsep`: 1.55 → 0.8 `\baselineskip` (float→
+  text gaps were 24–31pt in the full build; now ~12–16pt);
+- `\floatsep`/`\dblfloatsep`: 0.85 → 0.7 `\baselineskip`;
+- `\section`/`\subsection` heading glue: 1.5ex + 1.5ex stretch above /
+  0.7ex below → 0.9ex + 0.3ex / 0.5ex + 0.1ex.
+
+The heading fix also eliminates a *pre-existing* page-1 defect, present
+before this pass: with the page's column running ~35pt short,
+`\flushbottom` stretched the only available glue — the subsection
+heading skips around "B. Prior Work" — to gaps of **50.3pt before and
+23.1pt after** the heading (visible as large holes mid-column). They
+are now 6.3pt/5.2pt, and the conference build's two `Underfull \vbox`
+warnings (one badness 10000) are gone.
+
+Result after the heading/float glue fix: still 5 pages, page 5 column 1
+content dropped from **8.26in → 6.18in**.
+
+Two further zero-content-loss changes followed the same day:
+
+- the "Toronto ON, Canada" affiliation line was removed from the
+  conference header (`_conf.yaml` only; the full version keeps it);
+- the conference version gains 0.35in of text height per page via
+  `\addtolength{\textheight}{0.35in}`, delivered through a new
+  per-document `extra_preamble:` yaml hook
+  (`tools/make_ieee_tex.py` + the `document` template) so the full
+  paper's layout is untouched. Note for submission: this is a draft-only
+  layout override — check the venue's margin rules before keeping it.
+
+Result: page 5 column 1 content now **3.96in** — and since the venue
+allows a page 5 containing only references, which is exactly what the
+build now produces (no figure/table on page 5 after the margin change),
+the paper meets the 4-page guideline as it stands. Items 1–4 above are
+no longer needed for length; use them only if page 5 ever picks up
+non-reference content again.
+
+One more spacing fix followed (same day): displayed-equation glue
+tightened to 0.5\baselineskip above/below (0.25 for the "short"
+variants), set via `\AtBeginDocument` in the template preamble — Eqs 1–2
+on page 2 had ballooned to 25–29pt gaps on a short column. Side effect
+of the cumulative tightening: the **full paper now builds at 10 pages**,
+so the page-location column in "Measured current size" above is stale by
+up to a page from Section IV onward; regenerate it if that table is used
+again.

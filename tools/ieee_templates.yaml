@@ -22,6 +22,34 @@ preamble: |
   \usepackage{enumitem}
   \setlist{noitemsep, topsep=2pt}
 
+  % tighten space between floats and around them (IEEEtran defaults:
+  % \textfloatsep 1.55\baselineskip, \floatsep 0.85\baselineskip, both with
+  % generous stretch)
+  \setlength{\textfloatsep}{0.8\baselineskip plus 0.3\baselineskip minus 0.2\baselineskip}
+  \setlength{\dbltextfloatsep}{0.8\baselineskip plus 0.3\baselineskip minus 0.2\baselineskip}
+  \setlength{\floatsep}{0.7\baselineskip plus 0.2\baselineskip minus 0.15\baselineskip}
+  \setlength{\dblfloatsep}{0.7\baselineskip plus 0.2\baselineskip minus 0.15\baselineskip}
+
+  % tighten section/subsection heading glue, above and below
+  % (IEEEtran conference default: 1.5ex with 1.5ex stretch above, 0.7ex
+  % below; on a page that runs short, \flushbottom stretches that glue into
+  % large visible gaps). Keep a small stretch so pages can still fill.
+  \makeatletter
+  \def\section{\@startsection{section}{1}{\z@}{0.9ex plus 0.3ex minus 0.2ex}%
+    {0.5ex plus 0.1ex}{\normalfont\normalsize\centering\scshape}}%
+  \def\subsection{\@startsection{subsection}{2}{\z@}{0.9ex plus 0.3ex minus 0.2ex}%
+    {0.5ex plus 0.1ex}{\normalfont\normalsize\itshape}}%
+  \makeatother
+
+  % tighten displayed-equation glue (IEEEtran default: 1.5ex + 3pt above
+  % and below); set at \begin{document} so font-size commands can't reset it
+  \AtBeginDocument{%
+    \setlength{\abovedisplayskip}{0.5\baselineskip plus 0.1\baselineskip minus 0.1\baselineskip}%
+    \setlength{\belowdisplayskip}{0.5\baselineskip plus 0.1\baselineskip minus 0.1\baselineskip}%
+    \setlength{\abovedisplayshortskip}{0.25\baselineskip plus 0.05\baselineskip}%
+    \setlength{\belowdisplayshortskip}{0.25\baselineskip plus 0.05\baselineskip}%
+  }
+
   \lstset{language=Matlab}
   \lstset{tabsize=2}
   \lstset{flexiblecolumns=true}
@@ -34,6 +62,7 @@ preamble: |
 document: |
   \documentclass[${class_options}]{IEEEtran}
   ${preamble}
+  ${extra_preamble}
   \begin{document}
 
   \title{${title}}

@@ -44,10 +44,10 @@ preamble: |
   % tighten displayed-equation glue (IEEEtran default: 1.5ex + 3pt above
   % and below); set at \begin{document} so font-size commands can't reset it
   \AtBeginDocument{%
-    \setlength{\abovedisplayskip}{0.5\baselineskip plus 0.1\baselineskip minus 0.1\baselineskip}%
-    \setlength{\belowdisplayskip}{0.5\baselineskip plus 0.1\baselineskip minus 0.1\baselineskip}%
-    \setlength{\abovedisplayshortskip}{0.25\baselineskip plus 0.05\baselineskip}%
-    \setlength{\belowdisplayshortskip}{0.25\baselineskip plus 0.05\baselineskip}%
+    \setlength{\abovedisplayskip}{0.25\baselineskip plus 0.05\baselineskip minus 0.1\baselineskip}%
+    \setlength{\belowdisplayskip}{0.25\baselineskip plus 0.05\baselineskip minus 0.1\baselineskip}%
+    \setlength{\abovedisplayshortskip}{0.15\baselineskip plus 0.02\baselineskip}%
+    \setlength{\belowdisplayshortskip}{0.15\baselineskip plus 0.02\baselineskip}%
   }
 
   \lstset{language=Matlab}

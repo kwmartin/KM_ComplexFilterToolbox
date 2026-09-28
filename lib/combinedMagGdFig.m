@@ -19,7 +19,10 @@ function [rm, r] = combinedMagGdFig(Hmag, Hgd, wp, ws, Ap, names, file, beforeSt
 %          zoom (beforeStyle.zoomColor), grey in the full band
 %          (beforeStyle.color). Zoom is blue/green, full is red/grey;
 %          before/after is thin/heavy -- colour and weight together, not
-%          shape/x-extent, now tell all four apart.
+%          shape/x-extent, now tell all four apart. The "before" traces are
+%          re-stacked on TOP of the "after" traces (uistack, below), so the
+%          pre-equalization peaks are not hidden where the flat "after"
+%          trace crosses the bathtub.
 %   wp, ws, Ap   as in plotMgTwo/plotGdTwo.
 %   names  unused for now (no legend is drawn -- it tended to obscure the
 %          curves at this panel size; color alone tells the two curves
@@ -83,6 +86,20 @@ function [rm, r] = combinedMagGdFig(Hmag, Hgd, wp, ws, Ap, names, file, beforeSt
     gdOpts.lineWidth = {beforeStyle.lineWidth, 1.5};
   end
   [ax1, ax2, r] = plotGdTwo(Hgd, wp, ws, gdOpts);
+  if numel(Hgd) > 1
+    % re-stack: the "after" curves were plotted last (plotTwo draws columns
+    % in order), which buries the "before" curves wherever the flat "after"
+    % trace crosses the bathtub. Put "before" on top so its peak values
+    % stay visible in both views.
+    for a = ax1(:).'
+      above = findall(a, 'Type', 'line', 'Color', beforeStyle.zoomColor);
+      if ~isempty(above), uistack(above, 'top'); end
+    end
+    for a = ax2(:).'
+      above = findall(a, 'Type', 'line', 'Color', beforeStyle.color);
+      if ~isempty(above), uistack(above, 'top'); end
+    end
+  end
   % a narrow passband makes MATLAB auto-scale the bottom (zoom) x-tick
   % labels with a "x10^-3"-style exponent, which overlaps the axis label
   % at this small panel size. Turning the exponent off alone just leaves
